@@ -1,0 +1,146 @@
+/**
+ * VG-3D MODELERS & RAILWAY SIMULATIONS
+ * EXACT WIX FORENSIC DESIGN TOKEN SYSTEM
+ * Extracted directly from live reference: https://www.vg3dmodelersandrailwaysimulations.com/
+ */
+
+:root {
+  /* =========================================================================
+     1. FONT FAMILIES
+     ========================================================================= */
+  --font-brand-primary: 'futura-lt-w01-book', 'Century Gothic', Arial, sans-serif;
+  --font-brand-light: 'futura-lt-w01-light', 'Century Gothic', Arial, sans-serif;
+  --font-sans-bold: 'helvetica-w01-bold', 'Helvetica Neue', Arial, sans-serif;
+  --font-sans-roman: 'helvetica-w01-roman', 'Helvetica Neue', Arial, sans-serif;
+  --font-sans-light: 'avenir-lt-w01_35-light1475496', 'Avenir', 'Helvetica', Arial, sans-serif;
+  --font-system-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* =========================================================================
+     2. FONT WEIGHTS
+     ========================================================================= */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* =========================================================================
+     3. MEASURED FONT SIZES & LINE HEIGHTS
+     ========================================================================= */
+  /* Main Page Headings */
+  --font-size-h1-projects: 56px;
+  --line-height-h1-projects: normal;
+
+  --font-size-h1-home: 40px;
+  --line-height-h1-home: 54px;
+
+  --font-size-h1-about: 40px;
+  --line-height-h1-about: 54px;
+
+  /* Brand Header Text */
+  --font-size-brand-title: 40px;
+  --line-height-brand-title: 54px;
+
+  --font-size-brand-vg: 18px;
+  --line-height-brand-vg: 25.38px;
+
+  --font-size-brand-subtitle: 8px;
+  --line-height-brand-subtitle: 11.28px;
+
+  /* Section Headings (Project Titles, Service Headings) */
+  --font-size-h2-project: 30px;
+  --line-height-h2-project: normal;
+
+  --font-size-h2-service: 24px;
+  --line-height-h2-service: normal;
+
+  --font-size-bridge-caption: 22px;
+  --line-height-bridge-caption: 31.02px;
+
+  /* Navigation */
+  --font-size-nav: 14px;
+  --line-height-nav: 30px;
+
+  /* Buttons */
+  --font-size-btn-login: 18px;
+  --line-height-btn-login: 31.5px;
+
+  --font-size-btn-quickview: 14px;
+  --line-height-btn-quickview: 50px;
+
+  /* Paragraphs & Body Copy */
+  --font-size-hero-intro: 18px;
+  --line-height-hero-intro: 31.5px;
+
+  --font-size-hero-intro-lg: 20px;
+  --line-height-hero-intro-lg: 36px;
+
+  --font-size-project-desc: 16px;
+  --line-height-project-desc: 28.8px;
+
+  --font-size-service-desc: 16px;
+  --line-height-service-desc: 28.8px;
+
+  --font-size-contact-action: 20px;
+  --line-height-contact-action: 33.4px;
+
+  --font-size-shop-notice: 16px;
+  --line-height-shop-notice: 20.8px;
+
+  --font-size-product-title: 16px;
+  --line-height-product-title: 20px;
+
+  --font-size-product-price: 18px;
+  --line-height-product-price: 27px;
+
+  /* Footer */
+  --font-size-footer-brand: 32px;
+  --line-height-footer-brand: normal;
+
+  --font-size-footer-link: 15px;
+  --line-height-footer-link: 28.125px;
+
+  --font-size-footer-meta: 14px;
+  --line-height-footer-meta: 25.06px;
+
+  --font-size-footer-email: 15px;
+  --line-height-footer-email: 28.125px;
+
+  /* =========================================================================
+     4. MEASURED COLOR PALETTE
+     ========================================================================= */
+  --color-primary-navy: rgb(4, 18, 41);          /* #041229 */
+  --color-navy-dark: rgb(2, 11, 24);             /* #020b18 */
+  --color-primary-white: rgb(255, 255, 255);      /* #ffffff */
+  --color-accent-green: rgb(56, 211, 0);         /* #38D300 */
+  --color-accent-green-hover: rgb(50, 186, 0);   /* #32ba00 */
+  --color-accent-skyblue: rgb(154, 199, 247);    /* #9ac7f7 */
+  --color-accent-gray: rgb(217, 217, 217);       /* #d9d9d9 */
+  --color-ticker-red: rgb(211, 47, 47);          /* #d32f2f */
+  --color-text-dark: rgb(4, 18, 41);             /* #041229 */
+  --color-text-white: rgb(255, 255, 255);        /* #ffffff */
+  --color-text-muted: rgb(100, 116, 139);        /* #64748b */
+  --color-border-light: rgb(229, 231, 235);      /* #e5e7eb */
+  --color-border-gray: rgb(204, 204, 204);       /* #cccccc */
+
+  /* =========================================================================
+     5. MEASURED CONTAINER WIDTHS & SPACING
+     ========================================================================= */
+  --container-wix-max: 980px;
+  --header-height-wix: 198px;
+  --footer-min-height-wix: 257px;
+  --section-padding-y: 48px;
+  --section-divider-border: 1px solid rgb(204, 204, 204);
+
+  /* =========================================================================
+     6. MEASURED IMAGE DIMENSIONS
+     ========================================================================= */
+  --img-logo-coach-width: 127px;
+  --img-logo-coach-height: 56px;
+  --img-project-poster-max-width: 438px;
+  --img-project-poster-max-height: 431px;
+  --img-about-trio-max-width: 700px;
+  --img-services-banner-max-width: 800px;
+  --img-shopping-bag-width: 35px;
+  --img-shopping-bag-height: 42px;
+  --img-social-icon-size: 30px;
+}
