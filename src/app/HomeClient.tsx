@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -9,10 +9,6 @@ import {
   ChevronRight,
   Play,
   Pause,
-  Train,
-  Sparkles,
-  ArrowRight,
-  Sliders,
 } from "lucide-react";
 
 interface HomeClientProps {
@@ -37,9 +33,7 @@ export default function HomeClient({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
-  const [slideProgress, setSlideProgress] = useState(0);
 
-  const thumbnailScrollRef = useRef<HTMLDivElement>(null);
   const AUTO_SLIDE_DURATION_MS = 3800; // 3.8 seconds per slide
 
   // Full 13-item collection matching reference screenshots and catalog
@@ -163,63 +157,25 @@ export default function HomeClient({
     },
   ];
 
-  // Automatic Sliding Timer
+  // Automatic Sliding Timer (pauses on user hover)
   useEffect(() => {
     if (!isAutoPlaying || isHovered) {
       return;
     }
 
-    const intervalStep = 50; // Update progress bar every 50ms
-    const totalSteps = AUTO_SLIDE_DURATION_MS / intervalStep;
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % showcaseProducts.length);
+    }, AUTO_SLIDE_DURATION_MS);
 
-    const progressTimer = setInterval(() => {
-      setSlideProgress((prev) => {
-        if (prev >= 100) {
-          setCurrentIndex((curr) => (curr + 1) % showcaseProducts.length);
-          return 0;
-        }
-        return prev + 100 / totalSteps;
-      });
-    }, intervalStep);
-
-    return () => clearInterval(progressTimer);
+    return () => clearInterval(timer);
   }, [isAutoPlaying, isHovered, showcaseProducts.length]);
 
-  // Keep active thumbnail in the sliding window centered in view
-  useEffect(() => {
-    setSlideProgress(0);
-    if (thumbnailScrollRef.current) {
-      const activeThumb = thumbnailScrollRef.current.children[currentIndex] as HTMLElement;
-      if (activeThumb) {
-        activeThumb.scrollIntoView({
-          behavior: "smooth",
-          block: "nearest",
-          inline: "center",
-        });
-      }
-    }
-  }, [currentIndex]);
-
   const handleNext = () => {
-    setSlideProgress(0);
     setCurrentIndex((prev) => (prev + 1) % showcaseProducts.length);
   };
 
   const handlePrev = () => {
-    setSlideProgress(0);
     setCurrentIndex((prev) => (prev - 1 + showcaseProducts.length) % showcaseProducts.length);
-  };
-
-  const handleSelectCoach = (idx: number) => {
-    setSlideProgress(0);
-    setCurrentIndex(idx);
-  };
-
-  const scrollThumbnails = (direction: "left" | "right") => {
-    if (thumbnailScrollRef.current) {
-      const scrollAmount = direction === "left" ? -280 : 280;
-      thumbnailScrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
-    }
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -260,9 +216,8 @@ export default function HomeClient({
               Home:<br />
               <span className="font-normal text-[#0B2852]">Products - 11x</span>
             </h1>
-            <p className="font-josefin text-sm text-gray-500 mt-1 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#39FF00] animate-pulse"></span>
-              <span>Automatic Sliding Window &bull; Showing all 13 VG Coaches</span>
+            <p className="font-josefin text-sm text-gray-500 mt-1">
+              Showing 13 high-fidelity Indian Railway rolling stock and route add-ons
             </p>
           </div>
 
@@ -299,15 +254,6 @@ export default function HomeClient({
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          {/* Top Auto-Slide Progress Bar Indicator */}
-          <div className="w-full h-1 bg-gray-200 relative overflow-hidden">
-            <div
-              className={`h-full bg-[#39FF00] transition-all duration-75 ease-linear ${
-                isHovered ? "opacity-60" : "opacity-100"
-              }`}
-              style={{ width: `${slideProgress}%` }}
-            />
-          </div>
 
           {/* Main Showcase Image Area */}
           <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full flex items-center justify-center bg-[#F5F6F8] overflow-hidden group">
@@ -407,140 +353,7 @@ export default function HomeClient({
         </div>
 
         {/* =========================================================================
-            C. AUTOMATIC SLIDING WINDOWS: ALL VG COACHES FLEET THUMBNAIL RAIL
-            ========================================================================= */}
-        <div className="mt-8 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Train className="w-5 h-5 text-[#0B2852]" />
-              <h2 className="font-josefin font-bold text-base sm:text-lg text-[#0B2852] tracking-wide">
-                All VG Coaches Fleet &bull; Sliding Windows List
-              </h2>
-            </div>
-
-            {/* Navigation Arrows for Thumbnail Rail */}
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => scrollThumbnails("left")}
-                aria-label="Slide coaches left"
-                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-[#0B2852] hover:text-white flex items-center justify-center transition-colors text-[#0B2852] shadow-sm border border-gray-200"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollThumbnails("right")}
-                aria-label="Slide coaches right"
-                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-[#0B2852] hover:text-white flex items-center justify-center transition-colors text-[#0B2852] shadow-sm border border-gray-200"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Horizontal Sliding Window Track */}
-          <div
-            ref={thumbnailScrollRef}
-            className="flex gap-3 overflow-x-auto pb-4 pt-1 scroll-smooth scrollbar-thin select-none"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-          >
-            {showcaseProducts.map((coach, idx) => {
-              const isActive = idx === currentIndex;
-              return (
-                <button
-                  key={coach.num}
-                  type="button"
-                  onClick={() => handleSelectCoach(idx)}
-                  className={`flex-shrink-0 w-44 sm:w-52 p-3 rounded-xl text-left border-2 transition-all duration-300 relative group overflow-hidden cursor-pointer ${
-                    isActive
-                      ? "border-[#39FF00] bg-[#0B2852] text-white shadow-xl scale-[1.03] ring-2 ring-[#39FF00]/40"
-                      : "border-gray-200 bg-white hover:border-[#0B2852] hover:shadow-md text-[#101C32]"
-                  }`}
-                >
-                  {/* Miniature Image */}
-                  <div className="relative aspect-[16/10] w-full rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center p-2 mb-2">
-                    <img
-                      src={coach.image}
-                      alt={coach.title}
-                      className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <span
-                      className={`absolute top-1 left-1 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded shadow ${
-                        isActive ? "bg-[#39FF00] text-[#101C32]" : "bg-[#0B2852] text-white"
-                      }`}
-                    >
-                      {coach.num}
-                    </span>
-                    {isActive && (
-                      <span className="absolute bottom-1 right-1 text-[9px] font-bold bg-[#39FF00] text-[#101C32] px-1.5 py-0.5 rounded uppercase">
-                        Active
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Title */}
-                  <div className="text-[11px] sm:text-xs font-bold font-josefin line-clamp-1 leading-snug">
-                    {coach.title}
-                  </div>
-                  {/* Tag */}
-                  <div
-                    className={`text-[10px] truncate mt-0.5 font-medium ${
-                      isActive ? "text-[#A7D2F7]" : "text-gray-500"
-                    }`}
-                  >
-                    {coach.tag} &bull; Open Rails / MSTS
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* =========================================================================
-            D. CONTINUOUS SLIDING BANNER STRIP OF COACHES
-            ========================================================================= */}
-        <div className="mt-10 p-4 sm:p-5 bg-gradient-to-r from-[#0B2852] via-[#0F356B] to-[#0B2852] rounded-2xl text-white shadow-xl overflow-hidden border border-[#39FF00]/30">
-          <div className="flex items-center justify-between pb-3 border-b border-white/10 text-xs">
-            <span className="text-[#39FF00] font-bold uppercase tracking-wider flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5" />
-              Live Fleet Stream &bull; All VG Coaches
-            </span>
-            <Link href="/shop" className="text-white hover:text-[#39FF00] underline font-semibold">
-              View All in Shop &rarr;
-            </Link>
-          </div>
-
-          <div className="relative overflow-hidden pt-3">
-            <div className="flex gap-4 whitespace-nowrap animate-marquee hover:[animation-play-state:paused]">
-              {[...showcaseProducts, ...showcaseProducts].map((coach, i) => (
-                <Link
-                  key={`${coach.num}-${i}`}
-                  href={`/shop/${coach.slug}`}
-                  className="inline-flex items-center gap-3 bg-white/10 hover:bg-white/20 px-3.5 py-2 rounded-xl border border-white/10 transition-all hover:scale-105 flex-shrink-0"
-                >
-                  <img
-                    src={coach.image}
-                    alt={coach.title}
-                    className="w-12 h-8 object-contain"
-                  />
-                  <div>
-                    <div className="text-xs font-bold text-white max-w-[160px] truncate">
-                      {coach.title}
-                    </div>
-                    <div className="text-[10px] text-[#39FF00] font-mono">
-                      {coach.tag}
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* =========================================================================
-            E. WHATSAPP CONTACT SHORTCUT
+            C. WHATSAPP CONTACT SHORTCUT
             ========================================================================= */}
         <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-3 p-6 bg-[#F5F6F8] rounded-2xl border border-gray-200">
           <span className="font-josefin font-bold text-[18px] sm:text-[22px] leading-tight text-[#0B2852]">
