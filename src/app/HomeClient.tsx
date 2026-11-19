@@ -1,9 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, ChevronLeft, ChevronRight, X, AlertTriangle, ShieldCheck } from "lucide-react";
+import {
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Play,
+  Pause,
+  Train,
+  Sparkles,
+  ArrowRight,
+  Sliders,
+} from "lucide-react";
 
 interface HomeClientProps {
   featuredProducts: any[];
@@ -25,6 +35,12 @@ export default function HomeClient({
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+  const [slideProgress, setSlideProgress] = useState(0);
+
+  const thumbnailScrollRef = useRef<HTMLDivElement>(null);
+  const AUTO_SLIDE_DURATION_MS = 3800; // 3.8 seconds per slide
 
   // Full 13-item collection matching reference screenshots and catalog
   const showcaseProducts = [
@@ -35,6 +51,7 @@ export default function HomeClient({
       image: "/assets/products/vg_academy_sleeper.avif",
       slug: "vg-lhb-vg-academy-livery-sleeper-coaches",
       desc: "Hyper-realistic LHB Sleeper coach with custom Academy livery, high-poly bogies, and night lighting.",
+      tag: "Academy Livery",
     },
     {
       num: "02",
@@ -43,6 +60,7 @@ export default function HomeClient({
       image: "/assets/products/humsafar_v2.avif",
       slug: "vg-lhb-humsafar-coaches-v2",
       desc: "Signature geometric vinyl aesthetic with 3-tier sleeper passenger compartments and animated doors.",
+      tag: "V2 Update",
     },
     {
       num: "03",
@@ -51,6 +69,7 @@ export default function HomeClient({
       image: "/assets/products/sleeper_v2.avif",
       slug: "vg-lhb-sleeper-coaches-v2-update",
       desc: "Updated V2 long-distance sleeper rolling stock for Rajdhani, Duronto, and Superfast expresses.",
+      tag: "Sleeper Class",
     },
     {
       num: "04",
@@ -59,6 +78,7 @@ export default function HomeClient({
       image: "/assets/products/chaircar_standard.png",
       slug: "vg-lhb-coaches",
       desc: "Premier daytime express coaches including Shatabdi, Deccan Queen, and Anubhuti variants.",
+      tag: "Chair Car",
     },
     {
       num: "05",
@@ -67,6 +87,7 @@ export default function HomeClient({
       image: "/assets/products/vistadome_standard.png",
       slug: "vg-lhb-vistadome-coaches",
       desc: "Panoramic observation coaches with curved glass canopy roofs, swivel seating, and animated doors.",
+      tag: "Panoramic Dome",
     },
     {
       num: "06",
@@ -75,6 +96,7 @@ export default function HomeClient({
       image: "/assets/products/amrit_bharat.png",
       slug: "vg-lhb-amrit-bharat-coaches",
       desc: "Modern non-AC high-speed push-pull rake with signature vibrant orange and grey colorway.",
+      tag: "Push-Pull Fleet",
     },
     {
       num: "07",
@@ -83,6 +105,7 @@ export default function HomeClient({
       image: "/assets/products/bangladesh_coaches.png",
       slug: "vg-lhb-bangladesh-coaches",
       desc: "Export LHB rolling stock for international routes like Maitree Express connecting Dhaka and Kolkata.",
+      tag: "International Export",
     },
     {
       num: "08",
@@ -91,6 +114,7 @@ export default function HomeClient({
       image: "/assets/products/pnb_livery.png",
       slug: "vg-lhb-pnb-livery-chaircar-coaches",
       desc: "Commercial wrap edition featuring authentic Punjab National Bank advert livery.",
+      tag: "Commercial Wrap",
     },
     {
       num: "09",
@@ -99,6 +123,7 @@ export default function HomeClient({
       image: "/assets/products/indian_tricolour.avif",
       slug: "vg-lhb-indian-tricolour-coaches",
       desc: "Patriotic commemorative livery inspired by the national tricolour for celebration rakes.",
+      tag: "Special Edition",
     },
     {
       num: "10",
@@ -107,6 +132,7 @@ export default function HomeClient({
       image: "/assets/products/vistadome_livery.png",
       slug: "vg-lhb-vistadome-livery-coaches",
       desc: "Special scenic route livery with reflective glass shaders and high-detail passenger lounge.",
+      tag: "Vistadome Livery",
     },
     {
       num: "11",
@@ -115,6 +141,7 @@ export default function HomeClient({
       image: "/assets/products/whr_route_v2.png",
       slug: "whr-route-v2-ahmedabad-update",
       desc: "High-precision Western Railway route expansion featuring major yard layouts and custom scenery.",
+      tag: "Route Addon",
     },
     {
       num: "12",
@@ -123,6 +150,7 @@ export default function HomeClient({
       image: "/assets/projects/05_vg_lhb_bangladesh.png",
       slug: "vg-br-lhb-maitree-v1-5",
       desc: "Complete international express consist with custom bogie audio and bilingual trainboards.",
+      tag: "Complete Consist",
     },
     {
       num: "13",
@@ -131,15 +159,67 @@ export default function HomeClient({
       image: "/assets/projects/07_wip_sleeper_render.png",
       slug: "vg-fiat-bogie-audio-v1-2",
       desc: "Authentic track joint sounds, flange squeal, and calibrated deceleration physics curves.",
+      tag: "Physics & Audio",
     },
   ];
 
+  // Automatic Sliding Timer
+  useEffect(() => {
+    if (!isAutoPlaying || isHovered) {
+      return;
+    }
+
+    const intervalStep = 50; // Update progress bar every 50ms
+    const totalSteps = AUTO_SLIDE_DURATION_MS / intervalStep;
+
+    const progressTimer = setInterval(() => {
+      setSlideProgress((prev) => {
+        if (prev >= 100) {
+          setCurrentIndex((curr) => (curr + 1) % showcaseProducts.length);
+          return 0;
+        }
+        return prev + 100 / totalSteps;
+      });
+    }, intervalStep);
+
+    return () => clearInterval(progressTimer);
+  }, [isAutoPlaying, isHovered, showcaseProducts.length]);
+
+  // Keep active thumbnail in the sliding window centered in view
+  useEffect(() => {
+    setSlideProgress(0);
+    if (thumbnailScrollRef.current) {
+      const activeThumb = thumbnailScrollRef.current.children[currentIndex] as HTMLElement;
+      if (activeThumb) {
+        activeThumb.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "center",
+        });
+      }
+    }
+  }, [currentIndex]);
+
   const handleNext = () => {
+    setSlideProgress(0);
     setCurrentIndex((prev) => (prev + 1) % showcaseProducts.length);
   };
 
   const handlePrev = () => {
+    setSlideProgress(0);
     setCurrentIndex((prev) => (prev - 1 + showcaseProducts.length) % showcaseProducts.length);
+  };
+
+  const handleSelectCoach = (idx: number) => {
+    setSlideProgress(0);
+    setCurrentIndex(idx);
+  };
+
+  const scrollThumbnails = (direction: "left" | "right") => {
+    if (thumbnailScrollRef.current) {
+      const scrollAmount = direction === "left" ? -280 : 280;
+      thumbnailScrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -154,9 +234,9 @@ export default function HomeClient({
   const currentItem = showcaseProducts[currentIndex];
 
   return (
-    <div className="w-full bg-white text-[#101C32]">
+    <div className="w-full bg-white text-[#101C32] select-none font-josefin">
       {/* =========================================================================
-          B. PROMOTIONAL ANNOUNCEMENT BAR (ORANGE WITH GREEN ARROW SEPARATORS)
+          A. PROMOTIONAL ANNOUNCEMENT BAR (ORANGE WITH GREEN ARROW SEPARATORS)
           ========================================================================= */}
       <div className="w-full bg-[#FF6600] text-white py-2 overflow-hidden select-none border-b border-[#E65C00] shadow-sm">
         <div className="flex whitespace-nowrap animate-marquee">
@@ -170,18 +250,19 @@ export default function HomeClient({
       </div>
 
       {/* =========================================================================
-          C. PRODUCT GALLERY (CAROUSEL & SEARCH)
+          B. PRODUCT GALLERY & AUTOMATIC SLIDING WINDOWS
           ========================================================================= */}
       <div className="max-w-[1080px] mx-auto px-4 pt-10 pb-16">
-        {/* Top Header: "Home: Products - 11x" on Left, Notice Trigger & Search Input on Right */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
+        {/* Top Header: "Home: Products - 11x" on Left, Notice Trigger & Search on Right */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-6">
           <div>
             <h1 className="font-josefin text-[36px] sm:text-[44px] font-extralight tracking-tight text-[#101C32] leading-tight">
               Home:<br />
               <span className="font-normal text-[#0B2852]">Products - 11x</span>
             </h1>
-            <p className="font-josefin text-sm text-gray-500 mt-1">
-              Showing 13 high-fidelity Indian Railway rolling stock and route add-ons
+            <p className="font-josefin text-sm text-gray-500 mt-1 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#39FF00] animate-pulse"></span>
+              <span>Automatic Sliding Window &bull; Showing all 13 VG Coaches</span>
             </p>
           </div>
 
@@ -193,67 +274,112 @@ export default function HomeClient({
                   window.dispatchEvent(new CustomEvent("open-anti-piracy-modal"));
                 }
               }}
-              className="text-xs bg-[#ECE8F8] text-[#2A1E68] border border-[#D8CEF6] px-3 py-2 rounded-full font-semibold hover:bg-[#D8CEF6] transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+              className="text-xs bg-[#ECE8F8] text-[#2A1E68] border border-[#D8CEF6] px-3.5 py-2 rounded-full font-semibold hover:bg-[#D8CEF6] transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
             >
               <span>⚠️ Official Notice</span>
             </button>
 
             {/* Clean Search Box */}
-            <form onSubmit={handleSearchSubmit} className="relative w-full sm:w-[280px]">
+            <form onSubmit={handleSearchSubmit} className="relative w-full sm:w-[260px]">
               <input
                 type="text"
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border-2 border-gray-300 rounded-full bg-white font-josefin text-[14px] text-[#101C32] placeholder-gray-400 focus:outline-none focus:border-[#0B2852] transition-colors shadow-sm"
+                className="w-full pl-9 pr-4 py-2 border-2 border-gray-300 rounded-full bg-white font-josefin text-[13px] text-[#101C32] placeholder-gray-400 focus:outline-none focus:border-[#0B2852] transition-colors shadow-sm"
               />
-              <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3 pointer-events-none" />
+              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5 pointer-events-none" />
             </form>
           </div>
         </div>
 
-        {/* Center Showcase Carousel Box */}
-        <div className="relative border-2 border-gray-200 rounded-2xl overflow-hidden bg-white shadow-xl transition-all">
+        {/* Center Showcase Sliding Window Box */}
+        <div
+          className="relative border-2 border-gray-200 rounded-2xl overflow-hidden bg-white shadow-xl transition-all"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          {/* Top Auto-Slide Progress Bar Indicator */}
+          <div className="w-full h-1 bg-gray-200 relative overflow-hidden">
+            <div
+              className={`h-full bg-[#39FF00] transition-all duration-75 ease-linear ${
+                isHovered ? "opacity-60" : "opacity-100"
+              }`}
+              style={{ width: `${slideProgress}%` }}
+            />
+          </div>
+
           {/* Main Showcase Image Area */}
           <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full flex items-center justify-center bg-[#F5F6F8] overflow-hidden group">
-            <Link href={`/shop/${currentItem.slug}`} className="w-full h-full flex items-center justify-center p-4 sm:p-8">
+            <Link
+              href={`/shop/${currentItem.slug}`}
+              className="w-full h-full flex items-center justify-center p-4 sm:p-8"
+            >
               <img
+                key={currentItem.num}
                 src={currentItem.image}
                 alt={currentItem.title}
-                className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-full object-contain transition-all duration-700 ease-out animate-fadeIn group-hover:scale-105"
               />
             </Link>
 
             {/* Previous Button */}
             <button
               onClick={handlePrev}
-              aria-label="Previous product"
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/90 hover:bg-white text-[#0B2852] border border-gray-200 shadow-lg flex items-center justify-center transition-all hover:scale-110 z-10 focus:outline-none"
+              aria-label="Previous coach"
+              className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/90 hover:bg-white text-[#0B2852] border border-gray-200 shadow-lg flex items-center justify-center transition-all hover:scale-110 z-10 focus:outline-none cursor-pointer"
             >
-              <ChevronLeft className="w-7 h-7" />
+              <ChevronLeft className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2.5]" />
             </button>
 
             {/* Next Button */}
             <button
               onClick={handleNext}
-              aria-label="Next product"
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/90 hover:bg-white text-[#0B2852] border border-gray-200 shadow-lg flex items-center justify-center transition-all hover:scale-110 z-10 focus:outline-none"
+              aria-label="Next coach"
+              className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/90 hover:bg-white text-[#0B2852] border border-gray-200 shadow-lg flex items-center justify-center transition-all hover:scale-110 z-10 focus:outline-none cursor-pointer"
             >
-              <ChevronRight className="w-7 h-7" />
+              <ChevronRight className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2.5]" />
             </button>
 
-            {/* Product Index Badge on Image */}
-            <div className="absolute top-4 left-4 bg-[#0B2852]/80 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
-              Item {currentItem.num} / {showcaseProducts.length}
+            {/* Top Badges on Image */}
+            <div className="absolute top-4 left-4 flex items-center gap-2">
+              <span className="bg-[#0B2852]/85 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
+                Item {currentItem.num} / {showcaseProducts.length}
+              </span>
+              <span className="hidden sm:inline-block bg-[#39FF00] text-[#101C32] text-xs font-bold px-2.5 py-0.5 rounded-full shadow">
+                {currentItem.tag}
+              </span>
+            </div>
+
+            {/* Auto-Slide Status Toggle Pill */}
+            <div className="absolute top-4 right-4">
+              <button
+                type="button"
+                onClick={() => setIsAutoPlaying(!isAutoPlaying)}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#0B2852]/80 backdrop-blur-sm text-white hover:bg-[#0B2852] border border-white/20 transition-all cursor-pointer shadow"
+                title={isAutoPlaying ? "Pause auto-slide" : "Play auto-slide"}
+              >
+                {isAutoPlaying && !isHovered ? (
+                  <>
+                    <Pause className="w-3.5 h-3.5 text-[#39FF00]" />
+                    <span className="hidden md:inline">Auto-Sliding</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-3.5 h-3.5 text-[#39FF00]" />
+                    <span className="hidden md:inline">{isHovered ? "Paused on Hover" : "Paused"}</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
 
           {/* Bottom Caption Overlay Bar */}
           <div className="p-5 sm:p-6 border-t border-gray-100 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <Link
                 href={`/shop/${currentItem.slug}`}
-                className="font-josefin text-[20px] sm:text-[24px] font-normal text-[#0B2852] hover:text-[#39FF00] hover:underline transition-colors block"
+                className="font-josefin text-[20px] sm:text-[24px] font-normal text-[#0B2852] hover:text-[#39FF00] hover:underline transition-colors block leading-tight"
               >
                 {currentItem.title}
               </Link>
@@ -269,7 +395,7 @@ export default function HomeClient({
             <div className="flex items-center gap-3 sm:flex-col sm:items-end flex-shrink-0">
               <Link
                 href={`/shop/${currentItem.slug}`}
-                className="bg-[#0B2852] hover:bg-[#39FF00] hover:text-[#101C32] text-white text-xs sm:text-sm font-semibold px-5 py-2 rounded-full shadow transition-all duration-200"
+                className="bg-[#0B2852] hover:bg-[#39FF00] hover:text-[#101C32] text-white text-xs sm:text-sm font-semibold px-5 py-2.5 rounded-full shadow transition-all duration-200"
               >
                 View Product Details
               </Link>
@@ -281,9 +407,142 @@ export default function HomeClient({
         </div>
 
         {/* =========================================================================
-            D. WHATSAPP CONTACT SHORTCUT
+            C. AUTOMATIC SLIDING WINDOWS: ALL VG COACHES FLEET THUMBNAIL RAIL
             ========================================================================= */}
-        <div className="mt-14 flex flex-col sm:flex-row items-center justify-center gap-3 p-6 bg-[#F5F6F8] rounded-2xl border border-gray-200">
+        <div className="mt-8 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Train className="w-5 h-5 text-[#0B2852]" />
+              <h2 className="font-josefin font-bold text-base sm:text-lg text-[#0B2852] tracking-wide">
+                All VG Coaches Fleet &bull; Sliding Windows List
+              </h2>
+            </div>
+
+            {/* Navigation Arrows for Thumbnail Rail */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => scrollThumbnails("left")}
+                aria-label="Slide coaches left"
+                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-[#0B2852] hover:text-white flex items-center justify-center transition-colors text-[#0B2852] shadow-sm border border-gray-200"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollThumbnails("right")}
+                aria-label="Slide coaches right"
+                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-[#0B2852] hover:text-white flex items-center justify-center transition-colors text-[#0B2852] shadow-sm border border-gray-200"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Horizontal Sliding Window Track */}
+          <div
+            ref={thumbnailScrollRef}
+            className="flex gap-3 overflow-x-auto pb-4 pt-1 scroll-smooth scrollbar-thin select-none"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            {showcaseProducts.map((coach, idx) => {
+              const isActive = idx === currentIndex;
+              return (
+                <button
+                  key={coach.num}
+                  type="button"
+                  onClick={() => handleSelectCoach(idx)}
+                  className={`flex-shrink-0 w-44 sm:w-52 p-3 rounded-xl text-left border-2 transition-all duration-300 relative group overflow-hidden cursor-pointer ${
+                    isActive
+                      ? "border-[#39FF00] bg-[#0B2852] text-white shadow-xl scale-[1.03] ring-2 ring-[#39FF00]/40"
+                      : "border-gray-200 bg-white hover:border-[#0B2852] hover:shadow-md text-[#101C32]"
+                  }`}
+                >
+                  {/* Miniature Image */}
+                  <div className="relative aspect-[16/10] w-full rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center p-2 mb-2">
+                    <img
+                      src={coach.image}
+                      alt={coach.title}
+                      className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <span
+                      className={`absolute top-1 left-1 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded shadow ${
+                        isActive ? "bg-[#39FF00] text-[#101C32]" : "bg-[#0B2852] text-white"
+                      }`}
+                    >
+                      {coach.num}
+                    </span>
+                    {isActive && (
+                      <span className="absolute bottom-1 right-1 text-[9px] font-bold bg-[#39FF00] text-[#101C32] px-1.5 py-0.5 rounded uppercase">
+                        Active
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Title */}
+                  <div className="text-[11px] sm:text-xs font-bold font-josefin line-clamp-1 leading-snug">
+                    {coach.title}
+                  </div>
+                  {/* Tag */}
+                  <div
+                    className={`text-[10px] truncate mt-0.5 font-medium ${
+                      isActive ? "text-[#A7D2F7]" : "text-gray-500"
+                    }`}
+                  >
+                    {coach.tag} &bull; Open Rails / MSTS
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* =========================================================================
+            D. CONTINUOUS SLIDING BANNER STRIP OF COACHES
+            ========================================================================= */}
+        <div className="mt-10 p-4 sm:p-5 bg-gradient-to-r from-[#0B2852] via-[#0F356B] to-[#0B2852] rounded-2xl text-white shadow-xl overflow-hidden border border-[#39FF00]/30">
+          <div className="flex items-center justify-between pb-3 border-b border-white/10 text-xs">
+            <span className="text-[#39FF00] font-bold uppercase tracking-wider flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5" />
+              Live Fleet Stream &bull; All VG Coaches
+            </span>
+            <Link href="/shop" className="text-white hover:text-[#39FF00] underline font-semibold">
+              View All in Shop &rarr;
+            </Link>
+          </div>
+
+          <div className="relative overflow-hidden pt-3">
+            <div className="flex gap-4 whitespace-nowrap animate-marquee hover:[animation-play-state:paused]">
+              {[...showcaseProducts, ...showcaseProducts].map((coach, i) => (
+                <Link
+                  key={`${coach.num}-${i}`}
+                  href={`/shop/${coach.slug}`}
+                  className="inline-flex items-center gap-3 bg-white/10 hover:bg-white/20 px-3.5 py-2 rounded-xl border border-white/10 transition-all hover:scale-105 flex-shrink-0"
+                >
+                  <img
+                    src={coach.image}
+                    alt={coach.title}
+                    className="w-12 h-8 object-contain"
+                  />
+                  <div>
+                    <div className="text-xs font-bold text-white max-w-[160px] truncate">
+                      {coach.title}
+                    </div>
+                    <div className="text-[10px] text-[#39FF00] font-mono">
+                      {coach.tag}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* =========================================================================
+            E. WHATSAPP CONTACT SHORTCUT
+            ========================================================================= */}
+        <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-3 p-6 bg-[#F5F6F8] rounded-2xl border border-gray-200">
           <span className="font-josefin font-bold text-[18px] sm:text-[22px] leading-tight text-[#0B2852]">
             Contact Varun Ganesh for details
           </span>
