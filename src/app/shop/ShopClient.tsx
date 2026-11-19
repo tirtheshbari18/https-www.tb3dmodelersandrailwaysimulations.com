@@ -45,6 +45,9 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [deleteProductModal, setDeleteProductModal] = useState<{ id: string; name: string } | null>(null);
   const [priceModalProduct, setPriceModalProduct] = useState<any | null>(null);
+  const [renameModalProduct, setRenameModalProduct] = useState<any | null>(null);
+  const [imageModalProduct, setImageModalProduct] = useState<any | null>(null);
+  const [offerModalProduct, setOfferModalProduct] = useState<any | null>(null);
 
   // Toast
   const [toastMsg, setToastMsg] = useState<{ text: string; isError: boolean } | null>(null);
@@ -54,16 +57,44 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
     setTimeout(() => setToastMsg(null), 3500);
   };
 
-  // Check Admin Login Status
-  useEffect(() => {
-    fetch("/api/auth/me")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data && data.user && (data.user.role === "ADMIN" || data.user.role === "SUPER_ADMIN")) {
+  // Check Admin Login Status from localStorage & API
+  const checkAuth = async () => {
+    try {
+      const storedUser = typeof window !== "undefined" ? localStorage.getItem("vg_user") : null;
+      const storedToken = typeof window !== "undefined" ? localStorage.getItem("vg_token") : null;
+
+      if (storedUser) {
+        try {
+          const parsed = JSON.parse(storedUser);
+          if (parsed && (parsed.role === "ADMIN" || parsed.role === "SUPER_ADMIN")) {
+            setCurrentUser(parsed);
+          }
+        } catch (e) {}
+      }
+
+      const headers: Record<string, string> = {};
+      if (storedToken) {
+        headers["Authorization"] = `Bearer ${storedToken}`;
+      }
+
+      const res = await fetch("/api/auth/me", { headers });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.user && (data.user.role === "ADMIN" || data.user.role === "SUPER_ADMIN")) {
           setCurrentUser(data.user);
+          if (typeof window !== "undefined") {
+            localStorage.setItem("vg_user", JSON.stringify(data.user));
+          }
         }
-      })
-      .catch(() => {});
+      }
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    checkAuth();
+    const handleAuthEvent = () => checkAuth();
+    window.addEventListener("vg-auth-changed", handleAuthEvent);
+    return () => window.removeEventListener("vg-auth-changed", handleAuthEvent);
   }, []);
 
   // Fallback catalog
@@ -428,6 +459,79 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
     }
   };
 
+  const handleSaveRename = async (id: string, name: string) => {
+    try {
+      const res = await fetch(`/api/admin/products/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) throw new Error("Failed to rename product");
+      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, name } : p)));
+      setRenameModalProduct(null);
+      showToast(`Renamed to "${name}" successfully!`);
+    } catch (err: any) {
+      showToast(err.message, true);
+    }
+  };
+
+  const handleSaveImage = async (id: string, imageUrl: string) => {
+    try {
+      const res = await fetch(`/api/admin/products/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl }),
+      });
+      if (!res.ok) throw new Error("Failed to update product image");
+      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, image: imageUrl } : p)));
+      setImageModalProduct(null);
+      showToast("Product image updated successfully!");
+    } catch (err: any) {
+      showToast(err.message, true);
+    }
+  };
+
+  const handleSaveSpecialOffer = async (
+    id: string,
+    isSpecialOffer: boolean,
+    specialOfferText: string,
+    discountPercent: number,
+    newSalePrice?: number | null
+  ) => {
+    try {
+      const payload: any = {
+        isSpecialOffer,
+        specialOfferText,
+        discountPercent,
+      };
+      if (newSalePrice !== undefined) {
+        payload.salePrice = newSalePrice;
+      }
+      const res = await fetch(`/api/admin/products/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error("Failed to update special offer");
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === id
+            ? {
+                ...p,
+                isSpecialOffer,
+                badge: isSpecialOffer ? specialOfferText || "Special Offer" : p.badge,
+                salePrice: newSalePrice !== undefined ? newSalePrice : p.salePrice,
+              }
+            : p
+        )
+      );
+      setOfferModalProduct(null);
+      showToast("Special offer saved successfully!");
+    } catch (err: any) {
+      showToast(err.message, true);
+    }
+  };
+
   const handleAddToCart = (e: React.MouseEvent, prod: any) => {
     e.stopPropagation();
     e.preventDefault();
@@ -667,21 +771,24 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
 
                 {/* 5. VISIBLE ADMIN MANAGEMENT CONTROLS ON PRODUCT CARD */}
                 {currentUser && isAdminMode && (
-                  <div className="mt-3 pt-3 border-t border-gray-200 bg-blue-50/50 -mx-3 -mb-3 p-2.5 rounded-b-xl space-y-2">
+                  <div className="mt-3 pt-3 border-t-2 border-[#0B2852]/20 bg-blue-50/70 -mx-3 -mb-3 p-3 rounded-b-xl space-y-2">
                     <div className="flex items-center justify-between text-[11px]">
-                      <span className="font-bold text-[#0B2852] uppercase tracking-wider text-[10px]">
-                        Admin Actions:
+                      <span className="font-bold text-[#0B2852] uppercase tracking-wider text-[11px] flex items-center gap-1">
+                        <ShieldCheck className="w-3.5 h-3.5 text-[#0B2852]" />
+                        Admin Controls
                       </span>
-                      <span className="font-mono text-gray-400 text-[10px]">{prod.sku}</span>
+                      <span className="font-mono text-gray-500 text-[10px] bg-white px-1.5 py-0.5 rounded border border-gray-200">
+                        {prod.sku}
+                      </span>
                     </div>
 
-                    {/* Edit, Price, Delete Toolbar */}
+                    {/* Row 1: [EDIT] [RENAME] [UPLOAD IMAGE] */}
                     <div className="grid grid-cols-3 gap-1.5">
                       <button
                         type="button"
                         onClick={() => setEditingProduct(prod)}
-                        className="py-1 px-2 rounded-md bg-[#0B2852] text-white hover:bg-black font-semibold text-[11px] flex items-center justify-center gap-1 transition-colors"
-                        title="Edit / Rename Coach"
+                        className="py-1.5 px-2 rounded-md bg-[#0B2852] text-white hover:bg-black font-bold text-[11px] flex items-center justify-center gap-1 transition-colors cursor-pointer shadow-xs"
+                        title="Edit Full Coach Details"
                       >
                         <Edit className="w-3 h-3" />
                         Edit
@@ -689,9 +796,31 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
 
                       <button
                         type="button"
+                        onClick={() => setRenameModalProduct(prod)}
+                        className="py-1.5 px-2 rounded-md bg-white border border-gray-300 hover:border-[#0B2852] text-gray-800 font-bold text-[11px] flex items-center justify-center gap-1 transition-colors cursor-pointer shadow-xs"
+                        title="Quick Rename Product"
+                      >
+                        Rename
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setImageModalProduct(prod)}
+                        className="py-1.5 px-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 font-bold text-[11px] flex items-center justify-center gap-1 transition-colors cursor-pointer shadow-xs"
+                        title="Upload / Replace Image"
+                      >
+                        <Upload className="w-3 h-3" />
+                        Upload
+                      </button>
+                    </div>
+
+                    {/* Row 2: [CHANGE PRICE] [OFFER] [DELETE] */}
+                    <div className="grid grid-cols-3 gap-1.5">
+                      <button
+                        type="button"
                         onClick={() => setPriceModalProduct(prod)}
-                        className="py-1 px-2 rounded-md border border-gray-300 bg-white hover:border-[#0B2852] text-gray-800 font-semibold text-[11px] flex items-center justify-center gap-1 transition-colors"
-                        title="Edit Price & Offers"
+                        className="py-1.5 px-2 rounded-md bg-white border border-gray-300 hover:border-[#FF6600] text-gray-800 font-bold text-[11px] flex items-center justify-center gap-1 transition-colors cursor-pointer shadow-xs"
+                        title="Change Price & Discounts"
                       >
                         <DollarSign className="w-3 h-3 text-[#FF6600]" />
                         Price
@@ -699,8 +828,18 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
 
                       <button
                         type="button"
+                        onClick={() => setOfferModalProduct(prod)}
+                        className="py-1.5 px-2 rounded-md bg-[#FF6600] text-white hover:bg-[#e05a00] font-bold text-[11px] flex items-center justify-center gap-1 transition-colors cursor-pointer shadow-xs"
+                        title="Special Offer & Discount Badge"
+                      >
+                        <Tag className="w-3 h-3" />
+                        Offer
+                      </button>
+
+                      <button
+                        type="button"
                         onClick={() => setDeleteProductModal({ id: prod.id, name: prod.name })}
-                        className="py-1 px-2 rounded-md bg-rose-600 text-white hover:bg-rose-700 font-semibold text-[11px] flex items-center justify-center gap-1 transition-colors"
+                        className="py-1.5 px-2 rounded-md bg-rose-600 text-white hover:bg-rose-700 font-bold text-[11px] flex items-center justify-center gap-1 transition-colors cursor-pointer shadow-xs"
                         title="Delete Product"
                       >
                         <Trash2 className="w-3 h-3" />
@@ -708,38 +847,41 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
                       </button>
                     </div>
 
-                    {/* 1-Click Availability Switcher */}
-                    <div className="flex items-center justify-between gap-1 pt-1">
+                    {/* Row 3: 1-Click Availability Switcher */}
+                    <div className="flex items-center justify-between gap-1 pt-1 border-t border-gray-200/80">
                       <button
                         type="button"
                         onClick={() => handleUpdateAvailability(prod, "AVAILABLE")}
-                        className={`flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all ${
+                        className={`flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all cursor-pointer ${
                           prod.status === "AVAILABLE"
                             ? "bg-emerald-600 text-white shadow-xs"
                             : "bg-white border border-gray-200 text-gray-600 hover:bg-emerald-50"
                         }`}
+                        title="Mark Available"
                       >
                         Available
                       </button>
                       <button
                         type="button"
                         onClick={() => handleUpdateAvailability(prod, "OUT_OF_STOCK")}
-                        className={`flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all ${
+                        className={`flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all cursor-pointer ${
                           prod.status === "OUT_OF_STOCK"
                             ? "bg-rose-600 text-white shadow-xs"
                             : "bg-white border border-gray-200 text-gray-600 hover:bg-rose-50"
                         }`}
+                        title="Mark Out of Stock"
                       >
                         Out of Stock
                       </button>
                       <button
                         type="button"
                         onClick={() => handleUpdateAvailability(prod, "COMING_SOON")}
-                        className={`flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all ${
+                        className={`flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all cursor-pointer ${
                           prod.status === "COMING_SOON"
                             ? "bg-amber-600 text-white shadow-xs"
                             : "bg-white border border-gray-200 text-gray-600 hover:bg-amber-50"
                         }`}
+                        title="Mark Coming Soon"
                       >
                         Coming Soon
                       </button>
@@ -796,6 +938,41 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
           product={priceModalProduct}
           onClose={() => setPriceModalProduct(null)}
           onSave={handleSavePriceChange}
+        />
+      )}
+
+      {/* QUICK RENAME MODAL */}
+      {renameModalProduct && (
+        <ProductRenameModal
+          product={renameModalProduct}
+          onClose={() => setRenameModalProduct(null)}
+          onSave={(newName) => handleSaveRename(renameModalProduct.id, newName)}
+        />
+      )}
+
+      {/* UPLOAD / REPLACE IMAGE MODAL */}
+      {imageModalProduct && (
+        <ProductImageUploadModal
+          product={imageModalProduct}
+          onClose={() => setImageModalProduct(null)}
+          onSave={(newUrl) => handleSaveImage(imageModalProduct.id, newUrl)}
+        />
+      )}
+
+      {/* SPECIAL OFFER MODAL */}
+      {offerModalProduct && (
+        <ProductOfferModal
+          product={offerModalProduct}
+          onClose={() => setOfferModalProduct(null)}
+          onSave={(isSpecialOffer, specialOfferText, discountPercent, newSalePrice) =>
+            handleSaveSpecialOffer(
+              offerModalProduct.id,
+              isSpecialOffer,
+              specialOfferText,
+              discountPercent,
+              newSalePrice
+            )
+          }
         />
       )}
 
@@ -1202,6 +1379,357 @@ function ProductFormDialog({
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+// --- SUB-COMPONENT: QUICK RENAME MODAL ---
+function ProductRenameModal({
+  product,
+  onClose,
+  onSave,
+}: {
+  product: any;
+  onClose: () => void;
+  onSave: (newName: string) => void;
+}) {
+  const [name, setName] = useState(product.name || "");
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200 space-y-4 font-josefin text-xs">
+        <div className="flex items-center justify-between border-b pb-3">
+          <h3 className="text-base font-bold text-[#0B2852]">Rename Product</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (name.trim()) onSave(name.trim());
+          }}
+          className="space-y-4"
+        >
+          <div>
+            <label className="block font-bold text-gray-700 mb-1">Product Name</label>
+            <input
+              type="text"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full p-2.5 border rounded-lg text-sm text-[#101C32] focus:ring-2 focus:ring-[#0B2852]"
+            />
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2 rounded-full border border-gray-300 text-gray-700 font-bold hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 py-2 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] font-bold uppercase transition-all"
+            >
+              Save Rename
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// --- SUB-COMPONENT: PRODUCT IMAGE UPLOAD MODAL ---
+function ProductImageUploadModal({
+  product,
+  onClose,
+  onSave,
+}: {
+  product: any;
+  onClose: () => void;
+  onSave: (newUrl: string) => void;
+}) {
+  const [imageUrl, setImageUrl] = useState(product.image || "");
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const presets = [
+    { label: "Academy Sleeper", url: "/assets/products/vg_academy_sleeper.avif" },
+    { label: "Humsafar V2", url: "/assets/products/humsafar_v2.avif" },
+    { label: "Sleeper V2", url: "/assets/products/sleeper_v2.avif" },
+    { label: "Chair Car", url: "/assets/products/chaircar_standard.png" },
+    { label: "Vistadome", url: "/assets/products/vistadome_standard.png" },
+    { label: "Amrit Bharat", url: "/assets/products/amrit_bharat.png" },
+    { label: "Bangladesh", url: "/assets/products/bangladesh_coaches.png" },
+    { label: "PNB Livery", url: "/assets/products/pnb_livery.png" },
+    { label: "Tricolour", url: "/assets/products/indian_tricolour.avif" },
+    { label: "Vistadome Livery", url: "/assets/products/vistadome_livery.png" },
+    { label: "WHR Route V2", url: "/assets/products/whr_route_v2.png" },
+    { label: "Maitree Pack", url: "/assets/projects/05_vg_lhb_bangladesh.png" },
+  ];
+
+  const handleDiskUpload = async (file: File) => {
+    setIsUploading(true);
+    setUploadError(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Upload failed");
+
+      setImageUrl(data.url);
+    } catch (err: any) {
+      setUploadError(err.message || "Failed to upload file");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+      <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-200 space-y-4 font-josefin text-xs">
+        <div className="flex items-center justify-between border-b pb-3">
+          <h3 className="text-base font-bold text-[#0B2852]">
+            Upload or Replace Image: {product.name}
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Live Image Preview */}
+        <div className="aspect-[16/9] w-full bg-gray-50 rounded-xl overflow-hidden border flex items-center justify-center p-3">
+          {imageUrl ? (
+            <img src={imageUrl} alt="Preview" className="w-full h-full object-contain" />
+          ) : (
+            <span className="text-gray-400">No image selected</span>
+          )}
+        </div>
+
+        {uploadError && (
+          <p className="text-rose-600 text-[11px] font-semibold">{uploadError}</p>
+        )}
+
+        {/* File Upload from Disk */}
+        <div>
+          <label className="block font-bold text-gray-700 mb-1">
+            Upload from Local Computer (JPG, PNG, WEBP, AVIF)
+          </label>
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/avif"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleDiskUpload(file);
+            }}
+            className="w-full text-xs text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#0B2852] file:text-white hover:file:bg-[#39FF00] hover:file:text-[#101C32] cursor-pointer"
+          />
+        </div>
+
+        {/* URL Input */}
+        <div>
+          <label className="block font-bold text-gray-700 mb-1">Or Direct Image URL / Path</label>
+          <input
+            type="text"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="/assets/products/coach.png or https://..."
+            className="w-full p-2 border rounded font-mono text-xs text-[#101C32]"
+          />
+        </div>
+
+        {/* Presets */}
+        <div>
+          <span className="font-bold text-gray-700 block mb-1">Or Select Official Coach Preset:</span>
+          <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto">
+            {presets.map((p) => (
+              <button
+                key={p.url}
+                type="button"
+                onClick={() => setImageUrl(p.url)}
+                className={`text-[10px] px-2 py-0.5 rounded border transition-colors ${
+                  imageUrl === p.url
+                    ? "bg-[#0B2852] text-white border-[#0B2852]"
+                    : "bg-white text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex gap-2 pt-3 border-t">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 py-2 rounded-full border border-gray-300 text-gray-700 font-bold hover:bg-gray-100"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={isUploading || !imageUrl}
+            onClick={() => onSave(imageUrl)}
+            className="flex-1 py-2 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] font-bold uppercase transition-all disabled:opacity-50"
+          >
+            {isUploading ? "Uploading..." : "Save Image"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- SUB-COMPONENT: SPECIAL OFFER & DISCOUNT MODAL ---
+function ProductOfferModal({
+  product,
+  onClose,
+  onSave,
+}: {
+  product: any;
+  onClose: () => void;
+  onSave: (
+    isSpecialOffer: boolean,
+    specialOfferText: string,
+    discountPercent: number,
+    newSalePrice?: number | null
+  ) => void;
+}) {
+  const [isSpecialOffer, setIsSpecialOffer] = useState<boolean>(
+    Boolean(product.isSpecialOffer || product.badge === "Special Offer")
+  );
+  const [specialOfferText, setSpecialOfferText] = useState<string>(
+    product.specialOfferText || "Special Offer"
+  );
+  const [discountPercent, setDiscountPercent] = useState<number>(
+    product.discountPercent ||
+      (product.salePrice && product.regularPrice > product.salePrice
+        ? Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100)
+        : 20)
+  );
+
+  const regularPrice = product.regularPrice || 1000;
+  const calculatedSalePrice = isSpecialOffer
+    ? Math.round(regularPrice * (1 - discountPercent / 100))
+    : product.salePrice;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200 space-y-4 font-josefin text-xs">
+        <div className="flex items-center justify-between border-b pb-3">
+          <h3 className="text-base font-bold text-[#FF6600] flex items-center gap-1.5">
+            <Tag className="w-4 h-4" />
+            Special Offer & Discount: {product.name}
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Toggle Offer */}
+        <div className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-xl">
+          <div>
+            <span className="font-bold text-gray-900 block">Enable Special Offer</span>
+            <span className="text-[11px] text-gray-500">
+              Displays prominent orange badge and discounted price
+            </span>
+          </div>
+          <input
+            type="checkbox"
+            checked={isSpecialOffer}
+            onChange={(e) => setIsSpecialOffer(e.target.checked)}
+            className="w-5 h-5 text-[#FF6600] rounded focus:ring-[#FF6600]"
+          />
+        </div>
+
+        {isSpecialOffer && (
+          <div className="space-y-3 pt-1">
+            <div>
+              <label className="block font-bold text-gray-700 mb-1">Badge Text</label>
+              <input
+                type="text"
+                value={specialOfferText}
+                onChange={(e) => setSpecialOfferText(e.target.value)}
+                placeholder="e.g. Special Offer, Festival Sale, 20% OFF"
+                className="w-full p-2 border rounded-lg text-sm text-[#101C32]"
+              />
+            </div>
+
+            <div>
+              <div className="flex justify-between font-bold text-gray-700 mb-1">
+                <span>Discount Percentage:</span>
+                <span className="text-[#FF6600] font-mono text-sm">{discountPercent}% OFF</span>
+              </div>
+              <input
+                type="range"
+                min={5}
+                max={90}
+                step={5}
+                value={discountPercent}
+                onChange={(e) => setDiscountPercent(parseInt(e.target.value, 10))}
+                className="w-full accent-[#FF6600]"
+              />
+              <div className="flex justify-between text-[10px] text-gray-400 mt-1">
+                <span>5%</span>
+                <span>25%</span>
+                <span>50%</span>
+                <span>75%</span>
+                <span>90%</span>
+              </div>
+            </div>
+
+            {/* Price Calculation Preview */}
+            <div className="p-3 bg-gray-50 rounded-xl border flex items-center justify-between">
+              <div>
+                <span className="text-gray-500 block">Original Price:</span>
+                <span className="font-bold text-gray-700 text-sm">₹{regularPrice.toFixed(2)}</span>
+              </div>
+              <div className="text-right">
+                <span className="text-gray-500 block">Discounted Selling Price:</span>
+                <span className="font-bold text-[#FF6600] text-base">
+                  ₹{calculatedSalePrice.toFixed(2)}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="flex gap-2 pt-3 border-t">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 py-2 rounded-full border border-gray-300 text-gray-700 font-bold hover:bg-gray-100"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              onSave(
+                isSpecialOffer,
+                specialOfferText,
+                discountPercent,
+                isSpecialOffer ? calculatedSalePrice : null
+              )
+            }
+            className="flex-1 py-2 rounded-full bg-[#FF6600] text-white hover:bg-[#e05a00] font-bold uppercase transition-all shadow-md"
+          >
+            Save Offer
+          </button>
+        </div>
       </div>
     </div>
   );

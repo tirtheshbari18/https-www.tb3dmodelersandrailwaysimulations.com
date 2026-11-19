@@ -72,6 +72,9 @@ export async function POST(req: NextRequest) {
         specifications: specifications || null,
         regularPrice: body.regularPrice !== undefined ? parseFloat(body.regularPrice) : 0,
         salePrice: body.salePrice !== undefined && body.salePrice !== null && body.salePrice !== "" ? parseFloat(body.salePrice) : null,
+        category: body.category?.trim() || "Trainboards",
+        discountPercent: body.discountPercent !== undefined ? parseFloat(body.discountPercent) : 0,
+        isSpecialOffer: body.isSpecialOffer !== undefined ? Boolean(body.isSpecialOffer) : false,
         status: status || "AVAILABLE",
       },
     });

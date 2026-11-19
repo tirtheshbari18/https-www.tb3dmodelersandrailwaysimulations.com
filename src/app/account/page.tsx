@@ -111,9 +111,9 @@ function AccountContent() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-normal text-[#041229]">{user.name}</h1>
-                {user.role === "ADMIN" && (
+                {(user.role === "ADMIN" || user.role === "SUPER_ADMIN") && (
                   <span className="px-2 py-0.5 rounded bg-red-100 text-red-800 border border-red-200 text-[10px] font-bold uppercase">
-                    Admin
+                    {user.role === "SUPER_ADMIN" ? "Super Admin" : "Admin"}
                   </span>
                 )}
               </div>
@@ -122,7 +122,7 @@ function AccountContent() {
           </div>
 
           <div className="flex items-center gap-3">
-            {user.role === "ADMIN" && (
+            {(user.role === "ADMIN" || user.role === "SUPER_ADMIN") && (
               <Link
                 href="/admin"
                 className="px-4 py-2 rounded-full bg-[#041229] text-white text-xs font-semibold flex items-center gap-1.5 hover:bg-black transition-colors"

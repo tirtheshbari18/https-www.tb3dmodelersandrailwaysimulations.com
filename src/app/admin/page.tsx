@@ -32,6 +32,7 @@ export default async function AdminPage() {
     trainboards,
     offers,
     auditLogs,
+    homeSlides,
   ] = await Promise.all([
     prisma.product.findMany({
       orderBy: { createdAt: "desc" },
@@ -110,6 +111,9 @@ export default async function AdminPage() {
         },
       },
     }),
+    prisma.homeSlide.findMany({
+      orderBy: [{ order: "asc" }, { createdAt: "desc" }],
+    }),
   ]);
 
   return (
@@ -124,6 +128,7 @@ export default async function AdminPage() {
       initialTrainboards={trainboards}
       initialOffers={offers}
       initialAuditLogs={auditLogs}
+      initialSlides={homeSlides}
       currentAdmin={payload}
     />
   );

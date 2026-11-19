@@ -43,6 +43,7 @@ import {
   AlertTriangle,
   FileText,
   Boxes,
+  Play,
 } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
@@ -57,6 +58,7 @@ interface AdminClientProps {
   initialTrainboards?: any[];
   initialOffers?: any[];
   initialAuditLogs?: any[];
+  initialSlides?: any[];
   currentAdmin: any;
 }
 
@@ -71,6 +73,7 @@ export default function AdminClient({
   initialTrainboards = [],
   initialOffers = [],
   initialAuditLogs = [],
+  initialSlides = [],
   currentAdmin,
 }: AdminClientProps) {
   const router = useRouter();
@@ -78,6 +81,7 @@ export default function AdminClient({
   // Active navigation tab
   const [activeTab, setActiveTab] = useState<
     | "dashboard"
+    | "slides"
     | "coaches"
     | "trainboards"
     | "products"
@@ -95,6 +99,7 @@ export default function AdminClient({
   const [trainboards, setTrainboards] = useState<any[]>(initialTrainboards);
   const [offers, setOffers] = useState<any[]>(initialOffers);
   const [auditLogs, setAuditLogs] = useState<any[]>(initialAuditLogs);
+  const [slides, setSlides] = useState<any[]>(initialSlides);
   const [projects, setProjects] = useState<any[]>(initialProjects);
   const [orders, setOrders] = useState<any[]>(initialOrders);
   const [customers, setCustomers] = useState<any[]>(initialCustomers);
@@ -107,6 +112,10 @@ export default function AdminClient({
   // Modals
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
+
+  const [isAddSlideOpen, setIsAddSlideOpen] = useState(false);
+  const [editingSlide, setEditingSlide] = useState<any | null>(null);
+  const [deleteSlideModal, setDeleteSlideModal] = useState<{ id: string; title: string } | null>(null);
 
   const [isAddTrainboardOpen, setIsAddTrainboardOpen] = useState(false);
   const [editingTrainboard, setEditingTrainboard] = useState<any | null>(null);
@@ -158,8 +167,67 @@ export default function AdminClient({
   const totalTrainboardsCount = trainboards.length;
   const availableProductsCount = products.filter((p) => p.status === "AVAILABLE").length;
   const outOfStockProductsCount = products.filter((p) => p.status === "OUT_OF_STOCK").length;
+  const comingSoonProductsCount = products.filter(
+    (p) => p.status === "COMING_SOON" || Boolean(p.isComingSoon)
+  ).length;
   const activeOffersCount = offers.filter((o) => o.isActive).length;
   const totalProductsCount = products.length;
+
+  // --- Handlers: Home Slide Management ---
+  const handleSaveSlide = async (e: React.FormEvent, formValues: any, isNew: boolean = false) => {
+    e.preventDefault();
+    try {
+      const url = isNew ? "/api/admin/slides" : `/api/admin/slides/${formValues.id}`;
+      const method = isNew ? "POST" : "PUT";
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formValues),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to save slide");
+
+      if (isNew) {
+        setSlides([...slides, data.slide]);
+      } else {
+        setSlides(slides.map((s) => (s.id === formValues.id ? data.slide : s)));
+      }
+      setIsAddSlideOpen(false);
+      setEditingSlide(null);
+      showToast(isNew ? "New slide created!" : "Slide updated successfully!");
+    } catch (err: any) {
+      showToast(err.message, true);
+    }
+  };
+
+  const handleDeleteSlide = async () => {
+    if (!deleteSlideModal) return;
+    try {
+      const res = await fetch(`/api/admin/slides/${deleteSlideModal.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete slide");
+      setSlides(slides.filter((s) => s.id !== deleteSlideModal.id));
+      setDeleteSlideModal(null);
+      showToast("Slide permanently deleted.");
+    } catch (err: any) {
+      showToast(err.message, true);
+    }
+  };
+
+  const handleToggleSlideActive = async (slide: any) => {
+    try {
+      const res = await fetch(`/api/admin/slides/${slide.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !slide.isActive }),
+      });
+      if (res.ok) {
+        setSlides(slides.map((s) => (s.id === slide.id ? { ...s, isActive: !s.isActive } : s)));
+        showToast(`Slide marked ${!slide.isActive ? "ACTIVE" : "INACTIVE"}`);
+      }
+    } catch (e) {
+      showToast("Failed to toggle status", true);
+    }
+  };
 
   // --- Handlers: Coach / Product ---
   const handleSaveProduct = async (e: React.FormEvent, formValues: any) => {
@@ -677,6 +745,7 @@ export default function AdminClient({
           <div className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
             {[
               { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+              { id: "slides", label: "Home Slider Management", icon: Play, badge: slides.length },
               { id: "coaches", label: "Coach Management", icon: Train, badge: totalCoachesCount },
               { id: "trainboards", label: "T-Board Management", icon: Layers, badge: totalTrainboardsCount },
               { id: "products", label: "Product Management", icon: Package, badge: totalProductsCount },
@@ -746,60 +815,78 @@ export default function AdminClient({
                 </p>
               </div>
 
-              {/* 6 Required Metric Cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-                <div className="p-4 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
+              {/* Metric Cards Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+                <div className="p-3.5 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
                   <div className="flex items-center justify-between text-gray-400">
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Total Coaches</span>
-                    <Train className="w-4 h-4 text-[#0B2852]" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Total Products</span>
+                    <Package className="w-3.5 h-3.5 text-[#0B2852]" />
                   </div>
-                  <p className="text-2xl font-bold text-[#0B2852]">{totalCoachesCount}</p>
-                  <span className="text-[10px] text-gray-500">Official VG Fleet</span>
+                  <p className="text-xl font-bold text-[#0B2852]">{totalProductsCount}</p>
+                  <span className="text-[9px] text-gray-500">Catalog Items</span>
                 </div>
 
-                <div className="p-4 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
+                <div className="p-3.5 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
                   <div className="flex items-center justify-between text-gray-400">
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Total T-Boards</span>
-                    <Layers className="w-4 h-4 text-[#0B2852]" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Total Coaches</span>
+                    <Train className="w-3.5 h-3.5 text-[#0B2852]" />
                   </div>
-                  <p className="text-2xl font-bold text-[#0B2852]">{totalTrainboardsCount}</p>
-                  <span className="text-[10px] text-gray-500">Trainboard Packs</span>
+                  <p className="text-xl font-bold text-[#0B2852]">{totalCoachesCount}</p>
+                  <span className="text-[9px] text-gray-500">Official VG Fleet</span>
                 </div>
 
-                <div className="p-4 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
+                <div className="p-3.5 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
                   <div className="flex items-center justify-between text-gray-400">
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Available</span>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Total T-Boards</span>
+                    <Layers className="w-3.5 h-3.5 text-[#0B2852]" />
                   </div>
-                  <p className="text-2xl font-bold text-emerald-700">{availableProductsCount}</p>
-                  <span className="text-[10px] text-emerald-600">In Stock for Order</span>
+                  <p className="text-xl font-bold text-[#0B2852]">{totalTrainboardsCount}</p>
+                  <span className="text-[9px] text-gray-500">Trainboard Packs</span>
                 </div>
 
-                <div className="p-4 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
+                <div className="p-3.5 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
                   <div className="flex items-center justify-between text-gray-400">
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Out of Stock</span>
-                    <Ban className="w-4 h-4 text-rose-600" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Available</span>
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                   </div>
-                  <p className="text-2xl font-bold text-rose-600">{outOfStockProductsCount}</p>
-                  <span className="text-[10px] text-rose-500">Purchases Disabled</span>
+                  <p className="text-xl font-bold text-emerald-700">{availableProductsCount}</p>
+                  <span className="text-[9px] text-emerald-600">In Stock for Order</span>
                 </div>
 
-                <div className="p-4 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
+                <div className="p-3.5 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
                   <div className="flex items-center justify-between text-gray-400">
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Active Offers</span>
-                    <Tag className="w-4 h-4 text-[#FF6600]" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Out of Stock</span>
+                    <Ban className="w-3.5 h-3.5 text-rose-600" />
                   </div>
-                  <p className="text-2xl font-bold text-[#FF6600]">{activeOffersCount}</p>
-                  <span className="text-[10px] text-gray-500">Discounts Live</span>
+                  <p className="text-xl font-bold text-rose-600">{outOfStockProductsCount}</p>
+                  <span className="text-[9px] text-rose-500">Purchases Disabled</span>
                 </div>
 
-                <div className="p-4 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
+                <div className="p-3.5 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
                   <div className="flex items-center justify-between text-gray-400">
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Total Products</span>
-                    <Package className="w-4 h-4 text-[#0B2852]" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Coming Soon</span>
+                    <Clock className="w-3.5 h-3.5 text-amber-600" />
                   </div>
-                  <p className="text-2xl font-bold text-[#0B2852]">{totalProductsCount}</p>
-                  <span className="text-[10px] text-gray-500">Catalog Items</span>
+                  <p className="text-xl font-bold text-amber-600">{comingSoonProductsCount}</p>
+                  <span className="text-[9px] text-amber-500">Release Pending</span>
+                </div>
+
+                <div className="p-3.5 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
+                  <div className="flex items-center justify-between text-gray-400">
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Active Offers</span>
+                    <Tag className="w-3.5 h-3.5 text-[#FF6600]" />
+                  </div>
+                  <p className="text-xl font-bold text-[#FF6600]">{activeOffersCount}</p>
+                  <span className="text-[9px] text-gray-500">Discounts Live</span>
+                </div>
+
+                <div className="p-3.5 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
+                  <div className="flex items-center justify-between text-gray-400">
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Home Slides</span>
+                    <Play className="w-3.5 h-3.5 text-blue-600" />
+                  </div>
+                  <p className="text-xl font-bold text-blue-700">{slides.length}</p>
+                  <span className="text-[9px] text-blue-500">Slider Windows</span>
                 </div>
               </div>
 
@@ -883,6 +970,161 @@ export default function AdminClient({
                       )}
                     </tbody>
                   </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: HOME SLIDER MANAGEMENT */}
+          {activeTab === "slides" && (
+            <div className="space-y-6 max-w-6xl">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200 pb-4">
+                <div>
+                  <h2 className="text-2xl font-light text-[#0B2852]">Home Page Slider Management</h2>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Add, edit, rename, upload images, reorder, and configure automatic slide transitions on the public Home page.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setEditingSlide(null);
+                      setIsAddSlideOpen(true);
+                    }}
+                    className="px-4 py-2 bg-[#0B2852] hover:bg-[#39FF00] hover:text-[#101C32] text-white rounded-full text-xs font-bold flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    + Add New Slide
+                  </button>
+                  <Link
+                    href="/"
+                    target="_blank"
+                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-[#0B2852] rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    View Live Home Page
+                  </Link>
+                </div>
+              </div>
+
+              {/* Slider Settings Bar */}
+              <div className="p-4 bg-white border border-gray-200 rounded-2xl flex flex-wrap items-center justify-between gap-4 shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-blue-50 text-[#0B2852] flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-[#0B2852]" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-gray-800 block">Automatic Slide Transition Timing</span>
+                    <span className="text-[11px] text-gray-500">
+                      Configure interval before moving to the next slide
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <select
+                    value={settings.sliderInterval || 5000}
+                    onChange={async (e) => {
+                      const newInterval = parseInt(e.target.value, 10);
+                      setSettings({ ...settings, sliderInterval: newInterval });
+                      try {
+                        await fetch("/api/admin/settings", {
+                          method: "PUT",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ sliderInterval: newInterval }),
+                        });
+                        showToast(`Slide timing set to ${newInterval / 1000} seconds!`);
+                      } catch (err) {}
+                    }}
+                    className="px-3 py-1.5 border rounded-lg text-xs font-semibold text-[#0B2852] bg-white focus:outline-none"
+                  >
+                    <option value={3000}>3 Seconds (Fast)</option>
+                    <option value={5000}>5 Seconds (Recommended)</option>
+                    <option value={8000}>8 Seconds (Relaxed)</option>
+                    <option value={10000}>10 Seconds (Slow)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Slides Grid / List */}
+              <div className="bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden">
+                <div className="p-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <span>Home Showcase Slides ({slides.length} Total)</span>
+                  <span className="text-gray-400 font-normal">Active on Home Page: {slides.filter((s) => s.isActive).length}</span>
+                </div>
+
+                <div className="divide-y divide-gray-100">
+                  {slides.map((s, idx) => (
+                    <div
+                      key={s.id}
+                      className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-gray-50/80 transition-colors"
+                    >
+                      <div className="flex items-center gap-4 flex-1">
+                        <span className="w-6 text-center font-mono font-bold text-gray-400 text-xs">
+                          #{s.order || idx + 1}
+                        </span>
+                        <div className="w-20 h-14 bg-gray-100 rounded-lg overflow-hidden border flex items-center justify-center p-1 flex-shrink-0">
+                          <img src={s.image} alt={s.title} className="w-full h-full object-contain" />
+                        </div>
+                        <div className="space-y-0.5 flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-sm text-[#0B2852] truncate block">
+                              {s.title}
+                            </span>
+                            <span
+                              className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase ${
+                                s.isActive ? "bg-emerald-100 text-emerald-800" : "bg-gray-200 text-gray-600"
+                              }`}
+                            >
+                              {s.isActive ? "Active" : "Disabled"}
+                            </span>
+                          </div>
+                          {s.subtitle && (
+                            <p className="text-[11px] text-[#FF6600] font-semibold truncate">{s.subtitle}</p>
+                          )}
+                          <p className="text-xs text-gray-500 line-clamp-1">{s.description || "No description provided."}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 self-start md:self-center">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleSlideActive(s)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                            s.isActive
+                              ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200"
+                              : "bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-300"
+                          }`}
+                        >
+                          {s.isActive ? "Disable" : "Enable"}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setEditingSlide(s)}
+                          className="px-3 py-1.5 rounded-lg bg-[#0B2852] text-white hover:bg-black text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                          Edit
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setDeleteSlideModal({ id: s.id, title: s.title })}
+                          className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 transition-colors cursor-pointer"
+                          title="Delete Slide"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  {slides.length === 0 && (
+                    <div className="p-8 text-center text-gray-500 text-sm">
+                      No slides created yet. Click "+ Add New Slide" to start.
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1912,6 +2154,52 @@ export default function AdminClient({
           onSave={handleSaveOffer}
         />
       )}
+
+      {/* MODAL: ADD / EDIT HOME SLIDE */}
+      {(isAddSlideOpen || editingSlide) && (
+        <SlideAdminModal
+          isOpen={isAddSlideOpen || !!editingSlide}
+          slide={editingSlide}
+          onClose={() => {
+            setIsAddSlideOpen(false);
+            setEditingSlide(null);
+          }}
+          onSave={handleSaveSlide}
+        />
+      )}
+
+      {/* MODAL: DELETE SLIDE CONFIRMATION */}
+      {deleteSlideModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-200 text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 mx-auto flex items-center justify-center">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-gray-900">Delete Slide Permanently?</h3>
+              <p className="text-xs text-gray-500 mt-1">
+                Are you sure you want to delete <strong>"{deleteSlideModal.title}"</strong>? It will be removed from the Home page immediately.
+              </p>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteSlideModal(null)}
+                className="flex-1 py-2 rounded-full border text-xs font-semibold text-gray-700 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteSlide}
+                className="flex-1 py-2 rounded-full bg-rose-600 text-white text-xs font-bold hover:bg-rose-700"
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2749,6 +3037,258 @@ function OfferFormModal({
               className="flex-1 py-2.5 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] font-bold uppercase transition-all shadow-md"
             >
               {offer ? "Save Offer" : "Create Offer"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// --- SUB-COMPONENT: SLIDE ADMIN MODAL ---
+function SlideAdminModal({
+  isOpen,
+  slide,
+  onClose,
+  onSave,
+}: {
+  isOpen: boolean;
+  slide: any | null;
+  onClose: () => void;
+  onSave: (e: React.FormEvent, formValues: any, isNew: boolean) => void;
+}) {
+  const [title, setTitle] = useState(slide?.title || "");
+  const [subtitle, setSubtitle] = useState(
+    slide?.subtitle || "(Coming Soon) Please Sign Up to purchase and download these addons!!!!!"
+  );
+  const [description, setDescription] = useState(
+    slide?.description || "High-precision Indian Railway rolling stock model built for Open Rails and MSTS."
+  );
+  const [image, setImage] = useState(slide?.image || "/assets/products/chaircar_standard.png");
+  const [buttonText, setButtonText] = useState(slide?.buttonText || "View Product Details");
+  const [buttonUrl, setButtonUrl] = useState(slide?.buttonUrl || "/shop");
+  const [order, setOrder] = useState<number>(slide?.order || 1);
+  const [isActive, setIsActive] = useState<boolean>(slide?.isActive !== undefined ? slide.isActive : true);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const presets = [
+    { label: "Academy Sleeper", url: "/assets/products/vg_academy_sleeper.avif" },
+    { label: "Humsafar V2", url: "/assets/products/humsafar_v2.avif" },
+    { label: "Sleeper V2", url: "/assets/products/sleeper_v2.avif" },
+    { label: "Chair Car", url: "/assets/products/chaircar_standard.png" },
+    { label: "Vistadome", url: "/assets/products/vistadome_standard.png" },
+    { label: "Amrit Bharat", url: "/assets/products/amrit_bharat.png" },
+    { label: "Bangladesh", url: "/assets/products/bangladesh_coaches.png" },
+    { label: "PNB Livery", url: "/assets/products/pnb_livery.png" },
+    { label: "Tricolour", url: "/assets/products/indian_tricolour.avif" },
+    { label: "Vistadome Livery", url: "/assets/products/vistadome_livery.png" },
+    { label: "WHR Route V2", url: "/assets/products/whr_route_v2.png" },
+    { label: "Maitree Pack", url: "/assets/projects/05_vg_lhb_bangladesh.png" },
+  ];
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Upload failed");
+
+      setImage(data.url);
+    } catch (err: any) {
+      alert(err.message || "Upload failed");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    onSave(
+      e,
+      {
+        id: slide?.id,
+        title,
+        subtitle,
+        description,
+        image,
+        buttonText,
+        buttonUrl,
+        order,
+        isActive,
+      },
+      !slide
+    );
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-gray-200 my-8 space-y-4 font-josefin text-xs">
+        <div className="flex items-center justify-between border-b pb-3">
+          <h3 className="text-lg font-bold text-[#0B2852]">
+            {slide ? `Edit Slide: ${slide.title}` : "Add New Home Page Slide"}
+          </h3>
+          <button onClick={onClose} className="p-1 rounded text-gray-400 hover:text-gray-700">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block font-semibold text-gray-700 mb-1">Slide Title / Heading *</label>
+            <input
+              type="text"
+              required
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. VG LHB ACADEMY LIVERY SLEEPER COACHES"
+              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold text-gray-700 mb-1">Subtitle (Orange Highlight)</label>
+            <input
+              type="text"
+              value={subtitle}
+              onChange={(e) => setSubtitle(e.target.value)}
+              placeholder="(Coming Soon) Please Sign Up..."
+              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold text-gray-700 mb-1">Description</label>
+            <textarea
+              rows={2}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Hyper-realistic LHB coach model..."
+              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+            />
+          </div>
+
+          {/* Slide Image Upload & Preview */}
+          <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
+            <label className="block font-bold text-gray-700">Slide Image (Upload or Preset)</label>
+            <div className="flex gap-4 items-center">
+              <div className="w-28 h-18 bg-white border rounded-lg overflow-hidden flex items-center justify-center p-1 flex-shrink-0">
+                <img src={image} alt="Preview" className="w-full h-full object-contain" />
+              </div>
+              <div className="flex-1 space-y-2">
+                <label className="px-3 py-1.5 bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] rounded-lg font-bold cursor-pointer transition-colors inline-flex items-center gap-1.5 text-xs">
+                  <Upload className="w-3.5 h-3.5" />
+                  {isUploading ? "Uploading..." : "Upload from Computer"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    disabled={isUploading}
+                  />
+                </label>
+                <input
+                  type="text"
+                  value={image}
+                  onChange={(e) => setImage(e.target.value)}
+                  placeholder="Or enter image URL"
+                  className="w-full p-2 border rounded font-mono text-xs"
+                />
+              </div>
+            </div>
+
+            <div>
+              <span className="text-[11px] text-gray-500 block mb-1">Or choose an official preset:</span>
+              <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto">
+                {presets.map((p) => (
+                  <button
+                    key={p.url}
+                    type="button"
+                    onClick={() => setImage(p.url)}
+                    className={`text-[10px] px-2 py-0.5 rounded border transition-colors ${
+                      image === p.url
+                        ? "bg-[#0B2852] text-white border-[#0B2852]"
+                        : "bg-white text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Button Text & Link */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">Button Text</label>
+              <input
+                type="text"
+                value={buttonText}
+                onChange={(e) => setButtonText(e.target.value)}
+                placeholder="View Product Details"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">Button Destination URL</label>
+              <input
+                type="text"
+                value={buttonUrl}
+                onChange={(e) => setButtonUrl(e.target.value)}
+                placeholder="/shop/product-slug"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">Display Order</label>
+              <input
+                type="number"
+                value={order}
+                onChange={(e) => setOrder(parseInt(e.target.value, 10) || 1)}
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              />
+            </div>
+            <div className="flex items-center gap-2 pt-6">
+              <input
+                type="checkbox"
+                id="isSlideActiveCheck"
+                checked={isActive}
+                onChange={(e) => setIsActive(e.target.checked)}
+                className="rounded text-[#0B2852]"
+              />
+              <label htmlFor="isSlideActiveCheck" className="font-semibold text-gray-700 cursor-pointer">
+                Active & Published on Home Slider
+              </label>
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-4 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2.5 rounded-full border border-gray-300 text-gray-700 font-bold hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 py-2.5 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] font-bold uppercase transition-all shadow-md"
+            >
+              {slide ? "Save Changes" : "Create Slide"}
             </button>
           </div>
         </form>

@@ -67,6 +67,9 @@ export async function PUT(
         ...(specifications !== undefined && { specifications }),
         ...(body.regularPrice !== undefined && { regularPrice: parseFloat(body.regularPrice) }),
         ...(body.salePrice !== undefined && { salePrice: body.salePrice !== null && body.salePrice !== "" ? parseFloat(body.salePrice) : null }),
+        ...(body.category !== undefined && { category: body.category.trim() }),
+        ...(body.discountPercent !== undefined && { discountPercent: parseFloat(body.discountPercent) }),
+        ...(body.isSpecialOffer !== undefined && { isSpecialOffer: Boolean(body.isSpecialOffer) }),
         ...(status && { status }),
       },
     });

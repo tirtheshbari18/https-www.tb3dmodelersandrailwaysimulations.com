@@ -14,6 +14,7 @@ export default async function HomePage() {
     projects,
     services,
     settings,
+    homeSlides,
   ] = await Promise.all([
     prisma.product.findMany({
       orderBy: { createdAt: "asc" },
@@ -49,6 +50,9 @@ export default async function HomePage() {
     prisma.websiteSetting.findUnique({
       where: { id: "default" },
     }),
+    prisma.homeSlide.findMany({
+      orderBy: [{ order: "asc" }, { createdAt: "desc" }],
+    }),
   ]);
 
   return (
@@ -59,6 +63,7 @@ export default async function HomePage() {
       projects={projects}
       services={services}
       settings={settings}
+      homeSlides={homeSlides}
     />
   );
 }

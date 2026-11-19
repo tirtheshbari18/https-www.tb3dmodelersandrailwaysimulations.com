@@ -91,6 +91,9 @@ model Product {
   status        String    @default("AVAILABLE") // AVAILABLE, OUT_OF_STOCK, COMING_SOON, ARCHIVED
   stockQuantity Int       @default(999)
   specifications String?
+  discountPercent Float   @default(0)
+  isSpecialOffer  Boolean @default(false)
+  specialOfferText String? @default("Special Offer")
   isFeatured    Boolean   @default(false)
   isNewArrival  Boolean   @default(false)
   installGuide  String?
@@ -363,6 +366,7 @@ model WebsiteSetting {
   privacyContent String?
   eulaContent    String?
   refundContent  String?
+  sliderInterval Int      @default(5000)
   updatedAt      DateTime @updatedAt
 }
 
@@ -380,21 +384,38 @@ model AuditLog {
 }
 
 model Trainboard {
-  id             String   @id @default(cuid())
-  name           String
-  zone           String   // WR, CR, ECoR, etc.
-  zoneName       String
-  size           String   @default("2.5 MB")
-  downloadUrl    String
-  description    String?
-  image          String?
-  displayOrder   Int      @default(0)
-  specifications String?
-  regularPrice   Float    @default(0)
-  salePrice      Float?
-  status         String   @default("AVAILABLE") // AVAILABLE, OUT_OF_STOCK, COMING_SOON
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id              String   @id @default(cuid())
+  name            String
+  zone            String   // WR, CR, ECoR, etc.
+  zoneName        String
+  size            String   @default("2.5 MB")
+  downloadUrl     String
+  description     String?
+  image           String?
+  displayOrder    Int      @default(0)
+  specifications  String?
+  regularPrice    Float    @default(0)
+  salePrice       Float?
+  category        String   @default("Trainboards")
+  discountPercent Float    @default(0)
+  isSpecialOffer  Boolean  @default(false)
+  status          String   @default("AVAILABLE") // AVAILABLE, OUT_OF_STOCK, COMING_SOON
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model HomeSlide {
+  id          String   @id @default(cuid())
+  title       String
+  subtitle    String?
+  description String?
+  image       String
+  buttonText  String?  @default("View Product Details")
+  buttonUrl   String?  @default("/shop")
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Offer {

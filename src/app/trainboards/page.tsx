@@ -41,6 +41,10 @@ interface TrainboardFile {
   regularPrice?: number;
   salePrice?: number | null;
   status?: string;
+  displayOrder?: number;
+  category?: string;
+  discountPercent?: number;
+  isSpecialOffer?: boolean;
 }
 
 const DEFAULT_TRAINBOARDS: TrainboardFile[] = [
@@ -139,6 +143,9 @@ export default function TrainboardsPage() {
   const [isAddTrainboardOpen, setIsAddTrainboardOpen] = useState(false);
   const [editingTrainboard, setEditingTrainboard] = useState<TrainboardFile | null>(null);
   const [deleteModal, setDeleteModal] = useState<{ id: string; name: string } | null>(null);
+  const [renameModalTb, setRenameModalTb] = useState<TrainboardFile | null>(null);
+  const [imageModalTb, setImageModalTb] = useState<TrainboardFile | null>(null);
+  const [priceModalTb, setPriceModalTb] = useState<TrainboardFile | null>(null);
 
   // Toast
   const [toastMsg, setToastMsg] = useState<{ text: string; isError: boolean } | null>(null);
@@ -160,18 +167,45 @@ export default function TrainboardsPage() {
       .catch((e) => console.log("Using cached trainboard data"));
   };
 
+  // Check user session from localStorage and API
+  const checkAuth = async () => {
+    try {
+      const storedUser = typeof window !== "undefined" ? localStorage.getItem("vg_user") : null;
+      const storedToken = typeof window !== "undefined" ? localStorage.getItem("vg_token") : null;
+
+      if (storedUser) {
+        try {
+          const parsed = JSON.parse(storedUser);
+          if (parsed && (parsed.role === "ADMIN" || parsed.role === "SUPER_ADMIN")) {
+            setCurrentUser(parsed);
+          }
+        } catch (e) {}
+      }
+
+      const headers: Record<string, string> = {};
+      if (storedToken) {
+        headers["Authorization"] = `Bearer ${storedToken}`;
+      }
+
+      const res = await fetch("/api/auth/me", { headers });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.user && (data.user.role === "ADMIN" || data.user.role === "SUPER_ADMIN")) {
+          setCurrentUser(data.user);
+          if (typeof window !== "undefined") {
+            localStorage.setItem("vg_user", JSON.stringify(data.user));
+          }
+        }
+      }
+    } catch (e) {}
+  };
+
   useEffect(() => {
     refreshTrainboards();
-
-    // Check user role
-    fetch("/api/auth/me")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data && data.user && (data.user.role === "ADMIN" || data.user.role === "SUPER_ADMIN")) {
-          setCurrentUser(data.user);
-        }
-      })
-      .catch(() => {});
+    checkAuth();
+    const handleAuthEvent = () => checkAuth();
+    window.addEventListener("vg-auth-changed", handleAuthEvent);
+    return () => window.removeEventListener("vg-auth-changed", handleAuthEvent);
   }, []);
 
   // Handlers for Admin Operations
@@ -220,6 +254,69 @@ export default function TrainboardsPage() {
       if (!res.ok) throw new Error("Failed to delete trainboard");
       setTrainboardFiles((prev) => prev.filter((tb) => tb.id !== id));
       showToast(`Trainboard "${name}" permanently deleted.`);
+    } catch (err: any) {
+      showToast(err.message, true);
+    }
+  };
+
+  const handleSaveRename = async (id: string, name: string) => {
+    try {
+      const cleanName = name.trim().endsWith(".zip") ? name.trim() : `${name.trim()}.zip`;
+      const res = await fetch(`/api/admin/trainboards/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: cleanName }),
+      });
+      if (!res.ok) throw new Error("Failed to rename trainboard");
+      setTrainboardFiles((prev) =>
+        prev.map((tb) => (tb.id === id ? { ...tb, name: cleanName } : tb))
+      );
+      setRenameModalTb(null);
+      showToast(`Trainboard renamed to "${cleanName}"!`);
+    } catch (err: any) {
+      showToast(err.message, true);
+    }
+  };
+
+  const handleSaveImage = async (id: string, image: string) => {
+    try {
+      const res = await fetch(`/api/admin/trainboards/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image }),
+      });
+      if (!res.ok) throw new Error("Failed to update trainboard image");
+      setTrainboardFiles((prev) =>
+        prev.map((tb) => (tb.id === id ? { ...tb, image } : tb))
+      );
+      setImageModalTb(null);
+      showToast("Trainboard image updated successfully!");
+    } catch (err: any) {
+      showToast(err.message, true);
+    }
+  };
+
+  const handleSavePriceOffer = async (
+    id: string,
+    regularPrice: number,
+    salePrice: number | null,
+    discountPercent: number,
+    isSpecialOffer: boolean
+  ) => {
+    try {
+      const res = await fetch(`/api/admin/trainboards/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ regularPrice, salePrice, discountPercent, isSpecialOffer }),
+      });
+      if (!res.ok) throw new Error("Failed to update trainboard pricing");
+      setTrainboardFiles((prev) =>
+        prev.map((tb) =>
+          tb.id === id ? { ...tb, regularPrice, salePrice, discountPercent, isSpecialOffer } : tb
+        )
+      );
+      setPriceModalTb(null);
+      showToast("Trainboard pricing and offer updated successfully!");
     } catch (err: any) {
       showToast(err.message, true);
     }
@@ -321,6 +418,35 @@ export default function TrainboardsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Rename Trainboard Modal */}
+      {renameModalTb && (
+        <RenameTrainboardModal
+          trainboard={renameModalTb}
+          onClose={() => setRenameModalTb(null)}
+          onSave={(newName) => handleSaveRename(renameModalTb.id, newName)}
+        />
+      )}
+
+      {/* Trainboard Image Modal */}
+      {imageModalTb && (
+        <TrainboardImageModal
+          trainboard={imageModalTb}
+          onClose={() => setImageModalTb(null)}
+          onSave={(newImg) => handleSaveImage(imageModalTb.id, newImg)}
+        />
+      )}
+
+      {/* Trainboard Price & Offer Modal */}
+      {priceModalTb && (
+        <TrainboardPriceOfferModal
+          trainboard={priceModalTb}
+          onClose={() => setPriceModalTb(null)}
+          onSave={(regPrice, sPrice, discPct, isOffer) =>
+            handleSavePriceOffer(priceModalTb.id, regPrice, sPrice, discPct, isOffer)
+          }
+        />
       )}
 
       {/* Add / Edit Trainboard Modal */}
@@ -582,64 +708,116 @@ export default function TrainboardsPage() {
 
                       {/* Admin Controls on Item */}
                       {currentUser && isAdminMode && (
-                        <div className="flex items-center gap-1.5 pl-2 sm:border-l border-gray-200">
-                          <button
-                            type="button"
-                            onClick={() => setEditingTrainboard(file)}
-                            className="p-2 rounded-lg bg-[#0B2852] text-white hover:bg-black transition-colors"
-                            title="Edit / Rename Trainboard"
-                          >
-                            <Edit className="w-3.5 h-3.5" />
-                          </button>
+                        <div className="flex flex-col gap-1.5 p-2 bg-blue-50/80 rounded-xl border border-blue-200 mt-2 sm:mt-0 shadow-xs">
+                          <div className="flex items-center justify-between gap-2 text-[10px] font-bold text-[#0B2852] pb-1 border-b border-blue-200">
+                            <span className="flex items-center gap-1">
+                              <ShieldCheck className="w-3 h-3 text-[#0B2852]" />
+                              Admin Controls
+                            </span>
+                            <span className="font-mono text-gray-500 text-[9px]">Order: {file.displayOrder || 0}</span>
+                          </div>
 
-                          {/* Quick Availability switcher */}
-                          <div className="flex items-center gap-1 bg-gray-100 p-0.5 rounded-lg text-[10px]">
+                          {/* Row 1: [EDIT] [RENAME] [UPLOAD IMAGE] */}
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => setEditingTrainboard(file)}
+                              className="px-2 py-1 rounded bg-[#0B2852] text-white hover:bg-black font-bold text-[10px] flex items-center gap-1 transition-colors cursor-pointer shadow-xs"
+                              title="Edit Full Details"
+                            >
+                              <Edit className="w-3 h-3" />
+                              Edit
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setRenameModalTb(file)}
+                              className="px-2 py-1 rounded bg-white border border-gray-300 text-gray-800 hover:border-[#0B2852] font-bold text-[10px] flex items-center gap-1 transition-colors cursor-pointer shadow-xs"
+                              title="Rename Train Board"
+                            >
+                              Rename
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setImageModalTb(file)}
+                              className="px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 font-bold text-[10px] flex items-center gap-1 transition-colors cursor-pointer shadow-xs"
+                              title="Upload / Replace Image"
+                            >
+                              <Upload className="w-3 h-3" />
+                              Image
+                            </button>
+                          </div>
+
+                          {/* Row 2: [PRICE] [OFFER] [DELETE] */}
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => setPriceModalTb(file)}
+                              className="px-2 py-1 rounded bg-white border border-gray-300 text-gray-800 hover:border-[#FF6600] font-bold text-[10px] flex items-center gap-1 transition-colors cursor-pointer shadow-xs"
+                              title="Edit Price"
+                            >
+                              <DollarSign className="w-3 h-3 text-[#FF6600]" />
+                              Price
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setPriceModalTb(file)}
+                              className="px-2 py-1 rounded bg-[#FF6600] text-white hover:bg-[#e05a00] font-bold text-[10px] flex items-center gap-1 transition-colors cursor-pointer shadow-xs"
+                              title="Special Offer"
+                            >
+                              <Tag className="w-3 h-3" />
+                              Offer
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setDeleteModal({ id: file.id, name: file.name })}
+                              className="px-2 py-1 rounded bg-rose-600 text-white hover:bg-rose-700 font-bold text-[10px] flex items-center gap-1 transition-colors cursor-pointer shadow-xs"
+                              title="Delete Trainboard"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              Delete
+                            </button>
+                          </div>
+
+                          {/* Row 3: 1-Click Availability Pills */}
+                          <div className="flex items-center gap-1 pt-1 border-t border-blue-200">
                             <button
                               type="button"
                               onClick={() => handleUpdateAvailability(file, "AVAILABLE")}
-                              className={`px-2 py-1 rounded font-bold ${
+                              className={`flex-1 py-0.5 rounded text-[9px] font-bold uppercase transition-all cursor-pointer ${
                                 file.status === "AVAILABLE" || !file.status
-                                  ? "bg-emerald-600 text-white"
-                                  : "text-gray-600 hover:text-emerald-700"
+                                  ? "bg-emerald-600 text-white shadow-xs"
+                                  : "bg-white border border-gray-200 text-gray-600 hover:bg-emerald-50"
                               }`}
-                              title="Set Available"
                             >
                               Avail
                             </button>
                             <button
                               type="button"
                               onClick={() => handleUpdateAvailability(file, "OUT_OF_STOCK")}
-                              className={`px-2 py-1 rounded font-bold ${
+                              className={`flex-1 py-0.5 rounded text-[9px] font-bold uppercase transition-all cursor-pointer ${
                                 file.status === "OUT_OF_STOCK"
-                                  ? "bg-rose-600 text-white"
-                                  : "text-gray-600 hover:text-rose-700"
+                                  ? "bg-rose-600 text-white shadow-xs"
+                                  : "bg-white border border-gray-200 text-gray-600 hover:bg-rose-50"
                               }`}
-                              title="Set Out of Stock"
                             >
                               Out
                             </button>
                             <button
                               type="button"
                               onClick={() => handleUpdateAvailability(file, "COMING_SOON")}
-                              className={`px-2 py-1 rounded font-bold ${
+                              className={`flex-1 py-0.5 rounded text-[9px] font-bold uppercase transition-all cursor-pointer ${
                                 file.status === "COMING_SOON"
-                                  ? "bg-amber-600 text-white"
-                                  : "text-gray-600 hover:text-amber-700"
+                                  ? "bg-amber-600 text-white shadow-xs"
+                                  : "bg-white border border-gray-200 text-gray-600 hover:bg-amber-50"
                               }`}
-                              title="Set Coming Soon"
                             >
                               Soon
                             </button>
                           </div>
-
-                          <button
-                            type="button"
-                            onClick={() => setDeleteModal({ id: file.id, name: file.name })}
-                            className="p-2 rounded-lg bg-rose-600 text-white hover:bg-rose-700 transition-colors"
-                            title="Delete Trainboard"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
                         </div>
                       )}
                     </div>
@@ -897,6 +1075,295 @@ function TrainboardDialog({
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+// --- SUB-COMPONENT: RENAME TRAINBOARD MODAL ---
+function RenameTrainboardModal({
+  trainboard,
+  onClose,
+  onSave,
+}: {
+  trainboard: TrainboardFile;
+  onClose: () => void;
+  onSave: (newName: string) => void;
+}) {
+  const [name, setName] = useState(trainboard.name || "");
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200 space-y-4 font-josefin text-xs">
+        <div className="flex items-center justify-between border-b pb-3">
+          <h3 className="text-base font-bold text-[#0B2852]">Rename Train Board</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (name.trim()) onSave(name.trim());
+          }}
+          className="space-y-4"
+        >
+          <div>
+            <label className="block font-bold text-gray-700 mb-1">Train Board File Name (.zip)</label>
+            <input
+              type="text"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full p-2.5 border rounded-lg text-sm text-[#101C32] focus:ring-2 focus:ring-[#0B2852]"
+            />
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2 rounded-full border border-gray-300 text-gray-700 font-bold hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 py-2 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] font-bold uppercase transition-all"
+            >
+              Save Rename
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// --- SUB-COMPONENT: TRAINBOARD IMAGE MODAL ---
+function TrainboardImageModal({
+  trainboard,
+  onClose,
+  onSave,
+}: {
+  trainboard: TrainboardFile;
+  onClose: () => void;
+  onSave: (newImg: string) => void;
+}) {
+  const [image, setImage] = useState(trainboard.image || "");
+  const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleFileUpload = async (file: File) => {
+    setIsUploading(true);
+    setError(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Upload failed");
+
+      setImage(data.url);
+    } catch (err: any) {
+      setError(err.message || "Failed to upload image");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200 space-y-4 font-josefin text-xs">
+        <div className="flex items-center justify-between border-b pb-3">
+          <h3 className="text-base font-bold text-[#0B2852]">
+            Upload / Replace Train Board Image
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Live Preview */}
+        <div className="aspect-[16/9] w-full bg-gray-50 rounded-xl overflow-hidden border flex items-center justify-center p-2">
+          {image ? (
+            <img src={image} alt="Preview" className="w-full h-full object-contain" />
+          ) : (
+            <span className="text-gray-400">No image specified</span>
+          )}
+        </div>
+
+        {error && <p className="text-rose-600 text-[11px] font-semibold">{error}</p>}
+
+        <div>
+          <label className="block font-bold text-gray-700 mb-1">Upload from Computer</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleFileUpload(file);
+            }}
+            className="w-full text-xs text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#0B2852] file:text-white hover:file:bg-[#39FF00] hover:file:text-[#101C32] cursor-pointer"
+          />
+        </div>
+
+        <div>
+          <label className="block font-bold text-gray-700 mb-1">Or Image URL</label>
+          <input
+            type="text"
+            value={image}
+            onChange={(e) => setImage(e.target.value)}
+            placeholder="/assets/products/... or https://..."
+            className="w-full p-2 border rounded font-mono text-xs text-[#101C32]"
+          />
+        </div>
+
+        <div className="flex gap-2 pt-3 border-t">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 py-2 rounded-full border border-gray-300 text-gray-700 font-bold hover:bg-gray-100"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={isUploading}
+            onClick={() => onSave(image)}
+            className="flex-1 py-2 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] font-bold uppercase transition-all disabled:opacity-50"
+          >
+            {isUploading ? "Uploading..." : "Save Image"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- SUB-COMPONENT: TRAINBOARD PRICE & OFFER MODAL ---
+function TrainboardPriceOfferModal({
+  trainboard,
+  onClose,
+  onSave,
+}: {
+  trainboard: TrainboardFile;
+  onClose: () => void;
+  onSave: (
+    regularPrice: number,
+    salePrice: number | null,
+    discountPercent: number,
+    isSpecialOffer: boolean
+  ) => void;
+}) {
+  const [regularPrice, setRegularPrice] = useState<number>(trainboard.regularPrice || 0);
+  const [isSpecialOffer, setIsSpecialOffer] = useState<boolean>(
+    Boolean((trainboard as any).isSpecialOffer)
+  );
+  const [discountPercent, setDiscountPercent] = useState<number>(
+    (trainboard as any).discountPercent || 20
+  );
+
+  const calculatedSalePrice =
+    regularPrice > 0 && isSpecialOffer
+      ? Math.round(regularPrice * (1 - discountPercent / 100))
+      : trainboard.salePrice || null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200 space-y-4 font-josefin text-xs">
+        <div className="flex items-center justify-between border-b pb-3">
+          <h3 className="text-base font-bold text-[#0B2852]">
+            Price & Special Offer: {trainboard.name}
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div>
+          <label className="block font-bold text-gray-700 mb-1">
+            Original Price (₹, enter 0 for Free Download)
+          </label>
+          <input
+            type="number"
+            min={0}
+            value={regularPrice}
+            onChange={(e) => setRegularPrice(parseFloat(e.target.value) || 0)}
+            className="w-full p-2.5 border rounded-lg text-sm text-[#101C32]"
+          />
+        </div>
+
+        {regularPrice > 0 && (
+          <div className="p-3 bg-orange-50 border border-orange-200 rounded-xl space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="font-bold text-gray-900 block">Enable Special Offer</span>
+                <span className="text-[11px] text-gray-500">Apply promotional discount</span>
+              </div>
+              <input
+                type="checkbox"
+                checked={isSpecialOffer}
+                onChange={(e) => setIsSpecialOffer(e.target.checked)}
+                className="w-5 h-5 text-[#FF6600] rounded focus:ring-[#FF6600]"
+              />
+            </div>
+
+            {isSpecialOffer && (
+              <div>
+                <div className="flex justify-between font-bold text-gray-700 mb-1">
+                  <span>Discount:</span>
+                  <span className="text-[#FF6600] font-mono text-sm">{discountPercent}% OFF</span>
+                </div>
+                <input
+                  type="range"
+                  min={5}
+                  max={90}
+                  step={5}
+                  value={discountPercent}
+                  onChange={(e) => setDiscountPercent(parseInt(e.target.value, 10))}
+                  className="w-full accent-[#FF6600]"
+                />
+                <div className="flex justify-between text-xs font-semibold pt-2 text-[#0B2852]">
+                  <span>Discounted Price:</span>
+                  <span className="text-[#FF6600] font-bold text-sm">
+                    ₹{calculatedSalePrice?.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="flex gap-2 pt-3 border-t">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 py-2 rounded-full border border-gray-300 text-gray-700 font-bold hover:bg-gray-100"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              onSave(
+                regularPrice,
+                isSpecialOffer ? calculatedSalePrice : null,
+                discountPercent,
+                isSpecialOffer
+              )
+            }
+            className="flex-1 py-2 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] font-bold uppercase transition-all shadow-md"
+          >
+            Save Price & Offer
+          </button>
+        </div>
       </div>
     </div>
   );

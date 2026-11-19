@@ -87,6 +87,9 @@ export async function POST(req: NextRequest) {
         status: finalStatus,
         stockQuantity: qty,
         specifications: specifications || null,
+        discountPercent: body.discountPercent !== undefined ? parseFloat(body.discountPercent) : 0,
+        isSpecialOffer: body.isSpecialOffer !== undefined ? Boolean(body.isSpecialOffer) : false,
+        specialOfferText: body.specialOfferText?.trim() || "Special Offer",
         isFeatured: !!isFeatured,
         isNewArrival: !!isNewArrival,
         images: imageUrl

@@ -41,12 +41,30 @@ export default function Navbar() {
   // Fetch current user session
   const checkUser = async () => {
     try {
-      const res = await fetch("/api/auth/me");
+      const storedToken = typeof window !== "undefined" ? localStorage.getItem("vg_token") : null;
+      const headers: Record<string, string> = {};
+      if (storedToken) {
+        headers["Authorization"] = `Bearer ${storedToken}`;
+      }
+      const res = await fetch("/api/auth/me", { headers });
       if (res.ok) {
         const data = await res.json();
         setCurrentUser(data.user);
+        if (typeof window !== "undefined" && data.user) {
+          localStorage.setItem("vg_user", JSON.stringify(data.user));
+        }
       } else {
-        setCurrentUser(null);
+        // Fallback to localStorage user if valid
+        const localUser = typeof window !== "undefined" ? localStorage.getItem("vg_user") : null;
+        if (localUser) {
+          try {
+            setCurrentUser(JSON.parse(localUser));
+          } catch (e) {
+            setCurrentUser(null);
+          }
+        } else {
+          setCurrentUser(null);
+        }
       }
     } catch (e) {
       setCurrentUser(null);
@@ -74,6 +92,11 @@ export default function Navbar() {
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("vg_user");
+        localStorage.removeItem("vg_token");
+        localStorage.removeItem("vg_admin_mode");
+      }
       setCurrentUser(null);
       setIsUserDropdownOpen(false);
       router.push("/");
@@ -240,7 +263,7 @@ export default function Navbar() {
                       </span>
                     </div>
 
-                    {currentUser.role === "ADMIN" && (
+                    {(currentUser.role === "ADMIN" || currentUser.role === "SUPER_ADMIN") && (
                       <Link
                         href="/admin"
                         onClick={() => setIsUserDropdownOpen(false)}

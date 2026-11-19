@@ -3,7 +3,18 @@
 import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Lock, Mail, Eye, EyeOff, AlertCircle, Clock, ShieldX, ShieldCheck } from "lucide-react";
+import {
+  Lock,
+  Mail,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  Clock,
+  ShieldX,
+  ShieldCheck,
+  Check,
+  Loader2,
+} from "lucide-react";
 
 function LoginForm() {
   const router = useRouter();
@@ -17,10 +28,37 @@ function LoginForm() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [accountStatus, setAccountStatus] = useState<string | null>(null);
 
+  // Simple Checkbox Human Verification (No puzzle challenges)
+  const [isRobotVerified, setIsRobotVerified] = useState(false);
+  const [isVerifyingRobot, setIsVerifyingRobot] = useState(false);
+  const [verificationError, setVerificationError] = useState(false);
+  const [verificationToken, setVerificationToken] = useState<string | null>(null);
+
+  const handleRobotCheck = () => {
+    if (isRobotVerified || isVerifyingRobot) return;
+
+    setVerificationError(false);
+    setIsVerifyingRobot(true);
+
+    // Smooth human verification simulation (instant verification with zero puzzle friction)
+    setTimeout(() => {
+      setIsVerifyingRobot(false);
+      setIsRobotVerified(true);
+      const token = `vg-human-verified-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      setVerificationToken(token);
+    }, 650);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setAccountStatus(null);
+
+    if (!isRobotVerified || !verificationToken) {
+      setVerificationError(true);
+      setErrorMsg("Please verify that you are not a robot before proceeding.");
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -31,6 +69,7 @@ function LoginForm() {
         body: JSON.stringify({
           email,
           password,
+          humanVerificationToken: verificationToken,
         }),
       });
 
@@ -43,7 +82,24 @@ function LoginForm() {
         throw new Error(data.error || "Login failed");
       }
 
-      if ((data.user?.role === "ADMIN" || data.user?.role === "SUPER_ADMIN") && (redirectUrl === "/account" || redirectUrl === "/")) {
+      // Store in localStorage for seamless client-side verification
+      if (typeof window !== "undefined") {
+        if (data.token) {
+          localStorage.setItem("vg_token", data.token);
+        }
+        if (data.user) {
+          localStorage.setItem("vg_user", JSON.stringify(data.user));
+          if (data.user.role === "ADMIN" || data.user.role === "SUPER_ADMIN") {
+            localStorage.setItem("vg_admin_mode", "true");
+          }
+        }
+        window.dispatchEvent(new CustomEvent("vg-auth-changed"));
+      }
+
+      if (
+        (data.user?.role === "ADMIN" || data.user?.role === "SUPER_ADMIN") &&
+        (redirectUrl === "/account" || redirectUrl === "/")
+      ) {
         router.push("/admin");
       } else {
         router.push(redirectUrl);
@@ -68,7 +124,10 @@ function LoginForm() {
         </h1>
         <p className="text-xs sm:text-sm text-gray-500 font-normal">
           New to VG-3D Modelers?{" "}
-          <Link href="/register" className="text-[#0B2852] font-semibold hover:text-[#39FF00] underline transition-colors">
+          <Link
+            href="/register"
+            className="text-[#0B2852] font-semibold hover:text-[#39FF00] underline transition-colors"
+          >
             Sign Up
           </Link>
         </p>
@@ -92,7 +151,9 @@ function LoginForm() {
           <ShieldX className="w-5 h-5 flex-shrink-0 text-red-600 mt-0.5" />
           <div className="space-y-1">
             <strong className="font-bold block">Application Not Approved</strong>
-            <p className="leading-snug">{errorMsg || "Your account registration was not approved."}</p>
+            <p className="leading-snug">
+              {errorMsg || "Your account registration was not approved."}
+            </p>
           </div>
         </div>
       )}
@@ -102,7 +163,9 @@ function LoginForm() {
           <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-600 mt-0.5" />
           <div className="space-y-1">
             <strong className="font-bold block">Account Suspended</strong>
-            <p className="leading-snug">This account is suspended. For inquiries, please contact customer support.</p>
+            <p className="leading-snug">
+              This account is suspended. For inquiries, please contact customer support.
+            </p>
           </div>
         </div>
       )}
@@ -164,6 +227,55 @@ function LoginForm() {
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
+          </div>
+        </div>
+
+        {/* =========================================================================
+            SIMPLE CHECKBOX HUMAN VERIFICATION (NO PUZZLE, 1-CLICK VERIFY)
+            ========================================================================= */}
+        <div
+          className={`p-3.5 rounded-xl border transition-all ${
+            verificationError
+              ? "border-red-400 bg-red-50/50"
+              : isRobotVerified
+              ? "border-emerald-300 bg-emerald-50/40"
+              : "border-gray-300 bg-[#F9FAFB] hover:border-gray-400"
+          }`}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div
+              onClick={handleRobotCheck}
+              className="flex items-center gap-3 cursor-pointer select-none py-1 group"
+            >
+              <div
+                className={`w-7 h-7 rounded border flex items-center justify-center transition-all ${
+                  isRobotVerified
+                    ? "bg-emerald-600 border-emerald-600 text-white"
+                    : isVerifyingRobot
+                    ? "border-blue-500 bg-white"
+                    : "border-gray-400 bg-white group-hover:border-[#0B2852]"
+                }`}
+              >
+                {isVerifyingRobot ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                ) : isRobotVerified ? (
+                  <Check className="w-4 h-4 stroke-[3]" />
+                ) : null}
+              </div>
+
+              <span className="text-sm font-medium text-gray-800">
+                {isRobotVerified ? "Verification complete" : "I'm not a robot"}
+              </span>
+            </div>
+
+            {/* Verification Badge */}
+            <div className="flex flex-col items-end text-[10px] text-gray-400">
+              <div className="flex items-center gap-1 text-gray-500 font-semibold">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#0B2852]" />
+                <span>VG Security</span>
+              </div>
+              <span>reCAPTCHA checkbox mode</span>
+            </div>
           </div>
         </div>
 

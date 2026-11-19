@@ -49,6 +49,7 @@ export async function PUT(req: NextRequest) {
         privacyContent: body.privacyContent,
         eulaContent: body.eulaContent,
         refundContent: body.refundContent,
+        ...(body.sliderInterval !== undefined && { sliderInterval: parseInt(body.sliderInterval, 10) }),
       },
       create: {
         id: "default",
@@ -67,6 +68,7 @@ export async function PUT(req: NextRequest) {
         privacyContent: body.privacyContent,
         eulaContent: body.eulaContent,
         refundContent: body.refundContent,
+        ...(body.sliderInterval !== undefined && { sliderInterval: parseInt(body.sliderInterval, 10) }),
       },
     });
 
