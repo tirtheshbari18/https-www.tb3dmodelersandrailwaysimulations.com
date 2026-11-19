@@ -18,8 +18,8 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
   const { addToCart, isInCart } = useCart();
   const [quickViewProduct, setQuickViewProduct] = useState<any | null>(null);
 
-  // Complete 13-item product collection matching reference catalog
-  const shopProducts = [
+  // Fallback catalog if DB not connected
+  const fallbackProducts = [
     {
       id: "prod-whr",
       slug: "whr-route-v2-ahmedabad-update",
@@ -30,6 +30,7 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
       salePrice: 1000,
       compatibility: "Open Rails",
       categoryName: "Railway Routes",
+      status: "AVAILABLE",
     },
     {
       id: "prod-academy",
@@ -41,6 +42,7 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
       salePrice: 800,
       compatibility: "Open Rails / MSTS",
       categoryName: "Sleeper Coaches",
+      status: "AVAILABLE",
     },
     {
       id: "prod-humsafar",
@@ -52,6 +54,7 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
       salePrice: 500,
       compatibility: "Open Rails / MSTS",
       categoryName: "Humsafar Coaches",
+      status: "AVAILABLE",
     },
     {
       id: "prod-sleeper",
@@ -63,6 +66,7 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
       salePrice: 1000,
       compatibility: "Open Rails / MSTS",
       categoryName: "Sleeper Coaches",
+      status: "AVAILABLE",
     },
     {
       id: "prod-tricolour",
@@ -74,6 +78,7 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
       salePrice: 100,
       compatibility: "Open Rails / MSTS",
       categoryName: "Chair Car Coaches",
+      status: "AVAILABLE",
     },
     {
       id: "prod-amrit",
@@ -85,6 +90,7 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
       salePrice: 300,
       compatibility: "Open Rails / MSTS",
       categoryName: "LHB Coaches",
+      status: "AVAILABLE",
     },
     {
       id: "prod-bangladesh",
@@ -96,6 +102,7 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
       salePrice: 200,
       compatibility: "Open Rails / MSTS",
       categoryName: "Bangladesh Coaches",
+      status: "AVAILABLE",
     },
     {
       id: "prod-pnb",
@@ -107,6 +114,7 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
       salePrice: 200,
       compatibility: "Open Rails / MSTS",
       categoryName: "Chair Car Coaches",
+      status: "AVAILABLE",
     },
     {
       id: "prod-vistadome-livery",
@@ -118,6 +126,7 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
       salePrice: 200,
       compatibility: "Open Rails / MSTS",
       categoryName: "Vistadome Coaches",
+      status: "AVAILABLE",
     },
     {
       id: "prod-vistadome-std",
@@ -129,6 +138,7 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
       salePrice: 500,
       compatibility: "Open Rails / MSTS",
       categoryName: "Vistadome Coaches",
+      status: "AVAILABLE",
     },
     {
       id: "prod-chaircar-std",
@@ -140,6 +150,7 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
       salePrice: 500,
       compatibility: "Open Rails / MSTS",
       categoryName: "Chair Car Coaches",
+      status: "AVAILABLE",
     },
     {
       id: "prod-maitree",
@@ -151,12 +162,42 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
       salePrice: 250,
       compatibility: "Open Rails / MSTS",
       categoryName: "International Coaches",
+      status: "AVAILABLE",
     },
   ];
+
+  // Dynamic products from database
+  const shopProducts: any[] =
+    initialProducts && initialProducts.length > 0
+      ? initialProducts.map((p) => {
+          const hasOffer = p.salePrice !== null && p.salePrice !== undefined && p.salePrice < p.regularPrice;
+          const isOutOfStock = p.status === "OUT_OF_STOCK";
+          return {
+            id: p.id,
+            slug: p.slug,
+            name: p.name,
+            badge: isOutOfStock
+              ? "Out of Stock"
+              : hasOffer
+              ? "Special Offer"
+              : p.isNewArrival
+              ? "New Arrival"
+              : p.version || "V1.0",
+            image: p.images?.[0]?.url || "/assets/products/chaircar_standard.png",
+            regularPrice: p.regularPrice,
+            salePrice: p.salePrice,
+            compatibility: p.compatibility || "Open Rails / MSTS",
+            categoryName: p.category?.name || "LHB Coaches",
+            status: p.status,
+            isOutOfStock,
+          };
+        })
+      : fallbackProducts;
 
   const handleAddToCart = (e: React.MouseEvent, prod: any) => {
     e.stopPropagation();
     e.preventDefault();
+    if (prod.isOutOfStock || prod.status === "OUT_OF_STOCK") return;
     addToCart({
       id: prod.id,
       productId: prod.id,
@@ -209,9 +250,10 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {shopProducts.map((prod) => {
+          {shopProducts.map((prod: any) => {
             const added = isInCart(prod.id);
             const isFree = prod.salePrice === 0 && prod.regularPrice === 0;
+            const isOutOfStock = prod.status === "OUT_OF_STOCK" || Boolean(prod.isOutOfStock);
 
             return (
               <div
@@ -227,10 +269,14 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
                   {prod.badge && (
                     <span
                       className={`absolute top-2.5 left-2.5 px-2.5 py-0.5 text-[11px] font-bold font-josefin uppercase rounded-full z-10 shadow-sm ${
-                        isFree
+                        isOutOfStock
+                          ? "bg-rose-600 text-white"
+                          : isFree
                           ? "bg-[#39FF00] text-[#101C32]"
-                          : prod.badge === "New Arrival"
+                          : prod.badge === "Special Offer"
                           ? "bg-[#FF6600] text-white"
+                          : prod.badge === "New Arrival"
+                          ? "bg-[#0B2852] text-white border border-[#39FF00]"
                           : "bg-[#0B2852] text-white"
                       }`}
                     >
@@ -246,13 +292,19 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
 
                   {/* Hover Quick Actions */}
                   <div className="absolute inset-0 bg-[#0B2852]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[2px]">
-                    <button
-                      onClick={(e) => handleAddToCart(e, prod)}
-                      className="px-4 py-2 rounded-full bg-[#39FF00] text-[#101C32] text-xs font-josefin font-bold hover:bg-white flex items-center gap-1.5 shadow-lg transition-transform hover:scale-105"
-                    >
-                      {added ? <Check className="w-3.5 h-3.5" /> : <ShoppingCart className="w-3.5 h-3.5" />}
-                      {added ? "In Cart" : isFree ? "Get Free" : "Add to Cart"}
-                    </button>
+                    {isOutOfStock ? (
+                      <span className="px-4 py-2 rounded-full bg-rose-700 text-white text-xs font-josefin font-bold shadow-lg">
+                        Out of Stock
+                      </span>
+                    ) : (
+                      <button
+                        onClick={(e) => handleAddToCart(e, prod)}
+                        className="px-4 py-2 rounded-full bg-[#39FF00] text-[#101C32] text-xs font-josefin font-bold hover:bg-white flex items-center gap-1.5 shadow-lg transition-transform hover:scale-105"
+                      >
+                        {added ? <Check className="w-3.5 h-3.5" /> : <ShoppingCart className="w-3.5 h-3.5" />}
+                        {added ? "In Cart" : isFree ? "Get Free" : "Add to Cart"}
+                      </button>
+                    )}
                   </div>
                 </Link>
 

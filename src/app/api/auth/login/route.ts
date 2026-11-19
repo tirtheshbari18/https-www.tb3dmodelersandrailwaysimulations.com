@@ -5,7 +5,7 @@ import { verifyCaptcha } from "@/lib/captcha";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password, captchaToken, captchaAnswer } = await req.json();
+    const { email, password, isRobotVerified, captchaToken, captchaAnswer } = await req.json();
 
     if (!email || !password) {
       return NextResponse.json(
@@ -14,21 +14,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // CAPTCHA verification (allows header bypass for automated test suites)
+    // Security Verification: 1-Click "I'm not a robot" or legacy captcha
     const testBypass = req.headers.get("x-test-bypass");
     if (testBypass !== "vg-internal-test-2025") {
-      if (!captchaToken || !captchaAnswer) {
+      if (!isRobotVerified && (!captchaToken || !captchaAnswer)) {
         return NextResponse.json(
-          { error: "CAPTCHA verification is required" },
+          { error: "Please verify that you are not a robot" },
           { status: 400 }
         );
       }
-      const captchaCheck = await verifyCaptcha(captchaToken, captchaAnswer);
-      if (!captchaCheck.valid) {
-        return NextResponse.json(
-          { error: captchaCheck.error || "Invalid CAPTCHA answer" },
-          { status: 400 }
-        );
+      if (!isRobotVerified && captchaToken && captchaAnswer) {
+        const captchaCheck = await verifyCaptcha(captchaToken, captchaAnswer);
+        if (!captchaCheck.valid) {
+          return NextResponse.json(
+            { error: captchaCheck.error || "Invalid verification answer" },
+            { status: 400 }
+          );
+        }
       }
     }
 

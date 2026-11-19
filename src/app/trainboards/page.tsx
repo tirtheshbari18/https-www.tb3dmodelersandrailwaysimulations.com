@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Folder,
@@ -102,17 +102,38 @@ const TRAINBOARDS_DATA: TrainboardFile[] = [
 ];
 
 export default function TrainboardsPage() {
+  const [trainboardFiles, setTrainboardFiles] = useState<TrainboardFile[]>(TRAINBOARDS_DATA);
   const [selectedZone, setSelectedZone] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
+  useEffect(() => {
+    fetch("/api/admin/trainboards", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.trainboards && data.trainboards.length > 0) {
+          setTrainboardFiles(data.trainboards);
+        }
+      })
+      .catch((e) => console.log("Using cached trainboard data"));
+  }, []);
+
+  const dynamicZonesList = Array.from(new Set(trainboardFiles.map((f) => f.zone))).filter(
+    (z) => z !== "WR" && z !== "CR" && z !== "ECoR"
+  );
+
   const zones = [
-    { code: "ALL", name: "All Railway Zones", count: TRAINBOARDS_DATA.length },
-    { code: "WR", name: "Western Railway (WR)", count: TRAINBOARDS_DATA.filter((f) => f.zone === "WR").length },
-    { code: "CR", name: "Central Railway (CR)", count: TRAINBOARDS_DATA.filter((f) => f.zone === "CR").length },
-    { code: "ECoR", name: "East Coast Railway (ECoR)", count: TRAINBOARDS_DATA.filter((f) => f.zone === "ECoR").length },
+    { code: "ALL", name: "All Railway Zones", count: trainboardFiles.length },
+    { code: "WR", name: "Western Railway (WR)", count: trainboardFiles.filter((f) => f.zone === "WR").length },
+    { code: "CR", name: "Central Railway (CR)", count: trainboardFiles.filter((f) => f.zone === "CR").length },
+    { code: "ECoR", name: "East Coast Railway (ECoR)", count: trainboardFiles.filter((f) => f.zone === "ECoR").length },
+    ...dynamicZonesList.map((z) => ({
+      code: z,
+      name: `${z} Zone`,
+      count: trainboardFiles.filter((f) => f.zone === z).length,
+    })),
   ];
 
-  const filteredFiles = TRAINBOARDS_DATA.filter((file) => {
+  const filteredFiles = trainboardFiles.filter((file) => {
     if (selectedZone !== "ALL" && file.zone !== selectedZone) {
       return false;
     }
@@ -192,7 +213,7 @@ export default function TrainboardsPage() {
 
             {/* Total count badge */}
             <div className="text-xs text-gray-500 font-medium self-center sm:self-auto whitespace-nowrap">
-              Showing <strong>{filteredFiles.length}</strong> of {TRAINBOARDS_DATA.length} packages
+              Showing <strong>{filteredFiles.length}</strong> of {trainboardFiles.length} packages
             </div>
           </div>
 

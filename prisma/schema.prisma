@@ -376,3 +376,14 @@ model AuditLog {
 
   user      User?    @relation(fields: [userId], references: [id])
 }
+
+model Trainboard {
+  id          String   @id @default(cuid())
+  name        String
+  zone        String   // WR, CR, ECoR, etc.
+  zoneName    String
+  size        String   @default("2.5 MB")
+  downloadUrl String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

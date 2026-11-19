@@ -30,8 +30,8 @@ export default function HomeClient({
   const [searchQuery, setSearchQuery] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Full 13-item collection matching reference screenshots and catalog
-  const showcaseProducts = [
+  // Dynamic collection from database, falling back to reference catalog
+  const fallbackShowcaseProducts = [
     {
       num: "01",
       title: "VG LHB VG ACADEMY LIVERY SLEEPER COACHES",
@@ -129,6 +129,22 @@ export default function HomeClient({
       desc: "Complete international express consist with custom bogie audio and bilingual trainboards.",
     },
   ];
+
+  const showcaseProducts =
+    featuredProducts && featuredProducts.length > 0
+      ? featuredProducts.map((p, idx) => ({
+          num: String(idx + 1).padStart(2, "0"),
+          title: p.name,
+          subtitle:
+            p.status === "OUT_OF_STOCK"
+              ? "(Currently Out of Stock) Please check back soon!"
+              : "(Coming Soon) Please Sign Up to purchase and download these addons!!!!!",
+          image: p.images?.[0]?.url || "/assets/products/chaircar_standard.png",
+          slug: p.slug,
+          desc: p.description || p.shortDesc || "High-precision Indian Railway rolling stock model.",
+          status: p.status,
+        }))
+      : fallbackShowcaseProducts;
 
   const handleNext = () => {
     setCurrentIndex((prev) => (prev + 1) % showcaseProducts.length);

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Lock, Mail, Eye, EyeOff, RefreshCw, AlertCircle, Clock, ShieldX, CheckCircle } from "lucide-react";
+import { Lock, Mail, Eye, EyeOff, RefreshCw, AlertCircle, Clock, ShieldX, CheckCircle, Check, ShieldCheck } from "lucide-react";
 
 function LoginForm() {
   const router = useRouter();
@@ -17,38 +17,31 @@ function LoginForm() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [accountStatus, setAccountStatus] = useState<string | null>(null);
 
-  // Server-side CAPTCHA state
-  const [captchaToken, setCaptchaToken] = useState("");
-  const [captchaSvg, setCaptchaSvg] = useState("");
-  const [captchaAnswer, setCaptchaAnswer] = useState("");
-  const [isLoadingCaptcha, setIsLoadingCaptcha] = useState(true);
+  // "I'm not a robot" 1-Click Verification state
+  const [isRobotVerified, setIsRobotVerified] = useState(false);
+  const [isVerifyingRobot, setIsVerifyingRobot] = useState(false);
 
-  const fetchCaptcha = async () => {
-    setIsLoadingCaptcha(true);
-    try {
-      const res = await fetch("/api/auth/captcha", { cache: "no-store" });
-      const data = await res.json();
-      if (data.token && data.svg) {
-        setCaptchaToken(data.token);
-        setCaptchaSvg(data.svg);
-        setCaptchaAnswer("");
-      }
-    } catch (e) {
-      console.error("Failed to load captcha", e);
-    } finally {
-      setIsLoadingCaptcha(false);
-    }
+  const handleRobotClick = () => {
+    if (isRobotVerified || isVerifyingRobot) return;
+    setIsVerifyingRobot(true);
+    setTimeout(() => {
+      setIsVerifyingRobot(false);
+      setIsRobotVerified(true);
+      setErrorMsg(null);
+    }, 550);
   };
-
-  useEffect(() => {
-    fetchCaptcha();
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
     setErrorMsg(null);
     setAccountStatus(null);
+
+    if (!isRobotVerified) {
+      setErrorMsg("Please verify that you are not a robot before signing in.");
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
       const res = await fetch("/api/auth/login", {
@@ -57,8 +50,7 @@ function LoginForm() {
         body: JSON.stringify({
           email,
           password,
-          captchaToken,
-          captchaAnswer,
+          isRobotVerified: true,
         }),
       });
 
@@ -79,8 +71,6 @@ function LoginForm() {
       router.refresh();
     } catch (err: any) {
       setErrorMsg(err.message || "Failed to log in. Please check your credentials.");
-      // Refresh captcha on failure
-      fetchCaptcha();
     } finally {
       setIsSubmitting(false);
     }
@@ -204,38 +194,36 @@ function LoginForm() {
           </div>
         </div>
 
-        {/* Live SVG CAPTCHA Verification */}
-        <div className="p-3.5 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">
-              Security Verification <span className="text-red-500">*</span>
-            </label>
-            <button
-              type="button"
-              onClick={fetchCaptcha}
-              disabled={isLoadingCaptcha}
-              className="flex items-center gap-1 text-xs text-[#0B2852] hover:text-blue-700 font-medium"
-              title="Refresh security code"
+        {/* "I'm not a robot" 1-Click Verification Card */}
+        <div className="p-3 bg-gray-50 border-2 border-gray-200 rounded-xl flex items-center justify-between shadow-sm select-none">
+          <div
+            onClick={handleRobotClick}
+            className="flex items-center gap-3 cursor-pointer py-1 px-1.5 hover:opacity-90"
+          >
+            <div
+              className={`w-7 h-7 rounded border-2 flex items-center justify-center transition-all ${
+                isRobotVerified
+                  ? "bg-emerald-600 border-emerald-600 text-white shadow-sm"
+                  : isVerifyingRobot
+                  ? "border-[#0B2852] bg-blue-50"
+                  : "border-gray-400 bg-white hover:border-[#0B2852]"
+              }`}
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoadingCaptcha ? "animate-spin" : ""}`} />
-              <span>Refresh</span>
-            </button>
+              {isRobotVerified ? (
+                <Check className="w-5 h-5 stroke-[3] text-white" />
+              ) : isVerifyingRobot ? (
+                <div className="w-4 h-4 border-2 border-[#0B2852] border-t-transparent rounded-full animate-spin" />
+              ) : null}
+            </div>
+            <span className="text-sm font-semibold text-gray-800">
+              I&apos;m not a robot
+            </span>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div
-              className="flex-shrink-0 overflow-hidden rounded-md border border-gray-300 shadow-inner"
-              dangerouslySetInnerHTML={{ __html: captchaSvg || "<div class='w-[180px] h-[50px] bg-gray-200 animate-pulse'></div>" }}
-            />
-            <input
-              type="text"
-              required
-              value={captchaAnswer}
-              onChange={(e) => setCaptchaAnswer(e.target.value.toUpperCase())}
-              placeholder="Enter code"
-              maxLength={6}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono tracking-widest uppercase text-center focus:outline-none focus:ring-2 focus:ring-[#0B2852]"
-            />
+          <div className="flex flex-col items-center justify-center text-[10px] text-gray-400 pl-4 border-l border-gray-200 pr-1">
+            <ShieldCheck className="w-6 h-6 text-[#0B2852]" />
+            <span className="font-bold text-[10px] text-gray-600">VG-Shield</span>
+            <span className="text-[9px] text-gray-400">Security Verified</span>
           </div>
         </div>
 

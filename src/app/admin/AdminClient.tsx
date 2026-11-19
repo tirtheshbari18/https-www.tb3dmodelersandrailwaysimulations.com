@@ -41,6 +41,7 @@ interface AdminClientProps {
   initialCustomers: any[];
   initialEnquiries: any[];
   initialSettings: any;
+  initialTrainboards?: any[];
   currentAdmin: any;
 }
 
@@ -52,14 +53,16 @@ export default function AdminClient({
   initialCustomers,
   initialEnquiries,
   initialSettings,
+  initialTrainboards = [],
   currentAdmin,
 }: AdminClientProps) {
   const [activeTab, setActiveTab] = useState<
-    "overview" | "products" | "projects" | "orders" | "customers" | "enquiries" | "settings"
+    "overview" | "products" | "trainboards" | "projects" | "orders" | "customers" | "enquiries" | "settings"
   >("overview");
 
   // State management
   const [products, setProducts] = useState(initialProducts);
+  const [trainboards, setTrainboards] = useState(initialTrainboards);
   const [projects, setProjects] = useState(initialProjects);
   const [orders, setOrders] = useState(initialOrders);
   const [customers, setCustomers] = useState(initialCustomers);
@@ -69,6 +72,10 @@ export default function AdminClient({
   // Modals
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
+
+  const [isAddTrainboardOpen, setIsAddTrainboardOpen] = useState(false);
+  const [editingTrainboard, setEditingTrainboard] = useState<any | null>(null);
+  const [trainboardSearch, setTrainboardSearch] = useState("");
 
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<any | null>(null);
@@ -147,6 +154,69 @@ export default function AdminClient({
       }
     } catch (err) {
       showToast("Failed to delete product.", true);
+    }
+  };
+
+  const handleToggleProductStock = async (product: any) => {
+    const newStatus = product.status === "OUT_OF_STOCK" ? "AVAILABLE" : "OUT_OF_STOCK";
+    try {
+      const res = await fetch(`/api/admin/products/${product.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...product,
+          status: newStatus,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to update stock status");
+      setProducts(products.map((p) => (p.id === product.id ? { ...p, status: newStatus } : p)));
+      showToast(newStatus === "OUT_OF_STOCK" ? "Marked as OUT OF STOCK" : "Marked as IN STOCK (Available)");
+    } catch (e: any) {
+      showToast(e.message || "Failed to update stock status", true);
+    }
+  };
+
+  // --- Trainboard Handlers ---
+  const handleSaveTrainboard = async (e: React.FormEvent, formValues: any) => {
+    e.preventDefault();
+    try {
+      if (editingTrainboard) {
+        const res = await fetch(`/api/admin/trainboards/${editingTrainboard.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formValues),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to update trainboard");
+        setTrainboards(trainboards.map((t) => (t.id === editingTrainboard.id ? data.trainboard : t)));
+        setEditingTrainboard(null);
+        showToast("Trainboard updated / renamed successfully!");
+      } else {
+        const res = await fetch("/api/admin/trainboards", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formValues),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to add trainboard");
+        setTrainboards([data.trainboard, ...trainboards]);
+        setIsAddTrainboardOpen(false);
+        showToast("New trainboard package added successfully!");
+      }
+    } catch (e: any) {
+      showToast(e.message || "Failed to save trainboard", true);
+    }
+  };
+
+  const handleDeleteTrainboard = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete trainboard "${name}"?`)) return;
+    try {
+      const res = await fetch(`/api/admin/trainboards/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete trainboard");
+      setTrainboards(trainboards.filter((t) => t.id !== id));
+      showToast("Trainboard deleted successfully.");
+    } catch (e: any) {
+      showToast(e.message || "Failed to delete trainboard", true);
     }
   };
 
@@ -379,7 +449,19 @@ export default function AdminClient({
             }`}
           >
             <Package className="w-4 h-4" />
-            Products ({products.length})
+            Coaches &amp; Products ({products.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab("trainboards")}
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 whitespace-nowrap transition-all ${
+              activeTab === "trainboards"
+                ? "bg-railway-accent text-white shadow-md shadow-red-950"
+                : "text-slate-400 hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <Train className="w-4 h-4" />
+            Trainboards ({trainboards.length})
           </button>
 
           <button
@@ -594,12 +676,12 @@ export default function AdminClient({
               <table className="w-full text-xs text-left">
                 <thead className="text-slate-500 uppercase border-b border-railway-border/60 font-mono text-[10px] bg-railway-dark">
                   <tr>
-                    <th className="py-3 px-4">Product Name</th>
+                    <th className="py-3 px-4">Coach / Product</th>
                     <th>Category</th>
-                    <th>Price</th>
-                    <th>File Format</th>
-                    <th>Status</th>
-                    <th>Featured</th>
+                    <th>Regular Price</th>
+                    <th>Offer Price</th>
+                    <th>Stock Status</th>
+                    <th>Home Showcase</th>
                     <th className="text-right px-4">Actions</th>
                   </tr>
                 </thead>
@@ -608,56 +690,202 @@ export default function AdminClient({
                     .filter((p) =>
                       p.name.toLowerCase().includes(productSearch.toLowerCase())
                     )
-                    .map((prod) => (
-                      <tr key={prod.id} className="hover:bg-white/[0.02]">
-                        <td className="py-3 px-4 font-semibold text-white">
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={prod.images?.[0]?.url || "https://images.unsplash.com/photo-1532105956626-9569c03602f6?w=200"}
-                              alt={prod.name}
-                              className="w-10 h-8 rounded object-cover bg-slate-900 border border-white/10"
-                            />
-                            <div>
-                              <span>{prod.name}</span>
-                              <span className="text-[10px] text-slate-500 font-mono block">
-                                SKU: {prod.sku}
-                              </span>
+                    .map((prod) => {
+                      const hasOffer = prod.salePrice && prod.salePrice < prod.regularPrice;
+                      const isOutOfStock = prod.status === "OUT_OF_STOCK";
+
+                      return (
+                        <tr key={prod.id} className="hover:bg-white/[0.02]">
+                          <td className="py-3 px-4 font-semibold text-white">
+                            <div className="flex items-center gap-3">
+                              <img
+                                src={prod.images?.[0]?.url || "/assets/products/chaircar_standard.png"}
+                                alt={prod.name}
+                                className="w-12 h-9 rounded object-contain bg-slate-900 border border-white/10 p-0.5"
+                              />
+                              <div>
+                                <span className="block leading-snug">{prod.name}</span>
+                                <span className="text-[10px] text-slate-500 font-mono block">
+                                  SKU: {prod.sku} &bull; {prod.compatibility || "Open Rails / MSTS"}
+                                </span>
+                              </div>
                             </div>
+                          </td>
+                          <td className="text-slate-300">{prod.category?.name || "Coaches"}</td>
+                          <td className="font-mono text-slate-300">
+                            {prod.isFree ? "FREE" : formatCurrency(prod.regularPrice)}
+                          </td>
+                          <td>
+                            {hasOffer ? (
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-bold text-emerald-400 font-mono">
+                                  {formatCurrency(prod.salePrice)}
+                                </span>
+                                <span className="px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 text-[9px] font-bold">
+                                  OFFER
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-slate-500 font-mono">-</span>
+                            )}
+                          </td>
+                          <td>
+                            <button
+                              type="button"
+                              onClick={() => handleToggleProductStock(prod)}
+                              title="Click to toggle stock status"
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase transition-all cursor-pointer ${
+                                isOutOfStock
+                                  ? "bg-rose-950 text-rose-300 border border-rose-800 hover:bg-rose-900"
+                                  : "bg-emerald-950 text-emerald-300 border border-emerald-800 hover:bg-emerald-900"
+                              }`}
+                            >
+                              {isOutOfStock ? "Out of Stock" : "In Stock"}
+                            </button>
+                          </td>
+                          <td>
+                            {prod.isFeatured ? (
+                              <span className="text-emerald-400 font-bold flex items-center gap-1">
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>Visible</span>
+                              </span>
+                            ) : (
+                              <span className="text-slate-600">Hidden</span>
+                            )}
+                          </td>
+                          <td className="text-right px-4">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => handleToggleProductStock(prod)}
+                                className={`px-2 py-1 rounded-lg text-[10px] font-semibold border transition-colors ${
+                                  isOutOfStock
+                                    ? "bg-emerald-900/30 text-emerald-400 border-emerald-800 hover:bg-emerald-900/50"
+                                    : "bg-amber-900/30 text-amber-400 border-amber-800 hover:bg-amber-900/50"
+                                }`}
+                                title={isOutOfStock ? "Set Available / In Stock" : "Set Out of Stock"}
+                              >
+                                {isOutOfStock ? "Set Available" : "Set Out of Stock"}
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setEditingProduct(prod);
+                                  setIsAddProductOpen(true);
+                                }}
+                                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white"
+                                title="Edit Product / Prices"
+                              >
+                                <Edit className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteProduct(prod.id)}
+                                className="p-1.5 rounded-lg bg-red-950/40 hover:bg-red-950 text-red-400"
+                                title="Delete Product"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB: TRAINBOARDS (T-BOARDS) MANAGEMENT */}
+        {activeTab === "trainboards" && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h3 className="font-bold text-white text-base">Trainboards (T-Boards) Manager</h3>
+                <p className="text-xs text-slate-400">
+                  Add, rename, update railway zones, and delete trainboard packages. Changes reflect live on `/trainboards`.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="relative flex-1 sm:w-64">
+                  <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search trainboards..."
+                    value={trainboardSearch}
+                    onChange={(e) => setTrainboardSearch(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-railway-card border border-railway-border text-white text-xs placeholder-slate-500"
+                  />
+                </div>
+
+                <button
+                  onClick={() => {
+                    setEditingTrainboard(null);
+                    setIsAddTrainboardOpen(true);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-railway-accent hover:bg-red-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-red-950 flex-shrink-0"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Trainboard
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-railway-card rounded-2xl border border-railway-border overflow-x-auto">
+              <table className="w-full text-xs text-left">
+                <thead className="text-slate-500 uppercase border-b border-railway-border/60 font-mono text-[10px] bg-railway-dark">
+                  <tr>
+                    <th className="py-3 px-4">Trainboard Title &bull; File Name</th>
+                    <th>Zone</th>
+                    <th>Zone Full Name</th>
+                    <th>Size</th>
+                    <th>File Path / Link</th>
+                    <th className="text-right px-4">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-railway-border/40">
+                  {trainboards
+                    .filter((t) =>
+                      t.name.toLowerCase().includes(trainboardSearch.toLowerCase()) ||
+                      t.zone.toLowerCase().includes(trainboardSearch.toLowerCase()) ||
+                      t.zoneName?.toLowerCase().includes(trainboardSearch.toLowerCase())
+                    )
+                    .map((tb) => (
+                      <tr key={tb.id} className="hover:bg-white/[0.02]">
+                        <td className="py-3 px-4 font-semibold text-white">
+                          <div className="flex items-center gap-2">
+                            <Train className="w-4 h-4 text-[#39FF00] flex-shrink-0" />
+                            <span className="font-mono text-white text-xs">{tb.name}</span>
                           </div>
                         </td>
-                        <td className="text-slate-300">{prod.category?.name}</td>
-                        <td className="font-bold text-emerald-400">
-                          {prod.isFree ? "FREE" : formatCurrency(prod.salePrice ?? prod.regularPrice)}
-                        </td>
-                        <td className="font-mono text-slate-400">{prod.fileSize || "100 MB"}</td>
                         <td>
-                          <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-semibold text-slate-300">
-                            {prod.status}
+                          <span className="px-2.5 py-0.5 rounded-full font-bold text-[10px] bg-blue-950 text-blue-300 border border-blue-800">
+                            {tb.zone}
                           </span>
                         </td>
+                        <td className="text-slate-300">{tb.zoneName}</td>
+                        <td className="font-mono text-slate-400">{tb.size || "2.5 MB"}</td>
                         <td>
-                          {prod.isFeatured ? (
-                            <span className="text-emerald-400 font-bold">Yes</span>
-                          ) : (
-                            <span className="text-slate-600">No</span>
-                          )}
+                          <span className="text-slate-400 font-mono text-[11px] truncate max-w-[200px] block" title={tb.downloadUrl}>
+                            {tb.downloadUrl}
+                          </span>
                         </td>
                         <td className="text-right px-4">
                           <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => {
-                                setEditingProduct(prod);
-                                setIsAddProductOpen(true);
+                                setEditingTrainboard(tb);
+                                setIsAddTrainboardOpen(true);
                               }}
-                              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white"
-                              title="Edit Product"
+                              className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white flex items-center gap-1 text-[11px] border border-white/10"
+                              title="Rename / Edit Trainboard"
                             >
                               <Edit className="w-3.5 h-3.5" />
+                              <span>Rename / Edit</span>
                             </button>
                             <button
-                              onClick={() => handleDeleteProduct(prod.id)}
+                              onClick={() => handleDeleteTrainboard(tb.id, tb.name)}
                               className="p-1.5 rounded-lg bg-red-950/40 hover:bg-red-950 text-red-400"
-                              title="Delete Product"
+                              title="Delete Trainboard"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -665,6 +893,13 @@ export default function AdminClient({
                         </td>
                       </tr>
                     ))}
+                  {trainboards.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-slate-500">
+                        No trainboards found. Click &quot;Add Trainboard&quot; above to create one.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -1228,6 +1463,18 @@ export default function AdminClient({
         />
       )}
 
+      {/* Trainboard Add / Edit Modal */}
+      {isAddTrainboardOpen && (
+        <TrainboardFormModal
+          initialValues={editingTrainboard}
+          onClose={() => {
+            setIsAddTrainboardOpen(false);
+            setEditingTrainboard(null);
+          }}
+          onSave={handleSaveTrainboard}
+        />
+      )}
+
       {/* Project Add / Edit Modal */}
       {isAddProjectOpen && (
         <ProjectFormModal
@@ -1381,19 +1628,20 @@ function ProductFormModal({ categories, initialValues, onClose, onSave }: any) {
         </button>
 
         <h3 className="text-base font-bold text-white">
-          {initialValues ? "Edit Product" : "Add New Railway Product"}
+          {initialValues ? "Edit Coach / Product" : "Add New Railway Coach / Product"}
         </h3>
 
         <form onSubmit={(e) => onSave(e, formData)} className="space-y-4 text-xs">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-slate-400 font-semibold mb-1">Product Name *</label>
+            <div className="sm:col-span-2">
+              <label className="block text-slate-400 font-semibold mb-1">Coach / Product Name *</label>
               <input
                 type="text"
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white"
+                placeholder="e.g. VG LHB ACADEMY LIVERY SLEEPER COACHES"
+                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white text-xs"
               />
             </div>
 
@@ -1402,7 +1650,7 @@ function ProductFormModal({ categories, initialValues, onClose, onSave }: any) {
               <select
                 value={formData.categoryId}
                 onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white"
+                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white text-xs"
               >
                 {categories.map((c: any) => (
                   <option key={c.id} value={c.id}>
@@ -1413,22 +1661,43 @@ function ProductFormModal({ categories, initialValues, onClose, onSave }: any) {
             </div>
 
             <div>
-              <label className="block text-slate-400 font-semibold mb-1">Regular Price (₹)</label>
+              <label className="block text-slate-400 font-semibold mb-1">Stock Availability *</label>
+              <select
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                className={`w-full px-3.5 py-2 rounded-xl bg-railway-dark border text-xs font-semibold ${
+                  formData.status === "OUT_OF_STOCK"
+                    ? "border-rose-500 text-rose-300"
+                    : "border-railway-border text-emerald-400"
+                }`}
+              >
+                <option value="AVAILABLE">In Stock (Available to Purchase)</option>
+                <option value="OUT_OF_STOCK">Out of Stock (Disable Cart Purchases)</option>
+                <option value="COMING_SOON">Coming Soon</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-slate-400 font-semibold mb-1">Regular Price (₹) *</label>
               <input
                 type="number"
+                required
                 value={formData.regularPrice}
-                onChange={(e) => setFormData({ ...formData, regularPrice: parseFloat(e.target.value) })}
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white"
+                onChange={(e) => setFormData({ ...formData, regularPrice: parseFloat(e.target.value) || 0 })}
+                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white text-xs font-mono"
               />
             </div>
 
             <div>
-              <label className="block text-slate-400 font-semibold mb-1">Sale Price (₹)</label>
+              <label className="block text-slate-400 font-semibold mb-1">
+                Offer / Sale Price (₹) <span className="text-slate-500 font-normal">(optional)</span>
+              </label>
               <input
                 type="number"
                 value={formData.salePrice}
-                onChange={(e) => setFormData({ ...formData, salePrice: parseFloat(e.target.value) })}
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white"
+                onChange={(e) => setFormData({ ...formData, salePrice: parseFloat(e.target.value) || 0 })}
+                placeholder="Leave empty or equal for standard price"
+                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white text-xs font-mono"
               />
             </div>
 
@@ -1438,28 +1707,54 @@ function ProductFormModal({ categories, initialValues, onClose, onSave }: any) {
                 type="text"
                 value={formData.compatibility}
                 onChange={(e) => setFormData({ ...formData, compatibility: e.target.value })}
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white"
+                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white text-xs"
               />
             </div>
 
             <div>
-              <label className="block text-slate-400 font-semibold mb-1">File Size</label>
+              <label className="block text-slate-400 font-semibold mb-1">Version / File Size</label>
               <input
                 type="text"
                 value={formData.fileSize}
                 onChange={(e) => setFormData({ ...formData, fileSize: e.target.value })}
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white"
+                placeholder="e.g. 140 MB"
+                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white text-xs"
               />
             </div>
 
-            <div className="sm:col-span-2">
-              <label className="block text-slate-400 font-semibold mb-1">Image URL</label>
+            <div className="sm:col-span-2 space-y-1.5">
+              <label className="block text-slate-400 font-semibold">Image URL *</label>
               <input
-                type="url"
+                type="text"
+                required
                 value={formData.imageUrl}
                 onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white"
+                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white text-xs font-mono"
               />
+              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                <span className="text-[10px] text-slate-400">Quick Presets:</span>
+                {[
+                  { label: "Academy Sleeper", url: "/assets/products/vg_academy_sleeper.avif" },
+                  { label: "Humsafar V2", url: "/assets/products/humsafar_v2.avif" },
+                  { label: "Sleeper V2", url: "/assets/products/sleeper_v2.avif" },
+                  { label: "Chair Car", url: "/assets/products/chaircar_standard.png" },
+                  { label: "Vistadome", url: "/assets/products/vistadome_standard.png" },
+                  { label: "Amrit Bharat", url: "/assets/products/amrit_bharat.png" },
+                  { label: "Bangladesh", url: "/assets/products/bangladesh_coaches.png" },
+                  { label: "PNB Livery", url: "/assets/products/pnb_livery.png" },
+                  { label: "Tricolour", url: "/assets/products/indian_tricolour.avif" },
+                  { label: "WHR Route", url: "/assets/products/whr_route_v2.png" },
+                ].map((preset) => (
+                  <button
+                    key={preset.url}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, imageUrl: preset.url })}
+                    className="px-2 py-0.5 rounded bg-white/5 hover:bg-white/15 text-[10px] text-slate-300 border border-white/10"
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="sm:col-span-2">
@@ -1468,7 +1763,7 @@ function ProductFormModal({ categories, initialValues, onClose, onSave }: any) {
                 rows={3}
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white"
+                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white text-xs"
               />
             </div>
 
@@ -1480,7 +1775,7 @@ function ProductFormModal({ categories, initialValues, onClose, onSave }: any) {
                   onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
                   className="rounded bg-railway-dark text-railway-accent"
                 />
-                <span className="text-white">Featured Product</span>
+                <span className="text-white font-medium">Show in Home Page Carousel</span>
               </label>
 
               <label className="flex items-center gap-2 cursor-pointer">
@@ -1490,24 +1785,167 @@ function ProductFormModal({ categories, initialValues, onClose, onSave }: any) {
                   onChange={(e) => setFormData({ ...formData, isFree: e.target.checked })}
                   className="rounded bg-railway-dark text-railway-accent"
                 />
-                <span className="text-white">Free Community Add-on</span>
+                <span className="text-white font-medium">Free Community Add-on</span>
               </label>
             </div>
           </div>
 
-          <div className="pt-2 flex justify-end gap-3">
+          <div className="pt-2 flex justify-end gap-3 border-t border-railway-border/60">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300"
+              className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-railway-accent hover:bg-red-700 text-white font-bold"
+              className="px-5 py-2 rounded-xl bg-railway-accent hover:bg-red-700 text-white font-bold text-xs shadow-md shadow-red-950 flex items-center gap-1.5"
             >
-              Save Product
+              <Save className="w-4 h-4" />
+              <span>{initialValues ? "Update Coach" : "Publish Coach"}</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// Subcomponent: Trainboard (T-Board) Add/Edit Modal
+function TrainboardFormModal({
+  initialValues,
+  onClose,
+  onSave,
+}: {
+  initialValues: any | null;
+  onClose: () => void;
+  onSave: (e: React.FormEvent, formValues: any) => void;
+}) {
+  const [formData, setFormData] = useState({
+    name: initialValues?.name || "",
+    zone: initialValues?.zone || "WR",
+    zoneName: initialValues?.zoneName || "Western Railway",
+    size: initialValues?.size || "2.5 MB",
+    downloadUrl: initialValues?.downloadUrl || "",
+  });
+
+  const zonesList = [
+    { code: "WR", name: "Western Railway" },
+    { code: "CR", name: "Central Railway" },
+    { code: "ECoR", name: "East Coast Railway" },
+    { code: "NR", name: "Northern Railway" },
+    { code: "SR", name: "Southern Railway" },
+    { code: "ER", name: "Eastern Railway" },
+    { code: "NCR", name: "North Central Railway" },
+    { code: "NER", name: "North Eastern Railway" },
+    { code: "NWR", name: "North Western Railway" },
+    { code: "SECR", name: "South East Central Railway" },
+    { code: "SER", name: "South Eastern Railway" },
+    { code: "SWR", name: "South Western Railway" },
+    { code: "WCR", name: "West Central Railway" },
+  ];
+
+  const handleZoneChange = (zCode: string) => {
+    const found = zonesList.find((z) => z.code === zCode);
+    setFormData({
+      ...formData,
+      zone: zCode,
+      zoneName: found ? found.name : `${zCode} Zone`,
+    });
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fadeIn"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-lg bg-railway-darkest border border-railway-border rounded-2xl p-6 sm:p-7 space-y-4 shadow-2xl relative my-8"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <h3 className="text-base font-bold text-white flex items-center gap-2">
+          <Train className="w-5 h-5 text-[#39FF00]" />
+          <span>{initialValues ? "Rename / Edit Trainboard" : "Add New Trainboard (T-Board)"}</span>
+        </h3>
+
+        <form onSubmit={(e) => onSave(e, formData)} className="space-y-4 text-xs">
+          <div>
+            <label className="block text-slate-400 font-semibold mb-1">
+              Trainboard Title &bull; File Name *
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="e.g. 12010 Ahmedabad - Mumbai Shatabdi Express.zip"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-railway-dark border border-railway-border text-white text-xs font-mono"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-slate-400 font-semibold mb-1">Railway Zone *</label>
+              <select
+                value={formData.zone}
+                onChange={(e) => handleZoneChange(e.target.value)}
+                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white text-xs"
+              >
+                {zonesList.map((z) => (
+                  <option key={z.code} value={z.code}>
+                    {z.code} - {z.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-slate-400 font-semibold mb-1">File Size</label>
+              <input
+                type="text"
+                value={formData.size}
+                onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+                placeholder="e.g. 2.8 MB"
+                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white text-xs"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-slate-400 font-semibold mb-1">
+              Download Path / URL (optional, auto-generated if left empty)
+            </label>
+            <input
+              type="text"
+              value={formData.downloadUrl}
+              onChange={(e) => setFormData({ ...formData, downloadUrl: e.target.value })}
+              placeholder={`/downloads/trainboards/${formData.zone}/${formData.name || "file.zip"}`}
+              className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white text-xs font-mono"
+            />
+          </div>
+
+          <div className="pt-2 flex justify-end gap-3 border-t border-railway-border/60">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-5 py-2 rounded-xl bg-railway-accent hover:bg-red-700 text-white font-bold text-xs shadow-md shadow-red-950 flex items-center gap-1.5"
+            >
+              <Save className="w-4 h-4" />
+              <span>{initialValues ? "Update Trainboard" : "Save Trainboard"}</span>
             </button>
           </div>
         </form>
