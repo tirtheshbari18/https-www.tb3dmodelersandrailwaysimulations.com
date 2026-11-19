@@ -85,10 +85,10 @@ export default function ProductDetailClient({
   };
 
   return (
-    <div className="min-h-screen bg-white text-[#041229] pb-20">
+    <div className="min-h-screen bg-white text-[#101C32] pb-20 font-josefin">
       {/* Breadcrumb Navigation */}
-      <div className="bg-gray-50 border-b border-gray-200 py-3">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-xs text-gray-500 font-futura flex items-center gap-2">
+      <div className="bg-[#F5F6F8] border-b border-gray-200 py-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-xs text-gray-500 font-josefin flex items-center gap-2">
           <Link href="/" className="hover:text-black transition-colors">
             Home
           </Link>
@@ -234,7 +234,7 @@ export default function ProductDetailClient({
                   className={`py-3 px-6 rounded-full font-semibold text-sm flex items-center justify-center gap-2 transition-all ${
                     inCart
                       ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                      : "bg-[#38D300] hover:bg-green-400 text-black shadow-sm"
+                      : "bg-[#39FF00] hover:bg-green-400 text-black shadow-sm"
                   }`}
                 >
                   {inCart ? (

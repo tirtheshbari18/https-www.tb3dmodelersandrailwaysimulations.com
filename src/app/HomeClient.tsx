@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, X, AlertTriangle, ShieldCheck } from "lucide-react";
 
 interface HomeClientProps {
   featuredProducts: any[];
@@ -25,74 +25,136 @@ export default function HomeClient({
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [showNoticePopup, setShowNoticePopup] = useState(false);
 
-  // Exact 11 original products showcase matching reference site
+  // Check localStorage for dismissed status on mount
+  useEffect(() => {
+    try {
+      const isDismissed = localStorage.getItem("vg_notice_dismissed");
+      if (!isDismissed) {
+        setShowNoticePopup(true);
+      }
+    } catch (e) {
+      setShowNoticePopup(true);
+    }
+  }, []);
+
+  const handleDismissNotice = () => {
+    setShowNoticePopup(false);
+    try {
+      localStorage.setItem("vg_notice_dismissed", "true");
+    } catch (e) {}
+  };
+
+  const handleResetNotice = () => {
+    setShowNoticePopup(true);
+  };
+
+  // Full 13-item collection matching reference screenshots and catalog
   const showcaseProducts = [
     {
+      num: "01",
       title: "VG LHB VG ACADEMY LIVERY SLEEPER COACHES",
       subtitle: "(Coming Soon) Please Sign Up to purchase and download these addons!!!!!",
       image: "/assets/products/vg_academy_sleeper.avif",
       slug: "vg-lhb-vg-academy-livery-sleeper-coaches",
+      desc: "Hyper-realistic LHB Sleeper coach with custom Academy livery, high-poly bogies, and night lighting.",
     },
     {
+      num: "02",
       title: "VG LHB HUMSAFAR COACHES V2",
       subtitle: "(Coming Soon) Please Sign Up to purchase and download these addons!!!!!",
       image: "/assets/products/humsafar_v2.avif",
       slug: "vg-lhb-humsafar-coaches-v2",
+      desc: "Signature geometric vinyl aesthetic with 3-tier sleeper passenger compartments and animated doors.",
     },
     {
+      num: "03",
       title: "VG LHB SLEEPER COACHES V2",
       subtitle: "(Coming Soon) Please Sign Up to purchase and download these addons!!!!!",
       image: "/assets/products/sleeper_v2.avif",
       slug: "vg-lhb-sleeper-coaches-v2-update",
+      desc: "Updated V2 long-distance sleeper rolling stock for Rajdhani, Duronto, and Superfast expresses.",
     },
     {
+      num: "04",
       title: "VG LHB CHAIRCAR COACHES",
       subtitle: "(Coming Soon) Please Sign Up to purchase and download these addons!!!!!",
       image: "/assets/products/chaircar_standard.png",
       slug: "vg-lhb-coaches",
+      desc: "Premier daytime express coaches including Shatabdi, Deccan Queen, and Anubhuti variants.",
     },
     {
+      num: "05",
       title: "VG LHB VISTADOME COACHES",
       subtitle: "(Coming Soon) Please Sign Up to purchase and download these addons!!!!!",
       image: "/assets/products/vistadome_standard.png",
       slug: "vg-lhb-vistadome-coaches",
+      desc: "Panoramic observation coaches with curved glass canopy roofs, swivel seating, and animated doors.",
     },
     {
+      num: "06",
       title: "VG LHB AMRIT BHARAT COACHES",
       subtitle: "(Coming Soon) Please Sign Up to purchase and download these addons!!!!!",
       image: "/assets/products/amrit_bharat.png",
       slug: "vg-lhb-amrit-bharat-coaches",
+      desc: "Modern non-AC high-speed push-pull rake with signature vibrant orange and grey colorway.",
     },
     {
+      num: "07",
       title: "VG LHB BANGLADESH COACHES",
       subtitle: "(Coming Soon) Please Sign Up to purchase and download these addons!!!!!",
       image: "/assets/products/bangladesh_coaches.png",
       slug: "vg-lhb-bangladesh-coaches",
+      desc: "Export LHB rolling stock for international routes like Maitree Express connecting Dhaka and Kolkata.",
     },
     {
+      num: "08",
       title: "VG LHB PNB LIVERY CHAIRCAR COACHES",
       subtitle: "(Coming Soon) Please Sign Up to purchase and download these addons!!!!!",
       image: "/assets/products/pnb_livery.png",
       slug: "vg-lhb-pnb-livery-chaircar-coaches",
+      desc: "Commercial wrap edition featuring authentic Punjab National Bank advert livery.",
     },
     {
+      num: "09",
       title: "VG LHB INDIAN TRICOLOUR COACHES",
       subtitle: "(Coming Soon) Please Sign Up to purchase and download these addons!!!!!",
       image: "/assets/products/indian_tricolour.avif",
       slug: "vg-lhb-indian-tricolour-coaches",
+      desc: "Patriotic commemorative livery inspired by the national tricolour for celebration rakes.",
     },
     {
+      num: "10",
       title: "VG LHB VISTADOME LIVERY COACHES",
       subtitle: "(Coming Soon) Please Sign Up to purchase and download these addons!!!!!",
       image: "/assets/products/vistadome_livery.png",
       slug: "vg-lhb-vistadome-livery-coaches",
+      desc: "Special scenic route livery with reflective glass shaders and high-detail passenger lounge.",
     },
     {
+      num: "11",
       title: "WHR Route (V2 Ahmedabad Update)",
       subtitle: "(Coming Soon) Please Sign Up to purchase and download these addons!!!!!",
       image: "/assets/products/whr_route_v2.png",
       slug: "whr-route-v2-ahmedabad-update",
+      desc: "High-precision Western Railway route expansion featuring major yard layouts and custom scenery.",
+    },
+    {
+      num: "12",
+      title: "VG BR LHB MAITREE EXPRESS PACK",
+      subtitle: "(Coming Soon) Please Sign Up to purchase and download these addons!!!!!",
+      image: "/assets/projects/05_vg_lhb_bangladesh.png",
+      slug: "vg-br-lhb-maitree-v1-5",
+      desc: "Complete international express consist with custom bogie audio and bilingual trainboards.",
+    },
+    {
+      num: "13",
+      title: "VG LHB FIAT BOGIE AUDIO & PHYSICS EXPANSION",
+      subtitle: "(Free Community Utility) Download and calibrate your train simulator rakes.",
+      image: "/assets/projects/07_wip_sleeper_render.png",
+      slug: "vg-fiat-bogie-audio-v1-2",
+      desc: "Authentic track joint sounds, flange squeal, and calibrated deceleration physics curves.",
     },
   ];
 
@@ -116,50 +178,176 @@ export default function HomeClient({
   const currentItem = showcaseProducts[currentIndex];
 
   return (
-    <div className="w-full bg-white text-[#041229]">
-      {/* 1. Festival Offer Marquee Ticker */}
-      <div className="w-full bg-white border-b border-gray-200 py-2 overflow-hidden select-none">
+    <div className="w-full bg-white text-[#101C32]">
+      {/* =========================================================================
+          A. OFFICIAL NOTICE POPUP (MODAL)
+          ========================================================================= */}
+      {showNoticePopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="relative w-full max-w-4xl bg-[#ECE8F8] text-[#2A1E68] rounded-2xl shadow-2xl border-2 border-[#D8CEF6] overflow-hidden p-6 sm:p-8 animate-in zoom-in-95 duration-200">
+            {/* Large White Close Button in Top-Right Corner */}
+            <button
+              onClick={handleDismissNotice}
+              aria-label="Close Official Notice"
+              className="absolute top-4 right-4 sm:top-5 sm:right-5 w-11 h-11 rounded-full bg-white text-[#2A1E68] shadow-lg flex items-center justify-center hover:bg-[#39FF00] hover:text-[#101C32] transition-all hover:scale-110 z-10 focus:outline-none"
+            >
+              <X className="w-6 h-6 stroke-[2.5]" />
+            </button>
+
+            {/* Two-Column Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center pt-2">
+              {/* Left Column: Official Notice Text */}
+              <div className="lg:col-span-7 space-y-4">
+                <div className="flex items-center gap-2 text-[#D21312]">
+                  <span className="text-2xl">⚠️</span>
+                  <h2 className="font-josefin font-bold text-lg sm:text-xl md:text-2xl tracking-wide uppercase">
+                    OFFICIAL NOTICE FROM VARUN GANESH
+                  </h2>
+                </div>
+
+                <p className="font-josefin font-medium text-[15px] sm:text-[16px] leading-relaxed text-[#2A1E68]">
+                  VG-3D Modelers & Railway Simulations is the exclusive, official source for all our 3D train models, coaches, and railway simulation add-ons.
+                </p>
+
+                <div className="space-y-2.5 bg-white/60 p-4 rounded-xl border border-[#D8CEF6]">
+                  <div className="flex items-start gap-2 text-[14px] sm:text-[15px] leading-snug">
+                    <span className="font-bold text-[#D21312] mt-0.5">•</span>
+                    <p>
+                      <strong>No Authorized Resellers:</strong> We do not partner with or sell through any third-party websites or individuals.
+                    </p>
+                  </div>
+
+                  <div className="flex items-start gap-2 text-[14px] sm:text-[15px] leading-snug">
+                    <span className="font-bold text-[#D21312] mt-0.5">•</span>
+                    <p>
+                      <strong>Scam Warning:</strong> Any other site, group, or person claiming to resell or distribute our files is fraudulent.
+                    </p>
+                  </div>
+
+                  <div className="flex items-start gap-2 text-[14px] sm:text-[15px] leading-snug">
+                    <span className="font-bold text-[#D21312] mt-0.5">•</span>
+                    <p>
+                      <strong>Safety Risk:</strong> Stolen files distributed on scam sites often contain malicious software, broken assets, or outdated data.
+                    </p>
+                  </div>
+                </div>
+
+                <p className="font-josefin font-semibold text-[14px] sm:text-[15px] leading-snug text-[#2A1E68] pt-1">
+                  To guarantee you receive authentic, high-quality, and secure add-ons, always purchase directly through this official platform.
+                </p>
+
+                <div className="pt-2 flex flex-wrap items-center gap-3">
+                  <button
+                    onClick={handleDismissNotice}
+                    className="bg-[#0B2852] hover:bg-[#39FF00] hover:text-[#101C32] text-white font-josefin font-semibold px-6 py-2.5 rounded-full shadow transition-all duration-200 text-sm"
+                  >
+                    I Understand & Proceed
+                  </button>
+                  <Link
+                    href="/shop"
+                    onClick={handleDismissNotice}
+                    className="text-xs sm:text-sm font-semibold underline text-[#2A1E68] hover:text-[#0B2852]"
+                  >
+                    Visit Official Shop →
+                  </Link>
+                </div>
+              </div>
+
+              {/* Right Column: Railway Coach Image Collage */}
+              <div className="lg:col-span-5 flex flex-col gap-3">
+                <div className="bg-white/90 p-2 rounded-xl shadow-md border border-[#D8CEF6] overflow-hidden">
+                  <img
+                    src="/assets/banners/about_hero_trio.png"
+                    alt="Official VG-3D Railway Models Collage"
+                    className="w-full h-auto object-contain rounded-lg"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-white/90 p-1.5 rounded-lg shadow-sm border border-[#D8CEF6]">
+                    <img
+                      src="/assets/products/vistadome_standard.png"
+                      alt="LHB Vistadome"
+                      className="w-full h-24 object-contain"
+                    />
+                  </div>
+                  <div className="bg-white/90 p-1.5 rounded-lg shadow-sm border border-[#D8CEF6]">
+                    <img
+                      src="/assets/products/chaircar_standard.png"
+                      alt="LHB Chair Car"
+                      className="w-full h-24 object-contain"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          B. PROMOTIONAL ANNOUNCEMENT BAR (ORANGE WITH GREEN ARROW SEPARATORS)
+          ========================================================================= */}
+      <div className="w-full bg-[#FF6600] text-white py-2 overflow-hidden select-none border-b border-[#E65C00] shadow-sm">
         <div className="flex whitespace-nowrap animate-marquee">
           {[...Array(6)].map((_, i) => (
-            <span key={i} className="text-[#d32f2f] font-futuraLight text-[14px] sm:text-[15px] font-bold mx-4">
-              Last Day! Festival offer ends tonight at 11:45 PM. (Please visit shop page for more details)&nbsp;&nbsp;»»&nbsp;&nbsp;
-            </span>
+            <div key={i} className="flex items-center mx-4 font-josefin text-[14px] sm:text-[15px] font-semibold tracking-wide">
+              <span>Last Day! Festival offer ends tonight at 11:45 PM. (Please visit shop page for more details)</span>
+              <span className="text-[#39FF00] font-bold text-lg mx-3">»»</span>
+            </div>
           ))}
         </div>
       </div>
 
-      {/* 2. Main Content Area */}
-      <div className="max-w-[980px] mx-auto px-4 pt-10 pb-16">
-        {/* Top Header: "Home: Products - 11x" on Left, Search Input on Right */}
+      {/* =========================================================================
+          C. PRODUCT GALLERY (CAROUSEL & SEARCH)
+          ========================================================================= */}
+      <div className="max-w-[1080px] mx-auto px-4 pt-10 pb-16">
+        {/* Top Header: "Home: Products - 11x" on Left, Notice Trigger & Search Input on Right */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
           <div>
-            <h1 className="font-futuraBook text-[36px] sm:text-[40px] font-normal tracking-tight text-[#041229] leading-[48px] sm:leading-[54px]">
-              Home:<br />Products - 11x
+            <h1 className="font-josefin text-[36px] sm:text-[44px] font-extralight tracking-tight text-[#101C32] leading-tight">
+              Home:<br />
+              <span className="font-normal text-[#0B2852]">Products - 11x</span>
             </h1>
+            <p className="font-josefin text-sm text-gray-500 mt-1">
+              Showing 13 high-fidelity Indian Railway rolling stock and route add-ons
+            </p>
           </div>
 
-          {/* Clean Search Box */}
-          <form onSubmit={handleSearchSubmit} className="relative w-full sm:w-[260px]">
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 border border-gray-400 rounded-none bg-white font-futuraLight text-[14px] text-[#041229] placeholder-gray-500 focus:outline-none focus:border-[#041229]"
-            />
-            <Search className="w-4 h-4 text-gray-500 absolute left-2.5 top-2.5 pointer-events-none" />
-          </form>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            {/* Notice Recall Button */}
+            {!showNoticePopup && (
+              <button
+                onClick={handleResetNotice}
+                className="text-xs bg-[#ECE8F8] text-[#2A1E68] border border-[#D8CEF6] px-3 py-2 rounded-full font-semibold hover:bg-[#D8CEF6] transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+              >
+                <span>⚠️ Official Notice</span>
+              </button>
+            )}
+
+            {/* Clean Search Box */}
+            <form onSubmit={handleSearchSubmit} className="relative w-full sm:w-[280px]">
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border-2 border-gray-300 rounded-full bg-white font-josefin text-[14px] text-[#101C32] placeholder-gray-400 focus:outline-none focus:border-[#0B2852] transition-colors shadow-sm"
+              />
+              <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3 pointer-events-none" />
+            </form>
+          </div>
         </div>
 
-        {/* 3. Center Showcase Carousel Box */}
-        <div className="relative border border-gray-300 rounded-md overflow-hidden bg-white shadow-sm">
-          {/* Main Showcase Image */}
-          <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full flex items-center justify-center bg-gray-50 overflow-hidden">
-            <Link href={`/shop/${currentItem.slug}`} className="w-full h-full flex items-center justify-center">
+        {/* Center Showcase Carousel Box */}
+        <div className="relative border-2 border-gray-200 rounded-2xl overflow-hidden bg-white shadow-xl transition-all">
+          {/* Main Showcase Image Area */}
+          <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full flex items-center justify-center bg-[#F5F6F8] overflow-hidden group">
+            <Link href={`/shop/${currentItem.slug}`} className="w-full h-full flex items-center justify-center p-4 sm:p-8">
               <img
                 src={currentItem.image}
                 alt={currentItem.title}
-                className="w-full h-full object-contain p-2 hover:scale-[1.01] transition-transform duration-300"
+                className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
               />
             </Link>
 
@@ -167,45 +355,63 @@ export default function HomeClient({
             <button
               onClick={handlePrev}
               aria-label="Previous product"
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 hover:bg-white text-[#041229] border border-gray-300 shadow flex items-center justify-center transition-all hover:scale-105 z-10"
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/90 hover:bg-white text-[#0B2852] border border-gray-200 shadow-lg flex items-center justify-center transition-all hover:scale-110 z-10 focus:outline-none"
             >
-              <ChevronLeft className="w-6 h-6" />
+              <ChevronLeft className="w-7 h-7" />
             </button>
 
             {/* Next Button */}
             <button
               onClick={handleNext}
               aria-label="Next product"
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 hover:bg-white text-[#041229] border border-gray-300 shadow flex items-center justify-center transition-all hover:scale-105 z-10"
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/90 hover:bg-white text-[#0B2852] border border-gray-200 shadow-lg flex items-center justify-center transition-all hover:scale-110 z-10 focus:outline-none"
             >
-              <ChevronRight className="w-6 h-6" />
+              <ChevronRight className="w-7 h-7" />
             </button>
+
+            {/* Product Index Badge on Image */}
+            <div className="absolute top-4 left-4 bg-[#0B2852]/80 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
+              Item {currentItem.num} / {showcaseProducts.length}
+            </div>
           </div>
 
           {/* Bottom Caption Overlay Bar */}
-          <div className="p-4 sm:p-5 border-t border-gray-200 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="space-y-1">
+          <div className="p-5 sm:p-6 border-t border-gray-100 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1.5">
               <Link
                 href={`/shop/${currentItem.slug}`}
-                className="font-futuraBook text-[18px] sm:text-[20px] font-normal text-[#041229] hover:underline"
+                className="font-josefin text-[20px] sm:text-[24px] font-normal text-[#0B2852] hover:text-[#39FF00] hover:underline transition-colors block"
               >
                 {currentItem.title}
               </Link>
-              <p className="font-futuraLight text-[13px] sm:text-[14px] text-gray-700">
+              <p className="font-josefin text-[13px] sm:text-[14px] text-gray-500">
+                {currentItem.desc}
+              </p>
+              <p className="font-josefin text-[12px] sm:text-[13px] font-semibold text-[#FF6600]">
                 {currentItem.subtitle}
               </p>
             </div>
 
-            {/* Pagination Counter */}
-            <span className="font-futuraLight text-[14px] text-gray-500 self-end sm:self-auto flex-shrink-0">
-              {currentIndex + 1}/{showcaseProducts.length}
-            </span>
+            {/* Actions: View in Shop & Pagination */}
+            <div className="flex items-center gap-3 sm:flex-col sm:items-end flex-shrink-0">
+              <Link
+                href={`/shop/${currentItem.slug}`}
+                className="bg-[#0B2852] hover:bg-[#39FF00] hover:text-[#101C32] text-white text-xs sm:text-sm font-semibold px-5 py-2 rounded-full shadow transition-all duration-200"
+              >
+                View Product Details
+              </Link>
+              <span className="font-josefin text-[14px] font-bold text-gray-400">
+                {currentIndex + 1} of {showcaseProducts.length}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* 4. WhatsApp Contact Shortcut */}
-        <div className="mt-12 flex items-center justify-center gap-3">
-          <span className="font-futuraLight font-bold text-[18px] sm:text-[20px] leading-[33.4px] text-[#041229]">
+        {/* =========================================================================
+            D. WHATSAPP CONTACT SHORTCUT
+            ========================================================================= */}
+        <div className="mt-14 flex flex-col sm:flex-row items-center justify-center gap-3 p-6 bg-[#F5F6F8] rounded-2xl border border-gray-200">
+          <span className="font-josefin font-bold text-[18px] sm:text-[22px] leading-tight text-[#0B2852]">
             Contact Varun Ganesh for details
           </span>
           <a
@@ -213,13 +419,14 @@ export default function HomeClient({
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Contact Varun Ganesh on WhatsApp"
-            className="hover:scale-110 transition-transform"
+            className="hover:scale-110 transition-transform flex items-center gap-2 bg-[#25D366] text-white px-5 py-2 rounded-full shadow font-semibold text-sm"
           >
             <img
               src="/assets/icons/whatsapp.png"
               alt="WhatsApp"
-              className="w-10 h-10 object-contain rounded-full shadow-sm"
+              className="w-5 h-5 object-contain"
             />
+            <span>Chat on WhatsApp</span>
           </a>
         </div>
       </div>

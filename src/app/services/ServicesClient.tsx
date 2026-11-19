@@ -98,20 +98,20 @@ export default function ServicesClient({ services }: ServicesClientProps) {
   };
 
   return (
-    <div className="w-full bg-white text-[#041229]">
-      {/* 1. Sky Blue Top Section: "What We Offer" + Vistadome Banner */}
-      <div className="w-full bg-[#9ac7f7] py-14 px-4">
-        <div className="max-w-[980px] mx-auto text-center space-y-8">
-          <h1 className="font-futuraBook text-[36px] sm:text-[40px] font-normal tracking-wide text-[#041229]">
+    <div className="w-full bg-white text-[#101C32]">
+      {/* 1. Light Blue Top Section: "What We Offer" + Vistadome Banner */}
+      <div className="w-full bg-[#A7D2F7] py-16 px-4 border-b border-gray-200">
+        <div className="max-w-[1080px] mx-auto text-center space-y-8">
+          <h1 className="font-josefin text-[38px] sm:text-[46px] font-extralight tracking-wide text-[#0B2852]">
             What We Offer
           </h1>
 
           <div className="flex justify-center">
-            <div className="border-[3px] border-[#041229] p-1 bg-white shadow-md max-w-[800px] w-full">
+            <div className="border-4 border-[#0B2852] p-1.5 bg-white shadow-2xl rounded-2xl max-w-[850px] w-full overflow-hidden hover:scale-[1.01] transition-transform">
               <img
                 src="/assets/banners/services_vistadome_banner.png"
                 alt="VG LHB VISTADOME COACHES modeled by Varun Ganesh"
-                className="w-full h-auto object-contain cursor-pointer"
+                className="w-full h-auto object-contain cursor-pointer rounded-xl"
                 onClick={() => handleOpenModal("3D Modelling & Visualization")}
               />
             </div>
@@ -119,19 +119,23 @@ export default function ServicesClient({ services }: ServicesClientProps) {
         </div>
       </div>
 
-      {/* 2. Soft Gray Bottom Section: "Our Services" + 2-Column Grid */}
-      <div className="w-full bg-[#d9d9d9] py-16 px-4">
-        <div className="max-w-[980px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+      {/* 2. Light Grey Bottom Section: "Our Services" + 2-Column Grid */}
+      <div className="w-full bg-[#F5F6F8] py-20 px-4">
+        <div className="max-w-[1080px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-10 items-start">
           {/* Left Title: "Our Services" */}
-          <div className="md:col-span-4">
-            <h2 className="font-futuraBook text-[36px] sm:text-[40px] font-normal text-[#041229] leading-tight">
-              Our<br />Services
+          <div className="md:col-span-4 space-y-4">
+            <h2 className="font-josefin text-[38px] sm:text-[46px] font-extralight text-[#0B2852] leading-tight">
+              Our<br />
+              <span className="font-normal">Services</span>
             </h2>
+            <p className="font-josefin text-sm text-gray-600 max-w-xs">
+              Specialized engineering, 3D simulation modeling, and railway asset customization services.
+            </p>
 
-            <div className="mt-8">
+            <div className="pt-4">
               <button
                 onClick={() => handleOpenModal()}
-                className="px-6 py-2.5 rounded-full bg-[#041229] text-white font-futuraLight text-[14px] font-bold hover:bg-black transition-colors shadow-sm"
+                className="px-8 py-3 rounded-full bg-[#0B2852] text-white font-josefin text-[15px] font-semibold hover:bg-[#39FF00] hover:text-[#101C32] transition-all shadow-md"
               >
                 Inquire About Services
               </button>
@@ -141,17 +145,17 @@ export default function ServicesClient({ services }: ServicesClientProps) {
           {/* Right Area: 2-Column Numbered Services (01 - 06) */}
           <div className="md:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-10">
             {defaultServices.map((srv) => (
-              <div key={srv.num} className="space-y-1.5">
-                <span className="block font-futuraBook text-[15px] text-[#041229] font-normal">
+              <div key={srv.num} className="space-y-2 bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:border-[#0B2852] hover:shadow-md transition-all">
+                <span className="inline-block font-josefin text-xs font-bold text-[#101C32] bg-[#39FF00] px-2.5 py-0.5 rounded-full">
                   {srv.num}
                 </span>
                 <h3
                   onClick={() => handleOpenModal(srv.title)}
-                  className="font-futuraBook text-[22px] sm:text-[24px] font-normal text-[#041229] hover:underline cursor-pointer"
+                  className="font-josefin text-[22px] sm:text-[24px] font-semibold text-[#0B2852] hover:text-[#FF6600] cursor-pointer transition-colors block"
                 >
                   {srv.title}
                 </h3>
-                <p className="font-futuraLight text-[15px] sm:text-[16px] text-[#041229] leading-[26px]">
+                <p className="font-josefin text-[15px] text-gray-700 leading-relaxed font-normal">
                   {srv.desc}
                 </p>
               </div>
@@ -163,37 +167,37 @@ export default function ServicesClient({ services }: ServicesClientProps) {
       {/* Service Inquiry Modal */}
       {isModalOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 animate-in fade-in"
+          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 animate-in fade-in backdrop-blur-sm"
           onClick={() => setIsModalOpen(false)}
         >
           <div
-            className="bg-white rounded-lg max-w-lg w-full p-6 text-[#041229] shadow-2xl relative"
+            className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 text-[#101C32] shadow-2xl relative border border-gray-200"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-black"
+              className="absolute top-4 right-4 text-gray-500 hover:text-black w-8 h-8 rounded-full flex items-center justify-center bg-gray-100"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <h3 className="font-futuraBook text-[22px] font-normal mb-1">
+            <h3 className="font-josefin text-[24px] font-semibold text-[#0B2852] mb-1">
               Inquire: {selectedService}
             </h3>
-            <p className="font-futuraLight text-[14px] text-gray-600 mb-4">
+            <p className="font-josefin text-[14px] text-gray-600 mb-6">
               Send your project specifications directly to the VG-3D engineering team.
             </p>
 
             {submitSuccess ? (
-              <div className="py-6 text-center space-y-3">
-                <CheckCircle2 className="w-12 h-12 text-[#38D300] mx-auto" />
-                <h4 className="font-futuraBook text-[18px] font-normal">Enquiry Received!</h4>
-                <p className="font-futuraLight text-[14px] text-gray-600">
-                  Thank you for reaching out. We will respond via email or WhatsApp promptly.
+              <div className="py-8 text-center space-y-4">
+                <CheckCircle2 className="w-14 h-14 text-[#39FF00] mx-auto" />
+                <h4 className="font-josefin text-[22px] font-semibold text-[#0B2852]">Enquiry Received!</h4>
+                <p className="font-josefin text-[14px] text-gray-600 max-w-xs mx-auto">
+                  Thank you for reaching out. Varun Ganesh and the engineering team will respond promptly.
                 </p>
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="mt-4 px-6 py-2 bg-[#041229] text-white text-sm rounded font-futuraLight font-bold"
+                  className="mt-4 px-8 py-2.5 bg-[#0B2852] text-white text-sm rounded-full font-josefin font-semibold hover:bg-[#39FF00] hover:text-[#101C32] transition-colors"
                 >
                   Close
                 </button>
@@ -207,7 +211,7 @@ export default function ServicesClient({ services }: ServicesClientProps) {
                 )}
 
                 <div>
-                  <label className="block font-futuraLight text-[13px] font-bold text-gray-700 mb-1">
+                  <label className="block font-josefin text-[13px] font-semibold text-gray-700 mb-1">
                     Your Name *
                   </label>
                   <input
@@ -215,13 +219,13 @@ export default function ServicesClient({ services }: ServicesClientProps) {
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm font-futuraLight focus:outline-none focus:border-[#041229]"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm font-josefin focus:outline-none focus:border-[#0B2852]"
                     placeholder="Enter your name"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-futuraLight text-[13px] font-bold text-gray-700 mb-1">
+                  <label className="block font-josefin text-[13px] font-semibold text-gray-700 mb-1">
                     Email Address *
                   </label>
                   <input
@@ -229,45 +233,45 @@ export default function ServicesClient({ services }: ServicesClientProps) {
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm font-futuraLight focus:outline-none focus:border-[#041229]"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm font-josefin focus:outline-none focus:border-[#0B2852]"
                     placeholder="Enter your email"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-futuraLight text-[13px] font-bold text-gray-700 mb-1">
+                  <label className="block font-josefin text-[13px] font-semibold text-gray-700 mb-1">
                     Phone / WhatsApp Number
                   </label>
                   <input
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm font-futuraLight focus:outline-none focus:border-[#041229]"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm font-josefin focus:outline-none focus:border-[#0B2852]"
                     placeholder="+91..."
                   />
                 </div>
 
                 <div>
-                  <label className="block font-futuraLight text-[13px] font-bold text-gray-700 mb-1">
-                    Project Details / Requirements *
+                  <label className="block font-josefin text-[13px] font-semibold text-gray-700 mb-1">
+                    Project Requirements / Message *
                   </label>
                   <textarea
-                    required
                     rows={4}
+                    required
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm font-futuraLight focus:outline-none focus:border-[#041229]"
-                    placeholder="Describe your 3D modeling, simulator, or engineering requirements..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm font-josefin focus:outline-none focus:border-[#0B2852]"
+                    placeholder="Describe your simulator rolling stock or route modeling requirements..."
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-2.5 bg-[#041229] hover:bg-black text-white text-sm font-futuraLight font-bold rounded flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                  className="w-full py-3 bg-[#0B2852] hover:bg-[#39FF00] hover:text-[#101C32] text-white font-josefin font-semibold rounded-full shadow transition-all duration-200 flex items-center justify-center gap-2"
                 >
                   <Send className="w-4 h-4" />
-                  {isSubmitting ? "Sending..." : "Submit Inquiry"}
+                  <span>{isSubmitting ? "Submitting..." : "Send Engineering Enquiry"}</span>
                 </button>
               </form>
             )}

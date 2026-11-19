@@ -5,135 +5,130 @@
 @tailwind utilities;
 
 /* =========================================================================
-   AUTHENTIC WOFF2 FONT-FACE DEFINITIONS (SAMPLED DIRECTLY FROM ORIGINAL WIX SITE)
+   JOSEFIN SANS LOCAL @FONT-FACE DEFINITIONS (SELF-CONTAINED & ZERO LATENCY)
    ========================================================================= */
 
 @font-face {
-  font-family: 'futura-lt-w01-book';
-  src: url('/fonts/futura-lt-w01-book.woff2') format('woff2');
+  font-family: 'Josefin Sans';
+  src: url('/fonts/josefin-sans-200.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Josefin Sans';
+  src: url('/fonts/josefin-sans-300.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Josefin Sans';
+  src: url('/fonts/josefin-sans-400.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'futura-lt-w01-book';
-  src: url('/fonts/futura-lt-w01-book.woff2') format('woff2');
+  font-family: 'Josefin Sans';
+  src: url('/fonts/josefin-sans-500.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Josefin Sans';
+  src: url('/fonts/josefin-sans-600.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Josefin Sans';
+  src: url('/fonts/josefin-sans-700.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
-@font-face {
-  font-family: 'futura-lt-w01-light';
-  src: url('/fonts/futura-lt-w01-light.woff2') format('woff2'),
-       url('/fonts/futura-lt-w05-light.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'futura-lt-w01-light';
-  src: url('/fonts/futura-lt-w01-light.woff2') format('woff2'),
-       url('/fonts/futura-lt-w05-light.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'helvetica-w01-bold';
-  src: url('/fonts/helvetica-lt-w10-bold.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'helvetica-w01-bold';
-  src: url('/fonts/helvetica-lt-w10-bold.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'helvetica-w01-roman';
-  src: url('/fonts/helvetica-lt-w10-roman.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'avenir-lt-w01_35-light1475496';
-  src: url('/fonts/avenir-lt-w01_35-light1475496.woff2') format('woff2'),
-       url('/fonts/avenir-lt-w05_35-light.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'roboto-wix';
-  src: url('/fonts/roboto-regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
+/* =========================================================================
+   GLOBAL TYPOGRAPHY & LAYOUT UTILITIES
+   ========================================================================= */
 
 body {
-  color: var(--color-text-dark);
-  background-color: var(--color-primary-white);
-  font-family: var(--font-brand-primary);
+  font-family: 'Josefin Sans', sans-serif;
+  color: var(--color-text-dark, #101C32);
+  background-color: var(--color-primary-white, #FFFFFF);
   overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Reusable Forensically-Extracted Typography Utility Classes */
-.font-futura-book {
-  font-family: var(--font-brand-primary);
+/* Custom font class utilities */
+.font-josefin {
+  font-family: 'Josefin Sans', sans-serif;
 }
 
-.font-futura-light {
-  font-family: var(--font-brand-light);
+.font-josefin-thin {
+  font-family: 'Josefin Sans', sans-serif;
+  font-weight: 200;
 }
 
-.font-helvetica-bold {
-  font-family: var(--font-sans-bold);
+.font-josefin-light {
+  font-family: 'Josefin Sans', sans-serif;
+  font-weight: 300;
 }
 
-.font-helvetica-roman {
-  font-family: var(--font-sans-roman);
+.font-josefin-regular {
+  font-family: 'Josefin Sans', sans-serif;
+  font-weight: 400;
 }
 
-.font-avenir-light {
-  font-family: var(--font-sans-light);
+.font-josefin-medium {
+  font-family: 'Josefin Sans', sans-serif;
+  font-weight: 500;
 }
 
-/* Marquee animation for Festival and What's New announcements */
+.font-josefin-semibold {
+  font-family: 'Josefin Sans', sans-serif;
+  font-weight: 600;
+}
+
+.font-josefin-bold {
+  font-family: 'Josefin Sans', sans-serif;
+  font-weight: 700;
+}
+
+/* Wix container constraint */
+.wix-container {
+  width: 100%;
+  max-width: 980px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Continuous Marquee Animation */
 @keyframes marquee {
-  0% {
-    transform: translateX(0%);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
 }
 
 .animate-marquee {
-  display: inline-flex;
-  width: max-content;
-  animation: marquee 30s linear infinite;
+  display: flex;
+  width: 200%;
+  animation: marquee 25s linear infinite;
 }
 
 .animate-marquee:hover {
   animation-play-state: paused;
 }
 
-/* Custom Scrollbar */
+/* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -144,10 +139,10 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #94a3b8;
+  background: #cbd5e1;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: #94a3b8;
 }

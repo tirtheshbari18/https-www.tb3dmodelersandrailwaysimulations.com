@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ZoomIn, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { ZoomIn, X, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 
 interface ProjectsClientProps {
   projects: any[];
@@ -10,278 +10,346 @@ interface ProjectsClientProps {
 }
 
 export default function ProjectsClient({ projects, products }: ProjectsClientProps) {
-  const [modalImage, setModalImage] = useState<{
+  const [lightboxImage, setLightboxImage] = useState<{
     url: string;
     title: string;
+    caption?: string;
   } | null>(null);
 
-  // Exact 7 projects specification matching original reference layout
+  // Exact 7 project items with exact prompt descriptions and multi-image collages
   const projectItems = [
     {
       num: "01",
       title: "VG LHB CHAIRCAR COACHES",
-      image: "/assets/projects/01_vg_lhb_chaircar.png",
-      alt: "VG LHB CHAIRCAR COACHES AD",
+      mainImage: "/assets/projects/01_vg_lhb_chaircar.png",
+      alt: "VG LHB CHAIRCAR COACHES Showcase",
+      extraImages: [
+        "/assets/coaches/chaircar_ad.png",
+        "/assets/products/chaircar_standard.png",
+        "/assets/products/pnb_livery.png",
+        "/assets/products/indian_tricolour.avif"
+      ],
       description:
-        "High-fidelity 3D models of VG LHB Chair Car coaches engineered for Open Rails and MSTS by Varun Ganesh (VG). Designed for premier daytime express services including the Shatabdi, Jan Shatabdi, and Intercity Express, featuring animated doors, detailed 3D passenger cabins with realistic night lighting, and customizable zone markings and trainboards. Includes liveries inspired by the Deccan Queen, Anubhuti coach, and the Tricolour Shatabdi.",
+        "This pack features high-fidelity 3D models of VG LHB Chair Car coaches for Open Rails and MSTS, meticulously crafted by Varun Ganesh (VG). Designed for daytime services like the Shatabdi, Jan Shatabdi, and Intercity Express, these models feature animated doors and highly detailed interiors with realistic night lighting. The coaches are fully customizable for specific zones and trainboards. This comprehensive pack also includes prestigious rakes inspired by the legendary Deccan Queen, the premium Anubhuti coach, and the Tricolour livery Shatabdi coaches.",
+      highlights: ["Animated Passenger Doors", "Night Lighting Cabin View", "Deccan Queen Rake", "Anubhuti Premium Class"],
+      link: "/shop/vg-lhb-coaches"
     },
     {
       num: "02",
       title: "VG LHB VISTADOME COACHES",
-      image: "/assets/projects/02_vg_lhb_vistadome.png",
-      alt: "VG LHB VISTADOME COACHES AD",
+      mainImage: "/assets/projects/02_vg_lhb_vistadome.png",
+      alt: "VG LHB VISTADOME COACHES Showcase",
+      extraImages: [
+        "/assets/coaches/vistadome_ad.png",
+        "/assets/products/vistadome_standard.png",
+        "/assets/products/vistadome_livery.png"
+      ],
       description:
-        "High-fidelity 3D models of VG LHB Vistadome panoramic coaches, crafted as an authentic addition to the LHB collection. Features expansive glass-domed observation ceilings, rotatable pushback seats, animated doors, and realistic night-time illumination. Provides rich customizability for regional railway zones and distinctive rakes including the modern Deccan Queen Vistadome.",
+        "This pack features high-fidelity 3D models of VG LHB Vistadome coaches, meticulously crafted by Varun Ganesh (VG) as a premium addition to the VG LHB Chair Car collection. Specifically designed to replicate the unique, panoramic experience of daytime tourist travel, these models feature fully animated doors and highly detailed glass-roof interiors with realistic night lighting. The coaches offer high customizability for various regional zones and trainboards. This installment includes specialized variants inspired by the modern LHB Vistadome fleet and the iconic livery of the legendary Deccan Queen.",
+      highlights: ["Curved Glass Canopy Roof", "Rotating Pushback Seats", "Custom Regional Trainboards", "Scenic Route Shaders"],
+      link: "/shop/vg-lhb-vistadome-coaches"
     },
     {
       num: "03",
       title: "VG LHB SLEEPER COACHES",
-      image: "/assets/projects/03_vg_lhb_sleeper.avif",
-      alt: "VG LHB SLEEPER COACHES AD",
+      mainImage: "/assets/projects/03_vg_lhb_sleeper.avif",
+      alt: "VG LHB SLEEPER COACHES Showcase",
+      extraImages: [
+        "/assets/coaches/sleeper_render.png",
+        "/assets/products/sleeper_v2.avif",
+        "/assets/products/vg_academy_sleeper.avif"
+      ],
       description:
-        "Detailed 3D models of VG LHB Sleeper coaches for long-distance day and night transit in Open Rails and MSTS. Modeled for premier services including the Rajdhani, Duronto, and standard Superfast Express trains. Complete with animated doors, detailed interior berths with realistic night-time lighting, and adaptable trainboards and zonal markings.",
+        "This pack features high-fidelity 3D models of VG LHB Sleeper coaches, meticulously crafted by Varun Ganesh (VG). Designed for long-distance day and night transit, these models are inspired by the versatile rolling stock used in premier services like the Rajdhani, Duronto as well as various Superfast Express trains. The coaches feature fully animated doors and highly detailed sleeper-class interiors complete with realistic night lighting effects. Fully customizable for specific regional zones and trainboards, this comprehensive pack is engineered to bring an authentic long-haul experience to the Open Rails and MSTS platforms.",
+      highlights: ["Day & Night Compartment Modes", "Rajdhani / Duronto Variants", "Accurate FIAT Bogies", "Berth Detailing"],
+      link: "/shop/vg-lhb-sleeper-coaches-v2-update"
     },
     {
       num: "04",
       title: "VG LHB HUMSAFAR COACHES",
-      image: "/assets/projects/04_vg_lhb_humsafar.avif",
-      alt: "VG LHB HUMSAFAR COACHES AD",
+      mainImage: "/assets/projects/04_vg_lhb_humsafar.avif",
+      alt: "VG LHB HUMSAFAR COACHES Showcase",
+      extraImages: [
+        "/assets/products/humsafar_v2.avif",
+        "/assets/products/amrit_bharat.png"
+      ],
       description:
-        "High-fidelity 3D models of VG LHB Humsafar coaches, showcasing the signature geometric exterior vinyl wrap and modern 3-tier sleeper layout. Designed for high-speed intercity operations, featuring animated doors, custom passenger amenities, calibrated night lighting, and trainboards compatible with Open Rails and MSTS.",
+        "This pack features high-fidelity 3D models of VG LHB Humsafar coaches, meticulously crafted by Varun Ganesh (VG). Designed for long-distance day and night transit, these models are inspired by the distinctive aesthetic of the Humsafar Express and are compatible with various premier services like the Rajdhani and Duronto. The coaches feature fully animated doors and highly detailed, modern sleeper interiors complete with realistic night lighting effects. Fully customizable for specific regional zones and trainboards, this comprehensive pack is engineered to deliver a premium, high-tech travel experience to the Open Rails and MSTS platforms.",
+      highlights: ["Geometric Vinyl Livery", "Modern 3-Tier Interior", "Calibrated Deceleration Physics", "Open Rails & MSTS"],
+      link: "/shop/vg-lhb-humsafar-coaches-v2"
     },
     {
       num: "05",
       title: "VG LHB BANGLADESH COACHES",
-      image: "/assets/projects/05_vg_lhb_bangladesh.png",
-      alt: "VG LHB BANGLADESH COACHES AD",
+      mainImage: "/assets/projects/05_vg_lhb_bangladesh.png",
+      alt: "VG LHB BANGLADESH COACHES Showcase",
+      extraImages: [
+        "/assets/products/bangladesh_coaches.png"
+      ],
       description:
-        "High-fidelity 3D models of export-variant LHB coaches delivered for international services including the Maitree Express and Bandhan Express connecting Dhaka and Kolkata. Features broad-gauge FIAT bogie gear, bilingual coach numbering, animated doors, authentic sleeper and chair car interiors, and regional trainboards.",
+        "This pack features high-fidelity 3D models of VG LHB Bangladesh coaches, meticulously crafted by Varun Ganesh (VG). Designed for international transit, these models are inspired by the prestigious rakes used in services such as the Maitree Express, which connects Dhaka and Kolkata. The coaches feature fully animated doors and highly detailed interiors complete with realistic night lighting effects. Equipped with accurate trainboards and regional detailing, this comprehensive pack is engineered to bring an authentic cross-border rail experience to the Open Rails and MSTS platforms.",
+      highlights: ["International Maitree Express", "Bilingual Trainboards", "Export Broad-Gauge Bogie", "Dhaka-Kolkata Livery"],
+      link: "/shop/vg-lhb-bangladesh-coaches"
     },
     {
       num: "06",
       title: "3D Models for Routes",
       isRouteSection: true,
-      image: "/assets/projects/06_route_naini_bridge.webp",
+      mainImage: "/assets/projects/06_route_naini_bridge.webp",
       alt: "Route 3D Models - Naini Bridges",
-      caption:
-        "Old Naini and New Naini bridges modelled by VG for The Great Northern Corridor (Pic courtesy: https://hindustanrailways.site/)",
+      caption: "Old Naini and New Naini bridges modelled by VG for The Great Northern Corridor (Pic courtesy: https://hindustanrailways.site/)",
+      extraImages: [
+        "/assets/products/whr_route_v2.png"
+      ],
       description:
-        "VG has contributed numerous precision 3D models for routes including The Great Northern Corridor created by Mudit Pranay. Deliverables range from small wayside assets such as signal posts, catenary masts, and warning boards, to massive engineering structures such as passenger platform sheds, trusses, station buildings, and major river bridges.",
+        "VG has contributed to many 3D models for the route The Great Northern Corridor created by Mudit Pranay. Various models ranging from small objects like signboards, signals, catenary masts to massive structures like platform shed, bridges, monuments, station building have been developed for this route.",
+      highlights: ["Old & New Naini River Bridges", "The Great Northern Corridor", "Catenary Masts & Signals", "Custom Station Sheds"],
+      link: "/shop/whr-route-v2-ahmedabad-update"
     },
     {
       num: "07",
-      title: "Work in Progress",
+      title: "WORK IN PROGRESS",
       isWipSection: true,
+      mainImage: "/assets/projects/07_wip_sleeper_render.png",
       wipIcon: "/assets/projects/07_wip_icon.png",
-      wipRender: "/assets/projects/07_wip_sleeper_render.png",
-      alt: "Work in progress rolling stock",
+      alt: "Work In Progress Renders",
+      extraImages: [],
       description:
-        "Active design and development pipeline including upcoming locomotive acoustic soundpacks, modernized cab interior environments, advanced consist physics configurations, and upcoming rolling stock additions.",
-    },
+        "Active design, research, and development pipeline at VG-3D Modelers. Current roadmap includes realistic electric locomotive sound packs (WAP-7 / WAG-9), authentic Indian cab interior environments, advanced consist physics tuning, and next-generation push-pull trainsets.",
+      highlights: ["Locomotive Acoustic Soundpacks", "Physics Tuning Curves", "Cab Interior Models", "Next-Gen Push-Pull"],
+      link: "/contact"
+    }
   ];
 
   return (
-    <div className="w-full bg-white text-[#041229]">
-      {/* 1. Dark Blue Hero Section */}
-      <div className="w-full bg-[#041229] text-white py-12 px-4 border-b border-gray-800">
-        <div className="max-w-[980px] mx-auto">
+    <div className="w-full bg-white text-[#101C32]">
+      {/* =========================================================================
+          LIGHTBOX MODAL FOR IMAGE ZOOM
+          ========================================================================= */}
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={() => setLightboxImage(null)}
+        >
+          <div
+            className="relative max-w-5xl w-full bg-[#0B2852] text-white rounded-2xl overflow-hidden shadow-2xl p-4 sm:p-6 border border-white/20"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setLightboxImage(null)}
+              aria-label="Close Lightbox"
+              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white text-[#101C32] shadow-lg flex items-center justify-center hover:bg-[#39FF00] transition-transform hover:scale-110 z-10"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            <div className="flex items-center justify-center max-h-[75vh] overflow-hidden rounded-xl bg-black/40 p-2">
+              <img
+                src={lightboxImage.url}
+                alt={lightboxImage.title}
+                className="max-h-[70vh] w-auto object-contain rounded-lg"
+              />
+            </div>
+
+            <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-white/10 pt-3">
+              <div>
+                <h4 className="font-josefin font-semibold text-lg text-white">
+                  {lightboxImage.title}
+                </h4>
+                {lightboxImage.caption && (
+                  <p className="font-josefin text-xs sm:text-sm text-[#A7D2F7] mt-0.5">
+                    {lightboxImage.caption}
+                  </p>
+                )}
+              </div>
+              <span className="text-xs bg-white/10 px-3 py-1 rounded-full text-white/80 font-josefin self-start sm:self-auto">
+                VG-3D Modelers Authentic Asset
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          1. HERO SECTION (NAVY BLUE #0B2852)
+          ========================================================================= */}
+      <div className="w-full bg-[#0B2852] text-white py-14 sm:py-20 px-4 border-b border-[#143B73]">
+        <div className="max-w-[1080px] mx-auto">
           {/* Top Row: Title + Coach Render Image */}
-          <div className="flex flex-col sm:flex-row items-center sm:items-start justify-center gap-6 sm:gap-10 mb-6">
-            <h1 className="font-futuraBook text-[42px] sm:text-[56px] font-normal tracking-wide text-white leading-tight self-center sm:self-auto">
-              Projects
-            </h1>
-            <div className="border border-white/20 p-1 rounded bg-black/20">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-8">
+            <div className="space-y-4 text-center md:text-left">
+              <span className="text-xs font-semibold bg-[#39FF00] text-[#101C32] px-3.5 py-1 rounded-full uppercase tracking-wider inline-block">
+                Precision Engineering Showcase
+              </span>
+              <h1 className="font-josefin text-[42px] sm:text-[56px] md:text-[64px] font-extralight tracking-widest text-white leading-tight">
+                PROJECTS
+              </h1>
+              <p className="font-josefin text-[17px] sm:text-[20px] text-[#A7D2F7] font-light max-w-[620px] leading-relaxed">
+                Specializing in precision engineering design, high-fidelity 3D modeling, and immersive railway simulations. Our commitment to technical accuracy and visual excellence is showcased in the following featured projects:
+              </p>
+            </div>
+
+            {/* Coach Render Banner on Right */}
+            <div
+              className="relative p-2 bg-white/10 rounded-2xl border-2 border-white/20 shadow-2xl flex-shrink-0 cursor-pointer group hover:scale-[1.02] transition-transform"
+              onClick={() =>
+                setLightboxImage({
+                  url: "/assets/banners/projects_hero_coach.png",
+                  title: "VG LHB Vistadome Coach 3D Render",
+                  caption: "Authentic high-poly geometry and observation canopy roof."
+                })
+              }
+            >
               <img
                 src="/assets/banners/projects_hero_coach.png"
                 alt="VG LHB Vistadome Coach Render"
-                className="w-[260px] sm:w-[320px] md:w-[360px] h-auto object-contain rounded cursor-pointer"
-                onClick={() =>
-                  setModalImage({
-                    url: "/assets/banners/projects_hero_coach.png",
-                    title: "VG LHB Vistadome Coach Render",
-                  })
-                }
+                className="w-[280px] sm:w-[340px] md:w-[380px] h-auto object-contain rounded-xl"
               />
+              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center">
+                <span className="bg-white/90 text-[#101C32] px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 shadow">
+                  <ZoomIn className="w-3.5 h-3.5" /> Click to Enlarge
+                </span>
+              </div>
             </div>
           </div>
-
-          {/* Subtitle intro statement */}
-          <p className="font-futuraLight text-[17px] sm:text-[20px] font-normal leading-[30px] sm:leading-[36px] text-white/95 text-center max-w-[880px] mx-auto">
-            Specializing in precision engineering design, high-fidelity 3D modeling, and
-            immersive railway simulations. Our commitment to technical accuracy and visual
-            excellence is showcased in the following featured projects:
-          </p>
         </div>
       </div>
 
-      {/* 2. Numbered Project Sections (White Background) */}
-      <div className="max-w-[980px] mx-auto px-4 py-12">
-        {projectItems.map((item, idx) => {
-          if (item.isRouteSection) {
-            return (
-              <div key={item.num}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center py-8">
-                  {/* Left Column: Number, Title, Description */}
-                  <div>
-                    <span className="block font-futuraBook text-[26px] sm:text-[30px] font-normal text-[#041229] mb-1">
-                      {item.num}
-                    </span>
-                    <h2 className="font-futuraBook text-[26px] sm:text-[30px] font-normal text-[#041229] mb-4">
-                      {item.title}
-                    </h2>
-                    <p className="font-futuraLight text-[15px] sm:text-[16px] font-normal leading-[28.8px] text-[#041229]">
-                      {item.description}
-                    </p>
-                  </div>
+      {/* =========================================================================
+          2. NUMBERED PROJECT SECTIONS (01 - 07)
+          ========================================================================= */}
+      <div className="max-w-[1080px] mx-auto px-4 py-16 space-y-20">
+        {projectItems.map((item, index) => {
+          const isEven = index % 2 === 1;
 
-                  {/* Right Column: Route Image + Caption */}
-                  <div className="flex flex-col items-center">
-                    <img
-                      src={item.image}
-                      alt={item.alt}
-                      className="w-full max-w-[438px] h-auto object-contain shadow-sm cursor-pointer hover:opacity-95 transition-opacity"
+          return (
+            <section
+              key={item.num}
+              id={`project-${item.num}`}
+              className="scroll-mt-28"
+            >
+              {/* Project Card Container */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+                {/* Image Collage Side (Alternates on desktop) */}
+                <div
+                  className={`lg:col-span-6 ${
+                    isEven ? "lg:order-2" : "lg:order-1"
+                  }`}
+                >
+                  <div className="bg-[#F5F6F8] p-3 sm:p-4 rounded-2xl border-2 border-gray-200 shadow-md space-y-3">
+                    {/* Primary Square / 4:3 Collage Image */}
+                    <div
+                      className="relative aspect-square sm:aspect-[4/3] w-full rounded-xl overflow-hidden bg-white cursor-pointer group shadow-inner border border-gray-100"
                       onClick={() =>
-                        setModalImage({ url: item.image || "", title: item.title })
+                        setLightboxImage({
+                          url: item.mainImage,
+                          title: item.title,
+                          caption: item.caption
+                        })
                       }
-                    />
+                    >
+                      <img
+                        src={item.mainImage}
+                        alt={item.alt}
+                        className="w-full h-full object-contain p-2 transition-transform duration-300 group-hover:scale-105"
+                      />
+                      {/* Zoom Indicator */}
+                      <div className="absolute top-3 right-3 bg-white/90 text-[#101C32] p-2 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity">
+                        <ZoomIn className="w-4 h-4" />
+                      </div>
+                      <div className="absolute bottom-3 left-3 bg-[#0B2852]/80 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full font-semibold">
+                        Project {item.num} Multi-View
+                      </div>
+                    </div>
+
+                    {/* Secondary Multi-Image Panels (if available) */}
+                    {item.extraImages && item.extraImages.length > 0 && (
+                      <div className="grid grid-cols-3 gap-2 pt-1">
+                        {item.extraImages.slice(0, 3).map((subImg, subIdx) => (
+                          <div
+                            key={subIdx}
+                            onClick={() =>
+                              setLightboxImage({
+                                url: subImg,
+                                title: `${item.title} — Detail View ${subIdx + 1}`,
+                                caption: "High-resolution livery and bogie inspection view."
+                              })
+                            }
+                            className="relative h-20 rounded-lg overflow-hidden bg-white border border-gray-200 cursor-pointer hover:border-[#39FF00] hover:scale-105 transition-all shadow-sm"
+                          >
+                            <img
+                              src={subImg}
+                              alt={`${item.title} sub render ${subIdx + 1}`}
+                              className="w-full h-full object-contain p-1"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Bridge Caption (for Project 06) */}
                     {item.caption && (
-                      <p className="font-futuraBook text-[15px] sm:text-[18px] text-[#041229] mt-3 text-center leading-relaxed">
+                      <p className="font-josefin text-[13px] sm:text-[14px] text-gray-600 italic text-center px-2 pt-2 border-t border-gray-200">
                         {item.caption}
                       </p>
                     )}
                   </div>
                 </div>
-                <hr className="border-t border-gray-300 my-8" />
-              </div>
-            );
-          }
 
-          if (item.isWipSection) {
-            return (
-              <div key={item.num}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center py-8">
-                  {/* Left Column: Number, Title, WIP Icon */}
-                  <div>
-                    <span className="block font-futuraBook text-[26px] sm:text-[30px] font-normal text-[#041229] mb-1">
+                {/* Description Text Side */}
+                <div
+                  className={`lg:col-span-6 space-y-5 ${
+                    isEven ? "lg:order-1" : "lg:order-2"
+                  }`}
+                >
+                  {/* Number Badge & Title */}
+                  <div className="space-y-1">
+                    <span className="font-josefin font-bold text-lg sm:text-xl text-[#39FF00] bg-[#0B2852] px-3.5 py-1 rounded-full inline-block shadow-sm">
                       {item.num}
                     </span>
-                    <h2 className="font-futuraBook text-[26px] sm:text-[30px] font-normal text-[#041229] mb-6">
+                    <h2 className="font-josefin text-[26px] sm:text-[32px] md:text-[36px] font-normal tracking-wide text-[#0B2852] uppercase leading-tight pt-1">
                       {item.title}
                     </h2>
-                    {item.wipIcon && (
-                      <img
-                        src={item.wipIcon}
-                        alt="Work in Progress"
-                        className="w-[120px] h-[120px] object-contain mb-4"
-                      />
-                    )}
-                    <p className="font-futuraLight text-[15px] sm:text-[16px] font-normal leading-[28.8px] text-[#041229]">
-                      {item.description}
-                    </p>
                   </div>
 
-                  {/* Right Column: WIP Render */}
-                  <div className="flex justify-center">
-                    <img
-                      src={item.wipRender}
-                      alt={item.alt}
-                      className="w-full max-w-[438px] h-auto object-contain shadow-sm cursor-pointer hover:opacity-95 transition-opacity"
-                      onClick={() =>
-                        setModalImage({ url: item.wipRender || "", title: item.title })
-                      }
-                    />
-                  </div>
-                </div>
-                <hr className="border-t border-gray-300 my-8" />
-              </div>
-            );
-          }
-
-          return (
-            <div key={item.num}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center py-8">
-                {/* Left Column: Number, Title, Description */}
-                <div>
-                  <span className="block font-futuraBook text-[26px] sm:text-[30px] font-normal text-[#041229] mb-1">
-                    {item.num}
-                  </span>
-                  <h2 className="font-futuraBook text-[26px] sm:text-[30px] font-normal text-[#041229] mb-4">
-                    {item.title}
-                  </h2>
-                  <p className="font-futuraLight text-[15px] sm:text-[16px] font-normal leading-[28.8px] text-[#041229]">
+                  {/* Exact Project Description */}
+                  <p className="font-josefin text-[15px] sm:text-[16px] text-gray-700 leading-[28px] sm:leading-[30px] font-normal">
                     {item.description}
                   </p>
-                </div>
 
-                {/* Right Column: Project Render Poster */}
-                <div className="flex justify-center">
-                  <div className="relative group cursor-pointer">
-                    <img
-                      src={item.image}
-                      alt={item.alt}
-                      className="w-full max-w-[438px] h-auto object-contain shadow-sm rounded-none hover:opacity-95 transition-opacity"
-                      onClick={() =>
-                        setModalImage({ url: item.image || "", title: item.title })
-                      }
-                    />
-                    <div
-                      onClick={() =>
-                        setModalImage({ url: item.image || "", title: item.title })
-                      }
-                      className="absolute bottom-3 right-3 bg-white/80 p-1.5 rounded-full shadow text-[#041229] opacity-0 group-hover:opacity-100 transition-opacity"
+                  {/* Feature Highlights Pills */}
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {item.highlights.map((h, i) => (
+                      <span
+                        key={i}
+                        className="text-xs bg-[#A7D2F7]/30 text-[#0B2852] font-semibold px-3 py-1 rounded-full border border-[#A7D2F7]/50"
+                      >
+                        ✓ {h}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Action Link to Shop / Details */}
+                  <div className="pt-2">
+                    <Link
+                      href={item.link}
+                      className="inline-flex items-center gap-2 bg-[#0B2852] hover:bg-[#39FF00] hover:text-[#101C32] text-white text-sm font-semibold px-6 py-2.5 rounded-full shadow-md transition-all duration-200"
                     >
-                      <ZoomIn className="w-4 h-4" />
-                    </div>
+                      <span>Explore in Shop</span>
+                      <ExternalLink className="w-4 h-4" />
+                    </Link>
                   </div>
                 </div>
               </div>
 
-              {idx < projectItems.length - 1 && (
-                <hr className="border-t border-gray-300 my-8" />
+              {/* Horizontal Divider Line between Projects */}
+              {index < projectItems.length - 1 && (
+                <div className="w-full h-px bg-gray-200 my-16"></div>
               )}
-            </div>
+            </section>
           );
         })}
-
-        {/* 3. Final Legal Disclaimer */}
-        <div className="mt-8 text-center px-4">
-          <p className="font-futuraLight text-[15px] sm:text-[16px] font-normal leading-[28.8px] text-[#041229] max-w-[850px] mx-auto">
-            Disclaimer: This is an independent 3D artistic work. This project is not affiliated
-            with, endorsed by, or connected to Indian Railways, Rail Coach Factory, Integral
-            Coach Factory, or Modern Coach Factory. All logos and liveries are artistic
-            representations for historical and simulation purposes.
-          </p>
-        </div>
       </div>
-
-      {/* 4. Lightbox Image Modal */}
-      {modalImage && (
-        <div
-          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 animate-in fade-in"
-          onClick={() => setModalImage(null)}
-        >
-          <div
-            className="relative max-w-4xl max-h-[90vh] flex flex-col items-center"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => setModalImage(null)}
-              className="absolute -top-10 right-0 text-white hover:text-gray-300 p-2"
-              aria-label="Close modal"
-            >
-              <X className="w-8 h-8" />
-            </button>
-            <img
-              src={modalImage.url}
-              alt={modalImage.title}
-              className="max-w-full max-h-[80vh] object-contain rounded"
-            />
-            <p className="font-futuraBook text-white text-base mt-3 text-center">
-              {modalImage.title}
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
