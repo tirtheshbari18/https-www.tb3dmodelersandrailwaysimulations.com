@@ -14,27 +14,45 @@ import {
   CheckCircle2,
   HardDrive,
   Info,
+  Plus,
+  Edit,
+  Trash2,
+  DollarSign,
+  Tag,
+  ShieldCheck,
+  AlertCircle,
+  X,
+  Upload,
+  Camera,
+  Layers,
 } from "lucide-react";
 
 interface TrainboardFile {
   id: string;
   name: string;
-  zone: "WR" | "CR" | "ECoR";
+  zone: string;
   zoneName: string;
   size: string;
-  updatedAt: string;
+  updatedAt?: string;
+  createdAt?: string;
   downloadUrl: string;
+  description?: string | null;
+  image?: string | null;
+  regularPrice?: number;
+  salePrice?: number | null;
+  status?: string;
 }
 
-const TRAINBOARDS_DATA: TrainboardFile[] = [
+const DEFAULT_TRAINBOARDS: TrainboardFile[] = [
   {
     id: "wr-09124",
     name: "09124 Vadodara - Kottayam Special Fare Special.zip",
     zone: "WR",
     zoneName: "Western Railway",
     size: "2.4 MB",
-    updatedAt: "18 Nov 2026",
     downloadUrl: "/downloads/trainboards/WR/09124 Vadodara - Kottayam Special Fare Special.zip",
+    status: "AVAILABLE",
+    regularPrice: 0,
   },
   {
     id: "wr-12010",
@@ -42,8 +60,9 @@ const TRAINBOARDS_DATA: TrainboardFile[] = [
     zone: "WR",
     zoneName: "Western Railway",
     size: "3.1 MB",
-    updatedAt: "18 Nov 2026",
     downloadUrl: "/downloads/trainboards/WR/12010 Ahmedabad - Mumbai Central Shatabdi Express.zip",
+    status: "AVAILABLE",
+    regularPrice: 0,
   },
   {
     id: "wr-12227",
@@ -51,8 +70,9 @@ const TRAINBOARDS_DATA: TrainboardFile[] = [
     zone: "WR",
     zoneName: "Western Railway",
     size: "2.8 MB",
-    updatedAt: "17 Nov 2026",
     downloadUrl: "/downloads/trainboards/WR/12227 Mumbai Central - Indore Duronto Express.zip",
+    status: "AVAILABLE",
+    regularPrice: 0,
   },
   {
     id: "wr-12247",
@@ -60,8 +80,9 @@ const TRAINBOARDS_DATA: TrainboardFile[] = [
     zone: "WR",
     zoneName: "Western Railway",
     size: "2.6 MB",
-    updatedAt: "17 Nov 2026",
     downloadUrl: "/downloads/trainboards/WR/12247 Bandra Terminus - Hazrat Nizamuddin Yuva Express.zip",
+    status: "AVAILABLE",
+    regularPrice: 0,
   },
   {
     id: "cr-12137",
@@ -69,8 +90,9 @@ const TRAINBOARDS_DATA: TrainboardFile[] = [
     zone: "CR",
     zoneName: "Central Railway",
     size: "3.4 MB",
-    updatedAt: "15 Nov 2026",
     downloadUrl: "/downloads/trainboards/CR/12137 CSMT - Firozpur Punjab Mail.zip",
+    status: "AVAILABLE",
+    regularPrice: 0,
   },
   {
     id: "cr-22221",
@@ -78,8 +100,9 @@ const TRAINBOARDS_DATA: TrainboardFile[] = [
     zone: "CR",
     zoneName: "Central Railway",
     size: "3.7 MB",
-    updatedAt: "15 Nov 2026",
     downloadUrl: "/downloads/trainboards/CR/22221 CSMT - Hazrat Nizamuddin Rajdhani Express.zip",
+    status: "AVAILABLE",
+    regularPrice: 0,
   },
   {
     id: "ecor-12801",
@@ -87,8 +110,9 @@ const TRAINBOARDS_DATA: TrainboardFile[] = [
     zone: "ECoR",
     zoneName: "East Coast Railway",
     size: "2.9 MB",
-    updatedAt: "14 Nov 2026",
     downloadUrl: "/downloads/trainboards/ECoR/12801 Puri - New Delhi Purushottam Express.zip",
+    status: "AVAILABLE",
+    regularPrice: 0,
   },
   {
     id: "ecor-22823",
@@ -96,17 +120,36 @@ const TRAINBOARDS_DATA: TrainboardFile[] = [
     zone: "ECoR",
     zoneName: "East Coast Railway",
     size: "3.5 MB",
-    updatedAt: "14 Nov 2026",
     downloadUrl: "/downloads/trainboards/ECoR/22823 Bhubaneswar - New Delhi Tejas Rajdhani.zip",
+    status: "AVAILABLE",
+    regularPrice: 0,
   },
 ];
 
 export default function TrainboardsPage() {
-  const [trainboardFiles, setTrainboardFiles] = useState<TrainboardFile[]>(TRAINBOARDS_DATA);
+  const [trainboardFiles, setTrainboardFiles] = useState<TrainboardFile[]>(DEFAULT_TRAINBOARDS);
   const [selectedZone, setSelectedZone] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  useEffect(() => {
+  // Admin Mode State
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
+  const [isAdminMode, setIsAdminMode] = useState<boolean>(true);
+
+  // Modals
+  const [isAddTrainboardOpen, setIsAddTrainboardOpen] = useState(false);
+  const [editingTrainboard, setEditingTrainboard] = useState<TrainboardFile | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{ id: string; name: string } | null>(null);
+
+  // Toast
+  const [toastMsg, setToastMsg] = useState<{ text: string; isError: boolean } | null>(null);
+
+  const showToast = (text: string, isError: boolean = false) => {
+    setToastMsg({ text, isError });
+    setTimeout(() => setToastMsg(null), 3500);
+  };
+
+  // Fetch trainboards from backend API
+  const refreshTrainboards = () => {
     fetch("/api/admin/trainboards", { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
@@ -115,7 +158,90 @@ export default function TrainboardsPage() {
         }
       })
       .catch((e) => console.log("Using cached trainboard data"));
+  };
+
+  useEffect(() => {
+    refreshTrainboards();
+
+    // Check user role
+    fetch("/api/auth/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && data.user && (data.user.role === "ADMIN" || data.user.role === "SUPER_ADMIN")) {
+          setCurrentUser(data.user);
+        }
+      })
+      .catch(() => {});
   }, []);
+
+  // Handlers for Admin Operations
+  const handleSaveTrainboard = async (e: React.FormEvent, formValues: any) => {
+    e.preventDefault();
+    try {
+      if (editingTrainboard) {
+        const res = await fetch(`/api/admin/trainboards/${editingTrainboard.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formValues),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to update trainboard");
+
+        setTrainboardFiles((prev) =>
+          prev.map((tb) => (tb.id === editingTrainboard.id ? { ...tb, ...data.trainboard } : tb))
+        );
+        setEditingTrainboard(null);
+        showToast("Trainboard package updated successfully!");
+      } else {
+        const res = await fetch("/api/admin/trainboards", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formValues),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to create trainboard");
+
+        setTrainboardFiles([data.trainboard, ...trainboardFiles]);
+        setIsAddTrainboardOpen(false);
+        showToast("New Trainboard package added to catalog!");
+      }
+    } catch (err: any) {
+      showToast(err.message, true);
+    }
+  };
+
+  const handleDeleteTrainboard = async () => {
+    if (!deleteModal) return;
+    const { id, name } = deleteModal;
+    setDeleteModal(null);
+
+    try {
+      const res = await fetch(`/api/admin/trainboards/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete trainboard");
+      setTrainboardFiles((prev) => prev.filter((tb) => tb.id !== id));
+      showToast(`Trainboard "${name}" permanently deleted.`);
+    } catch (err: any) {
+      showToast(err.message, true);
+    }
+  };
+
+  const handleUpdateAvailability = async (tb: TrainboardFile, newStatus: "AVAILABLE" | "OUT_OF_STOCK" | "COMING_SOON") => {
+    try {
+      const res = await fetch(`/api/admin/trainboards/${tb.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!res.ok) throw new Error("Failed to update status");
+
+      setTrainboardFiles((prev) =>
+        prev.map((item) => (item.id === tb.id ? { ...item, status: newStatus } : item))
+      );
+      showToast(`Marked ${tb.name} as ${newStatus.replace("_", " ")}`);
+    } catch (err: any) {
+      showToast(err.message, true);
+    }
+  };
 
   const dynamicZonesList = Array.from(new Set(trainboardFiles.map((f) => f.zone))).filter(
     (z) => z !== "WR" && z !== "CR" && z !== "ECoR"
@@ -150,6 +276,66 @@ export default function TrainboardsPage() {
 
   return (
     <div className="w-full bg-[#F5F6F8] min-h-[90vh] py-10 px-4 sm:px-6 lg:px-8 font-josefin text-[#101C32]">
+      {/* Toast */}
+      {toastMsg && (
+        <div
+          className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl shadow-2xl text-xs font-semibold flex items-center gap-2 border transition-all ${
+            toastMsg.isError
+              ? "bg-rose-900 text-white border-rose-700"
+              : "bg-[#0B2852] text-white border-[#39FF00]"
+          }`}
+        >
+          {toastMsg.isError ? (
+            <AlertCircle className="w-4 h-4 text-rose-300" />
+          ) : (
+            <CheckCircle2 className="w-4 h-4 text-[#39FF00]" />
+          )}
+          <span>{toastMsg.text}</span>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200 space-y-4">
+            <h3 className="text-lg font-bold text-[#0B2852]">Confirm Permanent Deletion</h3>
+            <p className="text-xs text-gray-600 leading-relaxed">
+              Are you sure you want to permanently delete <strong>&quot;{deleteModal.name}&quot;</strong>?
+              This will remove the trainboard package from the library immediately.
+            </p>
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteModal(null)}
+                className="flex-1 py-2.5 rounded-full border border-gray-300 text-gray-700 text-xs font-bold hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteTrainboard}
+                className="flex-1 py-2.5 rounded-full bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 shadow-md"
+              >
+                Delete Permanently
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add / Edit Trainboard Modal */}
+      {(isAddTrainboardOpen || editingTrainboard) && (
+        <TrainboardDialog
+          isOpen={isAddTrainboardOpen || !!editingTrainboard}
+          trainboard={editingTrainboard}
+          onClose={() => {
+            setIsAddTrainboardOpen(false);
+            setEditingTrainboard(null);
+          }}
+          onSave={handleSaveTrainboard}
+        />
+      )}
+
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Breadcrumb Navigation */}
         <nav className="flex items-center gap-2 text-xs text-gray-500">
@@ -195,6 +381,57 @@ export default function TrainboardsPage() {
             This page contains train boards for VG LHB Coaches. Download and extract them to your Open Rails / MSTS trainset folder.
           </p>
         </div>
+
+        {/* Visible Admin Management Toolbar for Train Boards */}
+        {currentUser && (
+          <div className="bg-[#0B2852] text-white p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 shadow-xl border-2 border-[#39FF00]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[#39FF00]/20 text-[#39FF00] flex items-center justify-center font-bold">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-sm tracking-wide uppercase">Train Boards Admin Mode</h3>
+                  <span className="px-2 py-0.5 rounded-full bg-[#39FF00] text-[#101C32] text-[10px] font-bold uppercase">
+                    Live
+                  </span>
+                </div>
+                <p className="text-xs text-gray-300">
+                  Logged in as <strong>{currentUser.name}</strong> ({currentUser.role})
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full border border-white/20">
+                <span className="text-xs font-semibold text-gray-200">Admin Controls:</span>
+                <button
+                  type="button"
+                  onClick={() => setIsAdminMode(!isAdminMode)}
+                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                    isAdminMode ? "bg-[#39FF00] text-[#101C32]" : "bg-gray-400 text-white"
+                  }`}
+                >
+                  {isAdminMode ? "ON" : "OFF (Visitor View)"}
+                </button>
+              </div>
+
+              {isAdminMode && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingTrainboard(null);
+                    setIsAddTrainboardOpen(true);
+                  }}
+                  className="px-4 py-2 bg-[#39FF00] text-[#101C32] hover:bg-white rounded-full font-bold text-xs flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
+                >
+                  <Plus className="w-4 h-4 stroke-[3]" />
+                  Add Train Board (+)
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Search & Folder Navigation Bar */}
         <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-4">
@@ -273,41 +510,142 @@ export default function TrainboardsPage() {
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
-              {filteredFiles.map((file) => (
-                <div
-                  key={file.id}
-                  className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-blue-50/50 transition-colors"
-                >
-                  <div className="flex items-start sm:items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#0B2852] flex items-center justify-center flex-shrink-0 border border-blue-100 shadow-sm">
-                      <FileArchive className="w-5 h-5" />
+              {filteredFiles.map((file) => {
+                const isOutOfStock = file.status === "OUT_OF_STOCK";
+                const isComingSoon = file.status === "COMING_SOON";
+
+                return (
+                  <div
+                    key={file.id}
+                    className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-blue-50/50 transition-colors"
+                  >
+                    <div className="flex items-start sm:items-center gap-3.5 flex-1">
+                      <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#0B2852] flex items-center justify-center flex-shrink-0 border border-blue-100 shadow-sm">
+                        {file.image ? (
+                          <img src={file.image} alt={file.name} className="w-full h-full object-cover rounded-xl" />
+                        ) : (
+                          <FileArchive className="w-5 h-5" />
+                        )}
+                      </div>
+                      <div className="space-y-1 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-sm sm:text-base text-[#0B2852] hover:text-blue-700 transition-colors">
+                            {file.name}
+                          </span>
+                          {isOutOfStock && (
+                            <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-bold text-[10px] uppercase">
+                              Out of Stock
+                            </span>
+                          )}
+                          {isComingSoon && (
+                            <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px] uppercase">
+                              Coming Soon
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                          <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-700 font-semibold text-[10px]">
+                            {file.zoneName}
+                          </span>
+                          <span>&bull;</span>
+                          <span>Size: {file.size}</span>
+                          {file.regularPrice && file.regularPrice > 0 ? (
+                            <>
+                              <span>&bull;</span>
+                              <span className="font-bold text-gray-700">Price: ₹{file.regularPrice.toFixed(2)}</span>
+                            </>
+                          ) : null}
+                        </div>
+                      </div>
                     </div>
-                    <div className="space-y-0.5">
-                      <div className="font-bold text-sm sm:text-base text-[#0B2852] hover:text-blue-700 transition-colors">
-                        {file.name}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
-                        <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-700 font-semibold text-[10px]">
-                          {file.zoneName}
+
+                    <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
+                      {/* Public Action */}
+                      {isOutOfStock ? (
+                        <span className="px-4 py-2 rounded-full bg-rose-50 text-rose-700 border border-rose-200 font-bold text-xs">
+                          Temporarily Unavailable
                         </span>
-                        <span>&bull;</span>
-                        <span>Size: {file.size}</span>
-                        <span>&bull;</span>
-                        <span>Updated: {file.updatedAt}</span>
-                      </div>
+                      ) : isComingSoon ? (
+                        <span className="px-4 py-2 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-bold text-xs">
+                          Release Pending
+                        </span>
+                      ) : (
+                        <a
+                          href={file.downloadUrl}
+                          download
+                          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] font-bold text-xs uppercase tracking-wider transition-all duration-200 shadow-md flex-shrink-0"
+                        >
+                          <Download className="w-4 h-4" />
+                          <span>Download ZIP</span>
+                        </a>
+                      )}
+
+                      {/* Admin Controls on Item */}
+                      {currentUser && isAdminMode && (
+                        <div className="flex items-center gap-1.5 pl-2 sm:border-l border-gray-200">
+                          <button
+                            type="button"
+                            onClick={() => setEditingTrainboard(file)}
+                            className="p-2 rounded-lg bg-[#0B2852] text-white hover:bg-black transition-colors"
+                            title="Edit / Rename Trainboard"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+
+                          {/* Quick Availability switcher */}
+                          <div className="flex items-center gap-1 bg-gray-100 p-0.5 rounded-lg text-[10px]">
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateAvailability(file, "AVAILABLE")}
+                              className={`px-2 py-1 rounded font-bold ${
+                                file.status === "AVAILABLE" || !file.status
+                                  ? "bg-emerald-600 text-white"
+                                  : "text-gray-600 hover:text-emerald-700"
+                              }`}
+                              title="Set Available"
+                            >
+                              Avail
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateAvailability(file, "OUT_OF_STOCK")}
+                              className={`px-2 py-1 rounded font-bold ${
+                                file.status === "OUT_OF_STOCK"
+                                  ? "bg-rose-600 text-white"
+                                  : "text-gray-600 hover:text-rose-700"
+                              }`}
+                              title="Set Out of Stock"
+                            >
+                              Out
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateAvailability(file, "COMING_SOON")}
+                              className={`px-2 py-1 rounded font-bold ${
+                                file.status === "COMING_SOON"
+                                  ? "bg-amber-600 text-white"
+                                  : "text-gray-600 hover:text-amber-700"
+                              }`}
+                              title="Set Coming Soon"
+                            >
+                              Soon
+                            </button>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => setDeleteModal({ id: file.id, name: file.name })}
+                            className="p-2 rounded-lg bg-rose-600 text-white hover:bg-rose-700 transition-colors"
+                            title="Delete Trainboard"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
-
-                  <a
-                    href={file.downloadUrl}
-                    download
-                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] font-bold text-xs uppercase tracking-wider transition-all duration-200 shadow-md flex-shrink-0"
-                  >
-                    <Download className="w-4 h-4" />
-                    <span>Download ZIP</span>
-                  </a>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -324,6 +662,241 @@ export default function TrainboardsPage() {
             <li>Open Rails or MSTS will automatically render the customized bilingual destination plates on the coach sideboards.</li>
           </ol>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// --- SUB-COMPONENT: TRAINBOARD DIALOG (ADD / EDIT) ---
+function TrainboardDialog({
+  isOpen,
+  trainboard,
+  onClose,
+  onSave,
+}: {
+  isOpen: boolean;
+  trainboard: TrainboardFile | null;
+  onClose: () => void;
+  onSave: (e: React.FormEvent, formValues: any) => void;
+}) {
+  const [name, setName] = useState(trainboard?.name || "");
+  const [zone, setZone] = useState(trainboard?.zone || "WR");
+  const [zoneName, setZoneName] = useState(trainboard?.zoneName || "Western Railway");
+  const [size, setSize] = useState(trainboard?.size || "2.5 MB");
+  const [downloadUrl, setDownloadUrl] = useState(trainboard?.downloadUrl || "");
+  const [description, setDescription] = useState(trainboard?.description || "");
+  const [regularPrice, setRegularPrice] = useState(trainboard?.regularPrice ?? 0);
+  const [salePrice, setSalePrice] = useState(trainboard?.salePrice ?? "");
+  const [status, setStatus] = useState(trainboard?.status || "AVAILABLE");
+  const [image, setImage] = useState(trainboard?.image || "");
+  const [isUploading, setIsUploading] = useState(false);
+
+  const zonePresets: Record<string, string> = {
+    WR: "Western Railway",
+    CR: "Central Railway",
+    ECoR: "East Coast Railway",
+    NR: "Northern Railway",
+    SR: "Southern Railway",
+    ER: "Eastern Railway",
+    NCR: "North Central Railway",
+    NER: "North Eastern Railway",
+    NWR: "North Western Railway",
+    SECR: "South East Central Railway",
+    SER: "South Eastern Railway",
+    SWR: "South Western Railway",
+    WCR: "West Central Railway",
+  };
+
+  const handleZoneSelect = (z: string) => {
+    setZone(z);
+    setZoneName(zonePresets[z] || `${z} Zone`);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Upload failed");
+
+      setImage(data.url);
+    } catch (err: any) {
+      alert(err.message || "Failed to upload image");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    onSave(e, {
+      name,
+      zone,
+      zoneName,
+      size,
+      downloadUrl:
+        downloadUrl ||
+        `/downloads/trainboards/${zone}/${name.trim().endsWith(".zip") ? name.trim() : `${name.trim()}.zip`}`,
+      description,
+      regularPrice: parseFloat(regularPrice.toString()) || 0,
+      salePrice: salePrice ? parseFloat(salePrice.toString()) : null,
+      status,
+      image,
+    });
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+      <div className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-gray-200 space-y-4 text-xs font-josefin">
+        <div className="flex items-center justify-between border-b pb-3">
+          <h3 className="text-xl font-bold text-[#0B2852]">
+            {trainboard ? `Edit Trainboard: ${trainboard.name}` : "Add New Trainboard Package"}
+          </h3>
+          <button onClick={onClose} className="p-1 rounded text-gray-400 hover:text-gray-700">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block font-bold text-gray-700 mb-1">
+              Title / Zip File Name *
+            </label>
+            <input
+              type="text"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. 12010 Ahmedabad Shatabdi Express.zip"
+              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block font-bold text-gray-700 mb-1">Railway Zone *</label>
+              <select
+                value={zone}
+                onChange={(e) => handleZoneSelect(e.target.value)}
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              >
+                {Object.keys(zonePresets).map((z) => (
+                  <option key={z} value={z}>
+                    {z} ({zonePresets[z]})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block font-bold text-gray-700 mb-1">File Size</label>
+              <input
+                type="text"
+                value={size}
+                onChange={(e) => setSize(e.target.value)}
+                placeholder="2.5 MB"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block font-bold text-gray-700 mb-1">Price (₹, 0 for Free)</label>
+              <input
+                type="number"
+                value={regularPrice}
+                onChange={(e) => setRegularPrice(parseFloat(e.target.value) || 0)}
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              />
+            </div>
+            <div>
+              <label className="block font-bold text-gray-700 mb-1">Availability</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              >
+                <option value="AVAILABLE">Available / In Stock</option>
+                <option value="OUT_OF_STOCK">Out of Stock</option>
+                <option value="COMING_SOON">Coming Soon</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-bold text-gray-700 mb-1">Download Link</label>
+            <input
+              type="text"
+              value={downloadUrl}
+              onChange={(e) => setDownloadUrl(e.target.value)}
+              placeholder="/downloads/trainboards/WR/filename.zip"
+              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+            />
+          </div>
+
+          {/* Image Upload */}
+          <div className="space-y-2">
+            <label className="block font-bold text-gray-700">Preview Image / Texture Thumbnail</label>
+            <div className="flex gap-3 items-center">
+              <input
+                type="text"
+                value={image}
+                onChange={(e) => setImage(e.target.value)}
+                placeholder="Image URL or upload from disk"
+                className="flex-1 p-2 border rounded-lg text-xs"
+              />
+              <label className="px-3 py-2 bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] rounded-lg font-bold cursor-pointer transition-colors flex items-center gap-1.5 text-xs whitespace-nowrap">
+                <Upload className="w-3.5 h-3.5" />
+                {isUploading ? "Uploading..." : "Upload Image"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  disabled={isUploading}
+                />
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-bold text-gray-700 mb-1">Short Description</label>
+            <textarea
+              rows={2}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="High-definition bilingual trainboard set for Open Rails / MSTS coaches"
+              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-3 border-t">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2.5 rounded-full border border-gray-300 text-gray-700 font-bold hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 py-2.5 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] font-bold uppercase transition-all shadow-md"
+            >
+              {trainboard ? "Save Trainboard" : "Add Trainboard"}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

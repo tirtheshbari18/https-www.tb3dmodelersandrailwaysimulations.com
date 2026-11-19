@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getUserFromRequest } from "@/lib/auth";
+import { getUserFromRequest, isAdminRole } from "@/lib/auth";
 import { slugify } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   try {
     const user = await getUserFromRequest(req);
-    if (!user || user.role !== "ADMIN") {
+    if (!user || !isAdminRole(user.role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const user = await getUserFromRequest(req);
-    if (!user || user.role !== "ADMIN") {
+    if (!user || !isAdminRole(user.role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 

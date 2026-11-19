@@ -88,7 +88,9 @@ model Product {
   compatibility String    @default("Open Rails / MSTS") // Open Rails, MSTS, Both
   version       String    @default("v1.0")
   fileSize      String?   // e.g. "124 MB"
-  status        String    @default("AVAILABLE") // AVAILABLE, COMING_SOON, ARCHIVED
+  status        String    @default("AVAILABLE") // AVAILABLE, OUT_OF_STOCK, COMING_SOON, ARCHIVED
+  stockQuantity Int       @default(999)
+  specifications String?
   isFeatured    Boolean   @default(false)
   isNewArrival  Boolean   @default(false)
   installGuide  String?
@@ -378,12 +380,34 @@ model AuditLog {
 }
 
 model Trainboard {
-  id          String   @id @default(cuid())
-  name        String
-  zone        String   // WR, CR, ECoR, etc.
-  zoneName    String
-  size        String   @default("2.5 MB")
-  downloadUrl String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String   @id @default(cuid())
+  name           String
+  zone           String   // WR, CR, ECoR, etc.
+  zoneName       String
+  size           String   @default("2.5 MB")
+  downloadUrl    String
+  description    String?
+  image          String?
+  displayOrder   Int      @default(0)
+  specifications String?
+  regularPrice   Float    @default(0)
+  salePrice      Float?
+  status         String   @default("AVAILABLE") // AVAILABLE, OUT_OF_STOCK, COMING_SOON
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Offer {
+  id              String    @id @default(cuid())
+  title           String
+  description     String?
+  discountPercent Float     @default(0)
+  startDate       DateTime? @default(now())
+  endDate         DateTime?
+  isActive        Boolean   @default(true)
+  targetType      String    @default("ALL") // ALL, COACHES, TRAINBOARDS
+  targetIds       String?   // JSON array string of coach or trainboard ids
+  badgeText       String?   @default("SPECIAL OFFER")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }

@@ -43,6 +43,8 @@ export default function ProductDetailClient({
   const [isZoomOpen, setIsZoomOpen] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
 
+  const isOutOfStock = product.status === "OUT_OF_STOCK";
+  const isComingSoon = product.status === "COMING_SOON";
   const currentPrice = product.salePrice ?? product.regularPrice;
   const isFree = product.isFree || currentPrice === 0;
   const inCart = isInCart(product.id);
@@ -227,37 +229,57 @@ export default function ProductDetailClient({
 
             {/* Actions: Add to Cart and Buy Now */}
             <div className="space-y-3 pt-2">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 font-futura">
-                <button
-                  onClick={handleAddToCart}
-                  disabled={inCart}
-                  className={`py-3 px-6 rounded-full font-semibold text-sm flex items-center justify-center gap-2 transition-all ${
-                    inCart
-                      ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                      : "bg-[#39FF00] hover:bg-green-400 text-black shadow-sm"
-                  }`}
-                >
-                  {inCart ? (
-                    <>
-                      <Check className="w-4 h-4 text-emerald-800" />
-                      In Your Cart
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingCart className="w-4 h-4" />
-                      Add To Cart
-                    </>
-                  )}
-                </button>
+              {isOutOfStock ? (
+                <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-center space-y-1">
+                  <span className="px-4 py-1.5 rounded-full bg-rose-600 text-white font-bold text-xs uppercase tracking-wider inline-block">
+                    Out of Stock
+                  </span>
+                  <p className="text-xs text-rose-800">
+                    This coach / add-on is currently unavailable for order. Please check back soon or contact support.
+                  </p>
+                </div>
+              ) : isComingSoon ? (
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-center space-y-1">
+                  <span className="px-4 py-1.5 rounded-full bg-amber-600 text-white font-bold text-xs uppercase tracking-wider inline-block">
+                    Coming Soon
+                  </span>
+                  <p className="text-xs text-amber-800">
+                    This official release is in final testing and will be available for download shortly.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 font-futura">
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={inCart}
+                    className={`py-3 px-6 rounded-full font-semibold text-sm flex items-center justify-center gap-2 transition-all ${
+                      inCart
+                        ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                        : "bg-[#39FF00] hover:bg-green-400 text-black shadow-sm"
+                    }`}
+                  >
+                    {inCart ? (
+                      <>
+                        <Check className="w-4 h-4 text-emerald-800" />
+                        In Your Cart
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart className="w-4 h-4" />
+                        Add To Cart
+                      </>
+                    )}
+                  </button>
 
-                <button
-                  onClick={handleBuyNow}
-                  className="py-3 px-6 rounded-full bg-[#041229] hover:bg-black text-white font-semibold text-sm flex items-center justify-center gap-2 shadow transition-all"
-                >
-                  {isFree ? "Download Now" : "Buy Now"}
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
+                  <button
+                    onClick={handleBuyNow}
+                    className="py-3 px-6 rounded-full bg-[#041229] hover:bg-black text-white font-semibold text-sm flex items-center justify-center gap-2 shadow transition-all"
+                  >
+                    {isFree ? "Download Now" : "Buy Now"}
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
 
               <div className="flex items-center justify-between text-[11px] text-gray-500 pt-2 px-1 font-futura">
                 <span className="flex items-center gap-1.5">

@@ -76,3 +76,11 @@ export async function getUserFromRequest(req: NextRequest) {
     return null;
   }
 }
+
+export function isAdminRole(role?: string): boolean {
+  return role === "ADMIN" || role === "SUPER_ADMIN";
+}
+
+export function isSuperAdminRole(role?: string): boolean {
+  return role === "SUPER_ADMIN";
+}

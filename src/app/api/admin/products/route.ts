@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getUserFromRequest } from "@/lib/auth";
+import { getUserFromRequest, isAdminRole } from "@/lib/auth";
 import { slugify } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   try {
     const user = await getUserFromRequest(req);
-    if (!user || user.role !== "ADMIN") {
+    if (!user || !isAdminRole(user.role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const user = await getUserFromRequest(req);
-    if (!user || user.role !== "ADMIN") {
+    if (!user || !isAdminRole(user.role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -52,18 +52,23 @@ export async function POST(req: NextRequest) {
       version,
       fileSize,
       status,
+      stockQuantity,
+      specifications,
       isFeatured,
       isNewArrival,
       imageUrl,
       fileName,
     } = body;
 
-    if (!name || !regularPrice === undefined || !categoryId) {
+    if (!name || regularPrice === undefined || !categoryId) {
       return NextResponse.json({ error: "Name, price and category are required" }, { status: 400 });
     }
 
     const slug = slugify(name) + "-" + Math.floor(Math.random() * 1000);
     const skuCode = sku || `VG-${Date.now().toString().slice(-6)}`;
+
+    const qty = stockQuantity !== undefined ? parseInt(stockQuantity, 10) : 999;
+    const finalStatus = qty <= 0 ? "OUT_OF_STOCK" : (status || "AVAILABLE");
 
     const product = await prisma.product.create({
       data: {
@@ -73,13 +78,15 @@ export async function POST(req: NextRequest) {
         shortDesc: shortDesc || "",
         description: description || "",
         regularPrice: parseFloat(regularPrice),
-        salePrice: salePrice ? parseFloat(salePrice) : null,
+        salePrice: salePrice !== null && salePrice !== undefined && salePrice !== "" ? parseFloat(salePrice) : null,
         isFree: !!isFree,
         categoryId,
         compatibility: compatibility || "Open Rails / MSTS",
         version: version || "v1.0",
         fileSize: fileSize || "100 MB",
-        status: status || "AVAILABLE",
+        status: finalStatus,
+        stockQuantity: qty,
+        specifications: specifications || null,
         isFeatured: !!isFeatured,
         isNewArrival: !!isNewArrival,
         images: imageUrl
@@ -116,6 +123,21 @@ export async function POST(req: NextRequest) {
         files: true,
       },
     });
+
+    // Audit Log
+    try {
+      await prisma.auditLog.create({
+        data: {
+          userId: user.id,
+          action: "PRODUCT_CREATED",
+          entity: "PRODUCT",
+          entityId: product.id,
+          details: `Created coach/product "${product.name}" (SKU: ${product.sku}, Price: ₹${product.regularPrice}).`,
+        },
+      });
+    } catch (e) {
+      // non-blocking
+    }
 
     return NextResponse.json({ success: true, product });
   } catch (error: any) {

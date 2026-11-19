@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getUserFromRequest } from "@/lib/auth";
+import { getUserFromRequest, isAdminRole } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
     const trainboards = await prisma.trainboard.findMany({
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ displayOrder: "asc" }, { createdAt: "desc" }],
     });
     return NextResponse.json({ trainboards });
   } catch (error: any) {
@@ -18,12 +18,23 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const user = await getUserFromRequest(req);
-    if (!user || user.role !== "ADMIN") {
+    if (!user || !isAdminRole(user.role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     const body = await req.json();
-    const { name, zone, zoneName, size, downloadUrl } = body;
+    const {
+      name,
+      zone,
+      zoneName,
+      size,
+      downloadUrl,
+      description,
+      image,
+      displayOrder,
+      specifications,
+      status,
+    } = body;
 
     if (!name || !zone) {
       return NextResponse.json({ error: "Name and Zone are required" }, { status: 400 });
@@ -46,16 +57,39 @@ export async function POST(req: NextRequest) {
     };
 
     const calculatedZoneName = zoneName || defaultZoneNames[zone.toUpperCase()] || `${zone.toUpperCase()} Zone`;
+    const cleanName = name.trim().endsWith(".zip") ? name.trim() : `${name.trim()}.zip`;
 
     const newTb = await prisma.trainboard.create({
       data: {
-        name: name.trim().endsWith(".zip") ? name.trim() : `${name.trim()}.zip`,
+        name: cleanName,
         zone: zone.toUpperCase(),
         zoneName: calculatedZoneName,
         size: size || "2.5 MB",
-        downloadUrl: downloadUrl || `/downloads/trainboards/${zone.toUpperCase()}/${name.trim().endsWith(".zip") ? name.trim() : `${name.trim()}.zip`}`,
+        downloadUrl: downloadUrl || `/downloads/trainboards/${zone.toUpperCase()}/${cleanName}`,
+        description: description?.trim() || null,
+        image: image || null,
+        displayOrder: displayOrder !== undefined ? parseInt(displayOrder, 10) : 0,
+        specifications: specifications || null,
+        regularPrice: body.regularPrice !== undefined ? parseFloat(body.regularPrice) : 0,
+        salePrice: body.salePrice !== undefined && body.salePrice !== null && body.salePrice !== "" ? parseFloat(body.salePrice) : null,
+        status: status || "AVAILABLE",
       },
     });
+
+    // Audit Log
+    try {
+      await prisma.auditLog.create({
+        data: {
+          userId: user.id,
+          action: "TRAINBOARD_CREATED",
+          entity: "TRAINBOARD",
+          entityId: newTb.id,
+          details: `Created trainboard "${newTb.name}" for ${newTb.zone} (${newTb.size}).`,
+        },
+      });
+    } catch (e) {
+      // non-blocking
+    }
 
     return NextResponse.json({ success: true, trainboard: newTb });
   } catch (error: any) {

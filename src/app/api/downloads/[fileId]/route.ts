@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getUserFromRequest } from "@/lib/auth";
+import { getUserFromRequest, isAdminRole } from "@/lib/auth";
 import fs from "fs";
 import path from "path";
 
@@ -35,7 +35,7 @@ export async function GET(
         );
       }
 
-      if (user.role !== "ADMIN") {
+      if (!isAdminRole(user.role)) {
         const entitlement = await prisma.downloadEntitlement.findFirst({
           where: {
             userId: user.id,

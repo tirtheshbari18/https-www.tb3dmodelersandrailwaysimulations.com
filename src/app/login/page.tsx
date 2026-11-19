@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Lock, Mail, Eye, EyeOff, RefreshCw, AlertCircle, Clock, ShieldX, CheckCircle, Check, ShieldCheck } from "lucide-react";
+import { Lock, Mail, Eye, EyeOff, AlertCircle, Clock, ShieldX, ShieldCheck } from "lucide-react";
 
 function LoginForm() {
   const router = useRouter();
@@ -17,29 +17,10 @@ function LoginForm() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [accountStatus, setAccountStatus] = useState<string | null>(null);
 
-  // "I'm not a robot" 1-Click Verification state
-  const [isRobotVerified, setIsRobotVerified] = useState(false);
-  const [isVerifyingRobot, setIsVerifyingRobot] = useState(false);
-
-  const handleRobotClick = () => {
-    if (isRobotVerified || isVerifyingRobot) return;
-    setIsVerifyingRobot(true);
-    setTimeout(() => {
-      setIsVerifyingRobot(false);
-      setIsRobotVerified(true);
-      setErrorMsg(null);
-    }, 550);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setAccountStatus(null);
-
-    if (!isRobotVerified) {
-      setErrorMsg("Please verify that you are not a robot before signing in.");
-      return;
-    }
 
     setIsSubmitting(true);
 
@@ -50,7 +31,6 @@ function LoginForm() {
         body: JSON.stringify({
           email,
           password,
-          isRobotVerified: true,
         }),
       });
 
@@ -63,7 +43,7 @@ function LoginForm() {
         throw new Error(data.error || "Login failed");
       }
 
-      if (data.user?.role === "ADMIN" && (redirectUrl === "/account" || redirectUrl === "/")) {
+      if ((data.user?.role === "ADMIN" || data.user?.role === "SUPER_ADMIN") && (redirectUrl === "/account" || redirectUrl === "/")) {
         router.push("/admin");
       } else {
         router.push(redirectUrl);
@@ -76,20 +56,13 @@ function LoginForm() {
     }
   };
 
-  const handleQuickDemoFill = (role: "admin" | "user") => {
-    if (role === "admin") {
-      setEmail("admin@vg3dmodelers.com");
-      setPassword("Admin@VG3D#2025");
-    } else {
-      setEmail("demo@trainsim.com");
-      setPassword("Passenger@2025");
-    }
-  };
-
   return (
     <div className="w-full max-w-md p-7 sm:p-9 bg-white border border-gray-200 rounded-2xl shadow-xl space-y-6 font-josefin text-[#101C32]">
       {/* Brand Header */}
       <div className="text-center space-y-2">
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#0B2852]/5 text-[#0B2852] mb-1">
+          <ShieldCheck className="w-6 h-6 text-[#0B2852]" />
+        </div>
         <h1 className="text-3xl sm:text-4xl font-light tracking-wide text-[#0B2852]">
           Log In
         </h1>
@@ -129,7 +102,7 @@ function LoginForm() {
           <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-600 mt-0.5" />
           <div className="space-y-1">
             <strong className="font-bold block">Account Suspended</strong>
-            <p className="leading-snug">This account is suspended. For inquiries, please contact varunganesh221@gmail.com.</p>
+            <p className="leading-snug">This account is suspended. For inquiries, please contact customer support.</p>
           </div>
         </div>
       )}
@@ -194,71 +167,15 @@ function LoginForm() {
           </div>
         </div>
 
-        {/* "I'm not a robot" 1-Click Verification Card */}
-        <div className="p-3 bg-gray-50 border-2 border-gray-200 rounded-xl flex items-center justify-between shadow-sm select-none">
-          <div
-            onClick={handleRobotClick}
-            className="flex items-center gap-3 cursor-pointer py-1 px-1.5 hover:opacity-90"
-          >
-            <div
-              className={`w-7 h-7 rounded border-2 flex items-center justify-center transition-all ${
-                isRobotVerified
-                  ? "bg-emerald-600 border-emerald-600 text-white shadow-sm"
-                  : isVerifyingRobot
-                  ? "border-[#0B2852] bg-blue-50"
-                  : "border-gray-400 bg-white hover:border-[#0B2852]"
-              }`}
-            >
-              {isRobotVerified ? (
-                <Check className="w-5 h-5 stroke-[3] text-white" />
-              ) : isVerifyingRobot ? (
-                <div className="w-4 h-4 border-2 border-[#0B2852] border-t-transparent rounded-full animate-spin" />
-              ) : null}
-            </div>
-            <span className="text-sm font-semibold text-gray-800">
-              I&apos;m not a robot
-            </span>
-          </div>
-
-          <div className="flex flex-col items-center justify-center text-[10px] text-gray-400 pl-4 border-l border-gray-200 pr-1">
-            <ShieldCheck className="w-6 h-6 text-[#0B2852]" />
-            <span className="font-bold text-[10px] text-gray-600">VG-Shield</span>
-            <span className="text-[9px] text-gray-400">Security Verified</span>
-          </div>
-        </div>
-
         {/* Submit Button */}
         <button
           type="submit"
           disabled={isSubmitting}
           className="w-full py-3 px-4 bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] rounded-full font-josefin font-bold text-sm tracking-wide uppercase transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 cursor-pointer"
         >
-          {isSubmitting ? "Verifying..." : "Log In"}
+          {isSubmitting ? "Signing in..." : "Log In"}
         </button>
       </form>
-
-      {/* Quick Demo Credentials Autofill */}
-      <div className="pt-4 border-t border-gray-200">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 text-center mb-2">
-          Demo Testing Credentials
-        </p>
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <button
-            type="button"
-            onClick={() => handleQuickDemoFill("user")}
-            className="px-3 py-1.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 hover:border-gray-400 font-medium transition-colors text-center"
-          >
-            Fill Demo Customer
-          </button>
-          <button
-            type="button"
-            onClick={() => handleQuickDemoFill("admin")}
-            className="px-3 py-1.5 border border-[#0B2852] text-[#0B2852] rounded-lg hover:bg-blue-50 font-medium transition-colors text-center"
-          >
-            Fill Admin User
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

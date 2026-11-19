@@ -2,34 +2,47 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { 
-  LayoutDashboard, 
-  Package, 
-  Layers, 
-  ShoppingCart, 
-  Users, 
-  MessageSquare, 
-  Settings, 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  CheckCircle2, 
-  AlertCircle, 
-  ShieldCheck, 
-  Train, 
-  Search, 
-  Filter, 
-  X, 
-  Save, 
-  DollarSign, 
-  TrendingUp, 
+import { useRouter } from "next/navigation";
+import {
+  LayoutDashboard,
+  Package,
+  Layers,
+  ShoppingCart,
+  Users,
+  MessageSquare,
+  Settings,
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  CheckCircle2,
+  AlertCircle,
+  ShieldCheck,
+  Train,
+  Search,
+  Filter,
+  X,
+  Save,
+  DollarSign,
+  TrendingUp,
   ExternalLink,
   Clock,
   Check,
   Ban,
   UserCheck,
-  UserX
+  UserX,
+  Tag,
+  Percent,
+  Upload,
+  RefreshCw,
+  LogOut,
+  ChevronRight,
+  Menu,
+  ShieldAlert,
+  Archive,
+  AlertTriangle,
+  FileText,
+  Boxes,
 } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
@@ -42,6 +55,8 @@ interface AdminClientProps {
   initialEnquiries: any[];
   initialSettings: any;
   initialTrainboards?: any[];
+  initialOffers?: any[];
+  initialAuditLogs?: any[];
   currentAdmin: any;
 }
 
@@ -54,20 +69,40 @@ export default function AdminClient({
   initialEnquiries,
   initialSettings,
   initialTrainboards = [],
+  initialOffers = [],
+  initialAuditLogs = [],
   currentAdmin,
 }: AdminClientProps) {
-  const [activeTab, setActiveTab] = useState<
-    "overview" | "products" | "trainboards" | "projects" | "orders" | "customers" | "enquiries" | "settings"
-  >("overview");
+  const router = useRouter();
 
-  // State management
-  const [products, setProducts] = useState(initialProducts);
-  const [trainboards, setTrainboards] = useState(initialTrainboards);
-  const [projects, setProjects] = useState(initialProjects);
-  const [orders, setOrders] = useState(initialOrders);
-  const [customers, setCustomers] = useState(initialCustomers);
-  const [enquiries, setEnquiries] = useState(initialEnquiries);
-  const [settings, setSettings] = useState(initialSettings || {});
+  // Active navigation tab
+  const [activeTab, setActiveTab] = useState<
+    | "dashboard"
+    | "coaches"
+    | "trainboards"
+    | "products"
+    | "prices"
+    | "offers"
+    | "stock"
+    | "settings"
+    | "users"
+    | "orders"
+    | "enquiries"
+  >("dashboard");
+
+  // State
+  const [products, setProducts] = useState<any[]>(initialProducts);
+  const [trainboards, setTrainboards] = useState<any[]>(initialTrainboards);
+  const [offers, setOffers] = useState<any[]>(initialOffers);
+  const [auditLogs, setAuditLogs] = useState<any[]>(initialAuditLogs);
+  const [projects, setProjects] = useState<any[]>(initialProjects);
+  const [orders, setOrders] = useState<any[]>(initialOrders);
+  const [customers, setCustomers] = useState<any[]>(initialCustomers);
+  const [enquiries, setEnquiries] = useState<any[]>(initialEnquiries);
+  const [settings, setSettings] = useState<any>(initialSettings || {});
+
+  // Mobile sidebar open
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Modals
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
@@ -75,23 +110,36 @@ export default function AdminClient({
 
   const [isAddTrainboardOpen, setIsAddTrainboardOpen] = useState(false);
   const [editingTrainboard, setEditingTrainboard] = useState<any | null>(null);
-  const [trainboardSearch, setTrainboardSearch] = useState("");
 
-  const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
-  const [editingProject, setEditingProject] = useState<any | null>(null);
+  const [isAddOfferOpen, setIsAddOfferOpen] = useState(false);
+  const [editingOffer, setEditingOffer] = useState<any | null>(null);
 
-  const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    type: "product" | "trainboard" | "offer" | "user";
+    id: string;
+    name: string;
+  } | null>(null);
 
-  // Search & Filter state
-  const [productSearch, setProductSearch] = useState("");
-  const [orderSearch, setOrderSearch] = useState("");
-  const [orderFilter, setOrderFilter] = useState("ALL");
-  const [userStatusFilter, setUserStatusFilter] = useState("ALL");
-  const [userSearch, setUserSearch] = useState("");
   const [rejectionModalUser, setRejectionModalUser] = useState<any | null>(null);
   const [rejectionReasonText, setRejectionReasonText] = useState("");
 
-  // Status message
+  const [roleChangeUser, setRoleChangeUser] = useState<any | null>(null);
+  const [selectedNewRole, setSelectedNewRole] = useState("USER");
+
+  // Search & Filter state
+  const [coachSearch, setCoachSearch] = useState("");
+  const [coachCategoryFilter, setCoachCategoryFilter] = useState("ALL");
+  const [trainboardSearch, setTrainboardSearch] = useState("");
+  const [trainboardZoneFilter, setTrainboardZoneFilter] = useState("ALL");
+  const [priceSearch, setPriceSearch] = useState("");
+  const [stockSearch, setStockSearch] = useState("");
+  const [stockFilter, setStockFilter] = useState("ALL");
+  const [userSearch, setUserSearch] = useState("");
+  const [userStatusFilter, setUserStatusFilter] = useState("ALL");
+  const [orderSearch, setOrderSearch] = useState("");
+
+  // Toast
   const [toastMsg, setToastMsg] = useState<{ text: string; isError: boolean } | null>(null);
 
   const showToast = (text: string, isError: boolean = false) => {
@@ -99,84 +147,171 @@ export default function AdminClient({
     setTimeout(() => setToastMsg(null), 3500);
   };
 
-  // Metrics
-  const totalRevenue = orders
-    .filter((o) => o.status === "PAID")
-    .reduce((sum, o) => sum + (o.finalAmount || 0), 0);
-  const paidOrdersCount = orders.filter((o) => o.status === "PAID").length;
-  const pendingOrdersCount = orders.filter((o) => o.status === "PENDING").length;
-  const newEnquiriesCount = enquiries.filter((e) => e.status === "NEW").length;
-  const pendingUsersCount = customers.filter((c) => c.status === "PENDING_APPROVAL").length;
+  // Metrics computation
+  const coachesList = products.filter((p) => {
+    const cat = p.category?.name?.toLowerCase() || "";
+    const name = p.name?.toLowerCase() || "";
+    return cat.includes("coach") || name.includes("coach") || name.includes("lhb") || name.includes("vistadome");
+  });
 
-  // --- Product Handlers ---
+  const totalCoachesCount = coachesList.length;
+  const totalTrainboardsCount = trainboards.length;
+  const availableProductsCount = products.filter((p) => p.status === "AVAILABLE").length;
+  const outOfStockProductsCount = products.filter((p) => p.status === "OUT_OF_STOCK").length;
+  const activeOffersCount = offers.filter((o) => o.isActive).length;
+  const totalProductsCount = products.length;
+
+  // --- Handlers: Coach / Product ---
   const handleSaveProduct = async (e: React.FormEvent, formValues: any) => {
     e.preventDefault();
     try {
       if (editingProduct) {
-        // Update product
         const res = await fetch(`/api/admin/products/${editingProduct.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formValues),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Failed to update product");
+        if (!res.ok) throw new Error(data.error || "Failed to update item");
 
-        setProducts(products.map((p) => (p.id === editingProduct.id ? { ...p, ...formValues } : p)));
+        setProducts((prev) =>
+          prev.map((p) => (p.id === editingProduct.id ? { ...p, ...data.product } : p))
+        );
         setEditingProduct(null);
-        showToast("Product updated successfully!");
+        showToast("Coach/Product updated successfully!");
       } else {
-        // Create product
         const res = await fetch("/api/admin/products", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formValues),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Failed to create product");
+        if (!res.ok) throw new Error(data.error || "Failed to create item");
 
         setProducts([data.product, ...products]);
         setIsAddProductOpen(false);
-        showToast("New product created and published!");
+        showToast("New Coach/Product created and published!");
       }
     } catch (err: any) {
       showToast(err.message, true);
     }
   };
 
-  const handleDeleteProduct = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this product?")) return;
+  const handleConfirmDelete = async () => {
+    if (!deleteModal) return;
+    const { type, id, name } = deleteModal;
+    setDeleteModal(null);
+
     try {
-      const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        setProducts(products.filter((p) => p.id !== id));
-        showToast("Product deleted successfully.");
+      if (type === "product") {
+        const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
+        if (!res.ok) throw new Error("Failed to delete product");
+        setProducts((prev) => prev.filter((p) => p.id !== id));
+        showToast(`"${name}" was permanently deleted.`);
+      } else if (type === "trainboard") {
+        const res = await fetch(`/api/admin/trainboards/${id}`, { method: "DELETE" });
+        if (!res.ok) throw new Error("Failed to delete trainboard");
+        setTrainboards((prev) => prev.filter((tb) => tb.id !== id));
+        showToast(`Trainboard "${name}" permanently deleted.`);
+      } else if (type === "offer") {
+        const res = await fetch(`/api/admin/offers/${id}`, { method: "DELETE" });
+        if (!res.ok) throw new Error("Failed to delete offer");
+        setOffers((prev) => prev.filter((o) => o.id !== id));
+        showToast(`Offer "${name}" deleted.`);
+      } else if (type === "user") {
+        const res = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to delete user");
+        setCustomers((prev) => prev.filter((c) => c.id !== id));
+        showToast(`User account "${name}" deleted.`);
       }
-    } catch (err) {
-      showToast("Failed to delete product.", true);
+    } catch (err: any) {
+      showToast(err.message, true);
     }
   };
 
-  const handleToggleProductStock = async (product: any) => {
-    const newStatus = product.status === "OUT_OF_STOCK" ? "AVAILABLE" : "OUT_OF_STOCK";
+  // --- Handlers: 1-Click Availability / Stock Toggle ---
+  const handleUpdateAvailability = async (product: any, newStatus: "AVAILABLE" | "OUT_OF_STOCK" | "COMING_SOON") => {
     try {
       const res = await fetch(`/api/admin/products/${product.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...product,
           status: newStatus,
+          stockQuantity: newStatus === "OUT_OF_STOCK" ? 0 : product.stockQuantity || 100,
         }),
       });
-      if (!res.ok) throw new Error("Failed to update stock status");
-      setProducts(products.map((p) => (p.id === product.id ? { ...p, status: newStatus } : p)));
-      showToast(newStatus === "OUT_OF_STOCK" ? "Marked as OUT OF STOCK" : "Marked as IN STOCK (Available)");
-    } catch (e: any) {
-      showToast(e.message || "Failed to update stock status", true);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update availability");
+
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === product.id
+            ? {
+                ...p,
+                status: newStatus,
+                stockQuantity: newStatus === "OUT_OF_STOCK" ? 0 : p.stockQuantity || 100,
+              }
+            : p
+        )
+      );
+      showToast(`Status updated: ${product.name} is now ${newStatus.replace("_", " ")}`);
+    } catch (err: any) {
+      showToast(err.message, true);
     }
   };
 
-  // --- Trainboard Handlers ---
+  const handleUpdateStockQuantity = async (product: any, qtyStr: string) => {
+    const qty = parseInt(qtyStr, 10);
+    if (isNaN(qty) || qty < 0) return;
+    const newStatus = qty === 0 ? "OUT_OF_STOCK" : product.status === "OUT_OF_STOCK" ? "AVAILABLE" : product.status;
+
+    try {
+      const res = await fetch(`/api/admin/products/${product.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          stockQuantity: qty,
+          status: newStatus,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to update stock quantity");
+
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === product.id ? { ...p, stockQuantity: qty, status: newStatus } : p
+        )
+      );
+      showToast(`Stock for ${product.name} set to ${qty} (${newStatus})`);
+    } catch (err: any) {
+      showToast(err.message, true);
+    }
+  };
+
+  // --- Handlers: Price Management ---
+  const handleSavePrice = async (productId: string, regularPrice: number, salePrice: number | null) => {
+    try {
+      const res = await fetch(`/api/admin/products/${productId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          regularPrice,
+          salePrice,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update price");
+
+      setProducts((prev) =>
+        prev.map((p) => (p.id === productId ? { ...p, regularPrice, salePrice } : p))
+      );
+      showToast("Price updated and synchronized immediately!");
+    } catch (err: any) {
+      showToast(err.message, true);
+    }
+  };
+
+  // --- Handlers: Trainboards CRUD ---
   const handleSaveTrainboard = async (e: React.FormEvent, formValues: any) => {
     e.preventDefault();
     try {
@@ -188,9 +323,12 @@ export default function AdminClient({
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Failed to update trainboard");
-        setTrainboards(trainboards.map((t) => (t.id === editingTrainboard.id ? data.trainboard : t)));
+
+        setTrainboards((prev) =>
+          prev.map((tb) => (tb.id === editingTrainboard.id ? { ...tb, ...data.trainboard } : tb))
+        );
         setEditingTrainboard(null);
-        showToast("Trainboard updated / renamed successfully!");
+        showToast("Trainboard updated successfully!");
       } else {
         const res = await fetch("/api/admin/trainboards", {
           method: "POST",
@@ -198,130 +336,73 @@ export default function AdminClient({
           body: JSON.stringify(formValues),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Failed to add trainboard");
+        if (!res.ok) throw new Error(data.error || "Failed to create trainboard");
+
         setTrainboards([data.trainboard, ...trainboards]);
         setIsAddTrainboardOpen(false);
-        showToast("New trainboard package added successfully!");
-      }
-    } catch (e: any) {
-      showToast(e.message || "Failed to save trainboard", true);
-    }
-  };
-
-  const handleDeleteTrainboard = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete trainboard "${name}"?`)) return;
-    try {
-      const res = await fetch(`/api/admin/trainboards/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete trainboard");
-      setTrainboards(trainboards.filter((t) => t.id !== id));
-      showToast("Trainboard deleted successfully.");
-    } catch (e: any) {
-      showToast(e.message || "Failed to delete trainboard", true);
-    }
-  };
-
-  // --- Project Handlers ---
-  const handleSaveProject = async (e: React.FormEvent, formValues: any) => {
-    e.preventDefault();
-    try {
-      if (editingProject) {
-        const res = await fetch(`/api/admin/projects/${editingProject.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formValues),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Failed to update project");
-
-        setProjects(projects.map((p) => (p.id === editingProject.id ? { ...p, ...formValues } : p)));
-        setEditingProject(null);
-        showToast("Project updated successfully!");
-      } else {
-        const res = await fetch("/api/admin/projects", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formValues),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Failed to create project");
-
-        setProjects([...projects, data.project]);
-        setIsAddProjectOpen(false);
-        showToast("New project published to catalog!");
+        showToast("New Trainboard package added to official collection!");
       }
     } catch (err: any) {
       showToast(err.message, true);
     }
   };
 
-  const handleDeleteProject = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this project?")) return;
-    try {
-      const res = await fetch(`/api/admin/projects/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        setProjects(projects.filter((p) => p.id !== id));
-        showToast("Project deleted.");
-      }
-    } catch (err) {
-      showToast("Failed to delete project.", true);
-    }
-  };
-
-  // --- Order Status Handler ---
-  const handleUpdateOrderStatus = async (orderId: string, status: string) => {
-    try {
-      const res = await fetch(`/api/admin/orders/${orderId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
-      if (res.ok) {
-        setOrders(orders.map((o) => (o.id === orderId ? { ...o, status } : o)));
-        if (selectedOrder && selectedOrder.id === orderId) {
-          setSelectedOrder({ ...selectedOrder, status });
-        }
-        showToast(`Order status updated to ${status}`);
-      }
-    } catch (err) {
-      showToast("Failed to update order status", true);
-    }
-  };
-
-  // --- Enquiry Status Handler ---
-  const handleUpdateEnquiryStatus = async (enquiryId: string, status: string) => {
-    try {
-      const res = await fetch(`/api/admin/enquiries/${enquiryId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
-      if (res.ok) {
-        setEnquiries(enquiries.map((e) => (e.id === enquiryId ? { ...e, status } : e)));
-        showToast(`Enquiry marked as ${status}`);
-      }
-    } catch (err) {
-      showToast("Failed to update enquiry", true);
-    }
-  };
-
-  // --- Settings Handler ---
-  const handleSaveSettings = async (e: React.FormEvent) => {
+  // --- Handlers: Offers CRUD ---
+  const handleSaveOffer = async (e: React.FormEvent, formValues: any) => {
     e.preventDefault();
     try {
-      const res = await fetch("/api/admin/settings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settings),
-      });
-      if (res.ok) {
-        showToast("Website settings & Legal pages updated!");
+      if (editingOffer) {
+        const res = await fetch(`/api/admin/offers/${editingOffer.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formValues),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to update offer");
+
+        setOffers((prev) =>
+          prev.map((o) => (o.id === editingOffer.id ? { ...o, ...data.offer } : o))
+        );
+        setEditingOffer(null);
+        showToast("Offer updated successfully!");
+      } else {
+        const res = await fetch("/api/admin/offers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formValues),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to create offer");
+
+        setOffers([data.offer, ...offers]);
+        setIsAddOfferOpen(false);
+        showToast("New promotional offer created!");
       }
-    } catch (err) {
-      showToast("Failed to save settings", true);
+    } catch (err: any) {
+      showToast(err.message, true);
     }
   };
 
-  // --- User Approval & Status Handlers ---
+  const handleToggleOfferActive = async (offer: any) => {
+    try {
+      const res = await fetch(`/api/admin/offers/${offer.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !offer.isActive }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to toggle offer");
+
+      setOffers((prev) =>
+        prev.map((o) => (o.id === offer.id ? { ...o, isActive: !o.isActive } : o))
+      );
+      showToast(`Offer "${offer.title}" is now ${!offer.isActive ? "ACTIVE" : "DISABLED"}`);
+    } catch (err: any) {
+      showToast(err.message, true);
+    }
+  };
+
+  // --- Handlers: User Management ---
   const handleUserStatusAction = async (userId: string, action: string, reason?: string) => {
     try {
       const res = await fetch(`/api/admin/users/${userId}`, {
@@ -330,21 +411,20 @@ export default function AdminClient({
         body: JSON.stringify({ action, reason }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to update user status");
+      if (!res.ok) throw new Error(data.error || "Action failed");
 
       setCustomers((prev) =>
         prev.map((c) => {
           if (c.id === userId) {
-            let nextStatus = c.status;
-            if (action === "approve" || action === "reactivate") nextStatus = "APPROVED";
-            else if (action === "reject") nextStatus = "REJECTED";
-            else if (action === "suspend") nextStatus = "SUSPENDED";
-
             return {
               ...c,
-              status: nextStatus,
+              status:
+                action === "approve" || action === "reactivate"
+                  ? "APPROVED"
+                  : action === "reject"
+                  ? "REJECTED"
+                  : "SUSPENDED",
               rejectionReason: action === "reject" ? reason : c.rejectionReason,
-              approvedAt: action === "approve" ? new Date().toISOString() : c.approvedAt,
             };
           }
           return c;
@@ -356,1105 +436,1449 @@ export default function AdminClient({
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    if (!confirm("Are you sure you want to permanently delete this user?")) return;
+  const handleAssignUserRole = async (userId: string, newRole: string) => {
     try {
-      const res = await fetch(`/api/admin/users/${userId}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "setRole", role: newRole }),
+      });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to delete user");
-      setCustomers((prev) => prev.filter((c) => c.id !== userId));
-      showToast("User account deleted successfully");
+      if (!res.ok) throw new Error(data.error || "Role assignment failed");
+
+      setCustomers((prev) =>
+        prev.map((c) => (c.id === userId ? { ...c, role: newRole } : c))
+      );
+      setRoleChangeUser(null);
+      showToast(`User role successfully updated to ${newRole}`);
     } catch (err: any) {
       showToast(err.message, true);
     }
   };
 
+  // --- Handlers: Settings ---
+  const handleSaveSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(settings),
+      });
+      if (!res.ok) throw new Error("Failed to save settings");
+      showToast("Website settings saved successfully!");
+    } catch (err: any) {
+      showToast(err.message, true);
+    }
+  };
+
+  // --- Handlers: Logout ---
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (e) {}
+    window.location.href = "/login";
+  };
+
+  const isSuperAdmin = currentAdmin.role === "SUPER_ADMIN";
+
   return (
-    <div className="min-h-screen bg-railway-darkest text-slate-100 pb-20">
-      {/* Top Banner */}
-      <div className="py-8 bg-railway-dark border-b border-railway-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-railway-accent to-red-800 flex items-center justify-center text-white shadow-lg shadow-red-950 border border-red-500/30">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight">
-                  VG Admin Command Center
-                </h1>
-                <span className="px-2 py-0.5 rounded bg-red-950 text-red-400 border border-red-800 text-[10px] font-bold uppercase">
-                  Live Operations
-                </span>
-              </div>
-              <p className="text-xs text-slate-400">
-                Logged in as <strong>{currentAdmin.name}</strong> ({currentAdmin.email})
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              target="_blank"
-              className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors border border-white/10"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              View Public Website
-            </Link>
-          </div>
-        </div>
-      </div>
-
+    <div className="min-h-screen bg-[#F5F6F8] text-[#101C32] font-josefin flex flex-col">
       {/* Toast Notification */}
       {toastMsg && (
         <div
-          className={`fixed top-20 right-6 z-50 px-4 py-3 rounded-xl shadow-2xl text-xs font-semibold flex items-center gap-2 border ${
+          className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl shadow-2xl text-xs font-semibold flex items-center gap-2 border transition-all ${
             toastMsg.isError
-              ? "bg-red-950 text-red-200 border-red-800"
-              : "bg-emerald-950 text-emerald-200 border-emerald-800"
+              ? "bg-rose-900 text-white border-rose-700"
+              : "bg-[#0B2852] text-white border-[#39FF00]"
           }`}
         >
           {toastMsg.isError ? (
-            <AlertCircle className="w-4 h-4 text-red-400" />
+            <AlertCircle className="w-4 h-4 text-rose-300" />
           ) : (
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <CheckCircle2 className="w-4 h-4 text-[#39FF00]" />
           )}
           <span>{toastMsg.text}</span>
         </div>
       )}
 
-      {/* Main Admin Body */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Navigation Tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-railway-border">
-          <button
-            onClick={() => setActiveTab("overview")}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 whitespace-nowrap transition-all ${
-              activeTab === "overview"
-                ? "bg-railway-accent text-white shadow-md shadow-red-950"
-                : "text-slate-400 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <LayoutDashboard className="w-4 h-4" />
-            Overview Stats
-          </button>
-
-          <button
-            onClick={() => setActiveTab("products")}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 whitespace-nowrap transition-all ${
-              activeTab === "products"
-                ? "bg-railway-accent text-white shadow-md shadow-red-950"
-                : "text-slate-400 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <Package className="w-4 h-4" />
-            Coaches &amp; Products ({products.length})
-          </button>
-
-          <button
-            onClick={() => setActiveTab("trainboards")}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 whitespace-nowrap transition-all ${
-              activeTab === "trainboards"
-                ? "bg-railway-accent text-white shadow-md shadow-red-950"
-                : "text-slate-400 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <Train className="w-4 h-4" />
-            Trainboards ({trainboards.length})
-          </button>
-
-          <button
-            onClick={() => setActiveTab("projects")}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 whitespace-nowrap transition-all ${
-              activeTab === "projects"
-                ? "bg-railway-accent text-white shadow-md shadow-red-950"
-                : "text-slate-400 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <Layers className="w-4 h-4" />
-            Projects ({projects.length})
-          </button>
-
-          <button
-            onClick={() => setActiveTab("orders")}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 whitespace-nowrap transition-all ${
-              activeTab === "orders"
-                ? "bg-railway-accent text-white shadow-md shadow-red-950"
-                : "text-slate-400 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <ShoppingCart className="w-4 h-4" />
-            Orders ({orders.length})
-          </button>
-
-          <button
-            onClick={() => setActiveTab("customers")}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 whitespace-nowrap transition-all ${
-              activeTab === "customers"
-                ? "bg-railway-accent text-white shadow-md shadow-red-950"
-                : "text-slate-400 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            Users &amp; Approvals ({customers.length})
-            {pendingUsersCount > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-black text-[10px] font-black animate-pulse">
-                {pendingUsersCount} PENDING
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => setActiveTab("enquiries")}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 whitespace-nowrap transition-all ${
-              activeTab === "enquiries"
-                ? "bg-railway-accent text-white shadow-md shadow-red-950"
-                : "text-slate-400 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <MessageSquare className="w-4 h-4" />
-            Enquiries Desk {newEnquiriesCount > 0 && `(${newEnquiriesCount})`}
-          </button>
-
-          <button
-            onClick={() => setActiveTab("settings")}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 whitespace-nowrap transition-all ${
-              activeTab === "settings"
-                ? "bg-railway-accent text-white shadow-md shadow-red-950"
-                : "text-slate-400 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <Settings className="w-4 h-4" />
-            Settings & Legal Pages
-          </button>
-        </div>
-
-        {/* TAB 1: OVERVIEW METRICS */}
-        {activeTab === "overview" && (
-          <div className="space-y-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-5 rounded-2xl bg-railway-card border border-railway-border space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-500">
-                  Total Store Revenue
-                </span>
-                <p className="text-2xl font-black text-emerald-400">
-                  {formatCurrency(totalRevenue)}
-                </p>
-                <span className="text-[11px] text-slate-400">
-                  {paidOrdersCount} Paid Transactions
-                </span>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-railway-card border border-railway-border space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-500">
-                  Total Orders
-                </span>
-                <p className="text-2xl font-black text-white">{orders.length}</p>
-                <span className="text-[11px] text-amber-400">
-                  {pendingOrdersCount} Pending Checkout
-                </span>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-railway-card border border-railway-border space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-500">
-                  Total Products & Add-ons
-                </span>
-                <p className="text-2xl font-black text-white">{products.length}</p>
-                <span className="text-[11px] text-slate-400">
-                  Across {categories.length} Categories
-                </span>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-railway-card border border-railway-border space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-500">
-                  Registered Members
-                </span>
-                <p className="text-2xl font-black text-white">{customers.length}</p>
-                <span className="text-[11px] text-slate-400">
-                  {newEnquiriesCount} New Enquiries
-                </span>
-              </div>
+      {/* Delete Confirmation Modal */}
+      {deleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200 space-y-4">
+            <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
+              <AlertTriangle className="w-6 h-6" />
             </div>
-
-            {/* Recent Orders Overview */}
-            <div className="bg-railway-card rounded-2xl border border-railway-border p-6 space-y-4">
-              <div className="flex items-center justify-between border-b border-railway-border/60 pb-3">
-                <h3 className="font-bold text-white text-base">Recent Customer Orders</h3>
-                <button
-                  onClick={() => setActiveTab("orders")}
-                  className="text-xs text-railway-accent hover:text-red-400 font-semibold"
-                >
-                  View All Orders →
-                </button>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs text-left">
-                  <thead className="text-slate-500 uppercase border-b border-railway-border/40 font-mono text-[10px]">
-                    <tr>
-                      <th className="py-2.5">Order No</th>
-                      <th>Customer</th>
-                      <th>Date</th>
-                      <th>Amount</th>
-                      <th>Status</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-railway-border/40">
-                    {orders.slice(0, 5).map((ord) => (
-                      <tr key={ord.id} className="hover:bg-white/[0.02]">
-                        <td className="py-3 font-mono font-semibold text-white">
-                          #{ord.orderNumber}
-                        </td>
-                        <td>
-                          <span className="font-semibold text-white block">
-                            {ord.customerName}
-                          </span>
-                          <span className="text-slate-500 text-[10px]">{ord.customerEmail}</span>
-                        </td>
-                        <td className="text-slate-400">{formatDate(ord.createdAt)}</td>
-                        <td className="font-bold text-emerald-400">
-                          {formatCurrency(ord.finalAmount)}
-                        </td>
-                        <td>
-                          <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                              ord.status === "PAID"
-                                ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
-                                : "bg-amber-950 text-amber-400 border border-amber-800"
-                            }`}
-                          >
-                            {ord.status}
-                          </span>
-                        </td>
-                        <td>
-                          <button
-                            onClick={() => setSelectedOrder(ord)}
-                            className="text-slate-300 hover:text-white underline text-xs"
-                          >
-                            Details
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+            <div className="text-center space-y-2">
+              <h3 className="text-lg font-bold text-[#0B2852]">Confirm Permanent Deletion</h3>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                Are you sure you want to permanently delete <strong>&quot;{deleteModal.name}&quot;</strong>?
+                This action cannot be undone and will immediately remove the item from the live website.
+              </p>
             </div>
-          </div>
-        )}
-
-        {/* TAB 2: PRODUCTS MANAGEMENT */}
-        {activeTab === "products" && (
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div className="relative w-full sm:w-72">
-                <Search className="w-4 h-4 absolute left-3 top-3.5 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Filter products..."
-                  value={productSearch}
-                  onChange={(e) => setProductSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-railway-card border border-railway-border text-white text-xs placeholder-slate-500"
-                />
-              </div>
-
+            <div className="flex gap-3 pt-2">
               <button
-                onClick={() => {
-                  setEditingProduct(null);
-                  setIsAddProductOpen(true);
-                }}
-                className="px-5 py-2.5 rounded-xl bg-railway-accent hover:bg-red-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-red-950"
+                type="button"
+                onClick={() => setDeleteModal(null)}
+                className="flex-1 py-2.5 rounded-full border border-gray-300 text-gray-700 text-xs font-bold hover:bg-gray-100 transition-colors"
               >
-                <Plus className="w-4 h-4" />
-                Add New Product
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="flex-1 py-2.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-colors shadow-md"
+              >
+                Delete Permanently
               </button>
             </div>
+          </div>
+        </div>
+      )}
 
-            <div className="bg-railway-card rounded-2xl border border-railway-border overflow-x-auto">
-              <table className="w-full text-xs text-left">
-                <thead className="text-slate-500 uppercase border-b border-railway-border/60 font-mono text-[10px] bg-railway-dark">
-                  <tr>
-                    <th className="py-3 px-4">Coach / Product</th>
-                    <th>Category</th>
-                    <th>Regular Price</th>
-                    <th>Offer Price</th>
-                    <th>Stock Status</th>
-                    <th>Home Showcase</th>
-                    <th className="text-right px-4">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-railway-border/40">
-                  {products
-                    .filter((p) =>
-                      p.name.toLowerCase().includes(productSearch.toLowerCase())
-                    )
-                    .map((prod) => {
-                      const hasOffer = prod.salePrice && prod.salePrice < prod.regularPrice;
-                      const isOutOfStock = prod.status === "OUT_OF_STOCK";
-
-                      return (
-                        <tr key={prod.id} className="hover:bg-white/[0.02]">
-                          <td className="py-3 px-4 font-semibold text-white">
-                            <div className="flex items-center gap-3">
-                              <img
-                                src={prod.images?.[0]?.url || "/assets/products/chaircar_standard.png"}
-                                alt={prod.name}
-                                className="w-12 h-9 rounded object-contain bg-slate-900 border border-white/10 p-0.5"
-                              />
-                              <div>
-                                <span className="block leading-snug">{prod.name}</span>
-                                <span className="text-[10px] text-slate-500 font-mono block">
-                                  SKU: {prod.sku} &bull; {prod.compatibility || "Open Rails / MSTS"}
-                                </span>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="text-slate-300">{prod.category?.name || "Coaches"}</td>
-                          <td className="font-mono text-slate-300">
-                            {prod.isFree ? "FREE" : formatCurrency(prod.regularPrice)}
-                          </td>
-                          <td>
-                            {hasOffer ? (
-                              <div className="flex items-center gap-1.5">
-                                <span className="font-bold text-emerald-400 font-mono">
-                                  {formatCurrency(prod.salePrice)}
-                                </span>
-                                <span className="px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 text-[9px] font-bold">
-                                  OFFER
-                                </span>
-                              </div>
-                            ) : (
-                              <span className="text-slate-500 font-mono">-</span>
-                            )}
-                          </td>
-                          <td>
-                            <button
-                              type="button"
-                              onClick={() => handleToggleProductStock(prod)}
-                              title="Click to toggle stock status"
-                              className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase transition-all cursor-pointer ${
-                                isOutOfStock
-                                  ? "bg-rose-950 text-rose-300 border border-rose-800 hover:bg-rose-900"
-                                  : "bg-emerald-950 text-emerald-300 border border-emerald-800 hover:bg-emerald-900"
-                              }`}
-                            >
-                              {isOutOfStock ? "Out of Stock" : "In Stock"}
-                            </button>
-                          </td>
-                          <td>
-                            {prod.isFeatured ? (
-                              <span className="text-emerald-400 font-bold flex items-center gap-1">
-                                <CheckCircle2 className="w-3.5 h-3.5" />
-                                <span>Visible</span>
-                              </span>
-                            ) : (
-                              <span className="text-slate-600">Hidden</span>
-                            )}
-                          </td>
-                          <td className="text-right px-4">
-                            <div className="flex items-center justify-end gap-2">
-                              <button
-                                onClick={() => handleToggleProductStock(prod)}
-                                className={`px-2 py-1 rounded-lg text-[10px] font-semibold border transition-colors ${
-                                  isOutOfStock
-                                    ? "bg-emerald-900/30 text-emerald-400 border-emerald-800 hover:bg-emerald-900/50"
-                                    : "bg-amber-900/30 text-amber-400 border-amber-800 hover:bg-amber-900/50"
-                                }`}
-                                title={isOutOfStock ? "Set Available / In Stock" : "Set Out of Stock"}
-                              >
-                                {isOutOfStock ? "Set Available" : "Set Out of Stock"}
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setEditingProduct(prod);
-                                  setIsAddProductOpen(true);
-                                }}
-                                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white"
-                                title="Edit Product / Prices"
-                              >
-                                <Edit className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteProduct(prod.id)}
-                                className="p-1.5 rounded-lg bg-red-950/40 hover:bg-red-950 text-red-400"
-                                title="Delete Product"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                </tbody>
-              </table>
+      {/* Role Assignment Modal */}
+      {roleChangeUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200 space-y-4">
+            <div className="flex items-center justify-between border-b pb-3">
+              <h3 className="text-base font-bold text-[#0B2852]">Change User Role</h3>
+              <button onClick={() => setRoleChangeUser(null)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-xs text-gray-500">
+              Assign role for <strong>{roleChangeUser.name}</strong> ({roleChangeUser.email})
+            </p>
+            <div className="space-y-2">
+              {["SUPER_ADMIN", "ADMIN", "USER"].map((r) => (
+                <label
+                  key={r}
+                  className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
+                    selectedNewRole === r
+                      ? "border-[#0B2852] bg-blue-50/50 shadow-sm"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="userRole"
+                      value={r}
+                      checked={selectedNewRole === r}
+                      onChange={(e) => setSelectedNewRole(e.target.value)}
+                      className="text-[#0B2852]"
+                    />
+                    <div>
+                      <span className="text-xs font-bold text-[#0B2852] block">
+                        {r === "SUPER_ADMIN"
+                          ? "Super Administrator"
+                          : r === "ADMIN"
+                          ? "Administrator"
+                          : "Normal User"}
+                      </span>
+                      <span className="text-[11px] text-gray-500">
+                        {r === "SUPER_ADMIN"
+                          ? "Full system control, can assign roles and manage admins"
+                          : r === "ADMIN"
+                          ? "Can manage coaches, T-boards, prices, offers, and inventory"
+                          : "Standard customer privileges, no dashboard access"}
+                      </span>
+                    </div>
+                  </div>
+                </label>
+              ))}
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setRoleChangeUser(null)}
+                className="flex-1 py-2.5 rounded-full border border-gray-300 text-gray-700 text-xs font-bold hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleAssignUserRole(roleChangeUser.id, selectedNewRole)}
+                className="flex-1 py-2.5 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] text-xs font-bold transition-all"
+              >
+                Save Role
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* TAB: TRAINBOARDS (T-BOARDS) MANAGEMENT */}
-        {activeTab === "trainboards" && (
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      {/* Top Bar */}
+      <header className="bg-[#0B2852] text-white border-b border-[#0B2852]/80 sticky top-0 z-30 shadow-md">
+        <div className="px-4 sm:px-8 py-3.5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden p-1.5 rounded-lg text-white hover:bg-white/10"
+              aria-label="Toggle navigation"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <div className="flex items-center gap-2">
+              <Train className="w-6 h-6 text-[#39FF00]" />
+              <span className="font-bold text-base sm:text-lg tracking-wide uppercase">
+                VG Control Center
+              </span>
+              <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full bg-[#39FF00]/20 text-[#39FF00] border border-[#39FF00]/40 text-[10px] font-bold uppercase tracking-wider">
+                {isSuperAdmin ? "Super Admin" : "Admin"}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 text-xs">
+            <Link
+              href="/"
+              target="_blank"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-medium transition-colors border border-white/20"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              Public Website
+            </Link>
+            <div className="flex items-center gap-2 pl-2 border-l border-white/20">
+              <div className="w-7 h-7 rounded-full bg-[#39FF00] text-[#0B2852] font-bold flex items-center justify-center text-xs">
+                {currentAdmin.name ? currentAdmin.name[0].toUpperCase() : "A"}
+              </div>
+              <span className="hidden md:inline font-semibold">{currentAdmin.name}</span>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="p-1.5 rounded-lg hover:bg-rose-900/60 text-gray-300 hover:text-white transition-colors"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Container: Sidebar + Content */}
+      <div className="flex-1 flex max-w-full overflow-hidden">
+        {/* Sidebar */}
+        <aside
+          className={`fixed inset-y-0 left-0 z-40 w-64 bg-[#0B2852] text-white flex flex-col transition-transform duration-300 lg:static lg:translate-x-0 ${
+            isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <div className="p-4 border-b border-white/10 flex items-center justify-between lg:hidden">
+            <span className="font-bold text-sm tracking-wide">Navigation</span>
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="p-1 rounded text-white hover:bg-white/10"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+            {[
+              { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+              { id: "coaches", label: "Coach Management", icon: Train, badge: totalCoachesCount },
+              { id: "trainboards", label: "T-Board Management", icon: Layers, badge: totalTrainboardsCount },
+              { id: "products", label: "Product Management", icon: Package, badge: totalProductsCount },
+              { id: "prices", label: "Price Management", icon: DollarSign },
+              { id: "offers", label: "Offers Management", icon: Tag, badge: activeOffersCount },
+              { id: "stock", label: "Stock Management", icon: Boxes, badge: outOfStockProductsCount > 0 ? `${outOfStockProductsCount} Out` : undefined },
+              { id: "orders", label: "Orders & Entitlements", icon: ShoppingCart },
+              { id: "users", label: "User Management", icon: Users },
+              { id: "enquiries", label: "Contact Inquiries", icon: MessageSquare },
+              { id: "settings", label: "Website Settings", icon: Settings },
+            ].map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setActiveTab(item.id as any);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                    isActive
+                      ? "bg-[#39FF00] text-[#101C32] font-bold shadow-md"
+                      : "text-gray-300 hover:text-white hover:bg-white/10"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Icon className={`w-4 h-4 ${isActive ? "text-[#101C32]" : "text-gray-400"}`} />
+                    <span>{item.label}</span>
+                  </div>
+                  {item.badge !== undefined && (
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        isActive
+                          ? "bg-[#0B2852] text-[#39FF00]"
+                          : "bg-white/10 text-gray-300"
+                      }`}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+
+            <div className="pt-4 border-t border-white/10 mt-4">
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-rose-300 hover:bg-rose-950/40 hover:text-rose-100 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        {/* Content Area */}
+        <main className="flex-1 p-4 sm:p-8 overflow-y-auto max-w-full">
+          {/* TAB 1: DASHBOARD OVERVIEW */}
+          {activeTab === "dashboard" && (
+            <div className="space-y-8 max-w-6xl">
               <div>
-                <h3 className="font-bold text-white text-base">Trainboards (T-Boards) Manager</h3>
-                <p className="text-xs text-slate-400">
-                  Add, rename, update railway zones, and delete trainboard packages. Changes reflect live on `/trainboards`.
+                <h2 className="text-2xl font-light text-[#0B2852]">Dashboard Overview</h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Real-time website inventory, products, and administrative audit operations.
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 w-full sm:w-auto">
-                <div className="relative flex-1 sm:w-64">
-                  <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="Search trainboards..."
-                    value={trainboardSearch}
-                    onChange={(e) => setTrainboardSearch(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-railway-card border border-railway-border text-white text-xs placeholder-slate-500"
-                  />
+              {/* 6 Required Metric Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div className="p-4 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
+                  <div className="flex items-center justify-between text-gray-400">
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Total Coaches</span>
+                    <Train className="w-4 h-4 text-[#0B2852]" />
+                  </div>
+                  <p className="text-2xl font-bold text-[#0B2852]">{totalCoachesCount}</p>
+                  <span className="text-[10px] text-gray-500">Official VG Fleet</span>
                 </div>
 
+                <div className="p-4 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
+                  <div className="flex items-center justify-between text-gray-400">
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Total T-Boards</span>
+                    <Layers className="w-4 h-4 text-[#0B2852]" />
+                  </div>
+                  <p className="text-2xl font-bold text-[#0B2852]">{totalTrainboardsCount}</p>
+                  <span className="text-[10px] text-gray-500">Trainboard Packs</span>
+                </div>
+
+                <div className="p-4 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
+                  <div className="flex items-center justify-between text-gray-400">
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Available</span>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  <p className="text-2xl font-bold text-emerald-700">{availableProductsCount}</p>
+                  <span className="text-[10px] text-emerald-600">In Stock for Order</span>
+                </div>
+
+                <div className="p-4 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
+                  <div className="flex items-center justify-between text-gray-400">
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Out of Stock</span>
+                    <Ban className="w-4 h-4 text-rose-600" />
+                  </div>
+                  <p className="text-2xl font-bold text-rose-600">{outOfStockProductsCount}</p>
+                  <span className="text-[10px] text-rose-500">Purchases Disabled</span>
+                </div>
+
+                <div className="p-4 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
+                  <div className="flex items-center justify-between text-gray-400">
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Active Offers</span>
+                    <Tag className="w-4 h-4 text-[#FF6600]" />
+                  </div>
+                  <p className="text-2xl font-bold text-[#FF6600]">{activeOffersCount}</p>
+                  <span className="text-[10px] text-gray-500">Discounts Live</span>
+                </div>
+
+                <div className="p-4 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
+                  <div className="flex items-center justify-between text-gray-400">
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Total Products</span>
+                    <Package className="w-4 h-4 text-[#0B2852]" />
+                  </div>
+                  <p className="text-2xl font-bold text-[#0B2852]">{totalProductsCount}</p>
+                  <span className="text-[10px] text-gray-500">Catalog Items</span>
+                </div>
+              </div>
+
+              {/* Quick Actions Bar */}
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={() => {
+                    setEditingProduct(null);
+                    setIsAddProductOpen(true);
+                  }}
+                  className="px-4 py-2 bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] rounded-full text-xs font-bold flex items-center gap-2 transition-all shadow-sm"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add New Coach / Product
+                </button>
                 <button
                   onClick={() => {
                     setEditingTrainboard(null);
                     setIsAddTrainboardOpen(true);
                   }}
-                  className="px-4 py-2 rounded-xl bg-railway-accent hover:bg-red-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-red-950 flex-shrink-0"
+                  className="px-4 py-2 bg-white border border-gray-300 text-gray-800 hover:border-[#0B2852] rounded-full text-xs font-bold flex items-center gap-2 transition-all"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Trainboard
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingOffer(null);
+                    setIsAddOfferOpen(true);
+                  }}
+                  className="px-4 py-2 bg-white border border-gray-300 text-gray-800 hover:border-[#0B2852] rounded-full text-xs font-bold flex items-center gap-2 transition-all"
+                >
+                  <Plus className="w-4 h-4" />
+                  Create Promotional Offer
+                </button>
+              </div>
+
+              {/* Recent Admin Activities Audit Table */}
+              <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-bold text-[#0B2852]">Recent Admin Activities</h3>
+                    <p className="text-xs text-gray-500">Live immutable audit log of administrative actions</p>
+                  </div>
+                  <span className="text-xs text-gray-400 font-semibold">{auditLogs.length} Records</span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-gray-200 text-gray-400 font-semibold uppercase text-[10px]">
+                        <th className="py-2.5 px-3">Timestamp</th>
+                        <th className="py-2.5 px-3">Action</th>
+                        <th className="py-2.5 px-3">Entity</th>
+                        <th className="py-2.5 px-3">Details</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {auditLogs.slice(0, 10).map((log: any) => (
+                        <tr key={log.id} className="hover:bg-gray-50">
+                          <td className="py-2.5 px-3 text-gray-500 whitespace-nowrap">
+                            {formatDate(log.createdAt)}
+                          </td>
+                          <td className="py-2.5 px-3">
+                            <span className="px-2 py-0.5 rounded bg-blue-50 text-[#0B2852] font-bold text-[10px] border border-blue-200">
+                              {log.action}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-3 font-semibold text-gray-700">{log.entity}</td>
+                          <td className="py-2.5 px-3 text-gray-600 max-w-md truncate">
+                            {log.details || "-"}
+                          </td>
+                        </tr>
+                      ))}
+                      {auditLogs.length === 0 && (
+                        <tr>
+                          <td colSpan={4} className="py-6 text-center text-gray-400">
+                            No recent activity recorded yet.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: COACH MANAGEMENT */}
+          {activeTab === "coaches" && (
+            <div className="space-y-6 max-w-6xl">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200 pb-4">
+                <div>
+                  <h2 className="text-2xl font-light text-[#0B2852]">Coach Management</h2>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Add, edit, rename, upload images, specifications, and delete official VG coaches.
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setEditingProduct(null);
+                    setIsAddProductOpen(true);
+                  }}
+                  className="px-4 py-2 bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] rounded-full text-xs font-bold flex items-center gap-2 transition-all shadow-sm"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add New Coach
+                </button>
+              </div>
+
+              {/* Search & Category Filter */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    placeholder="Search coaches by name, SKU or livery..."
+                    value={coachSearch}
+                    onChange={(e) => setCoachSearch(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#0B2852]"
+                  />
+                  <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
+                </div>
+                <select
+                  value={coachCategoryFilter}
+                  onChange={(e) => setCoachCategoryFilter(e.target.value)}
+                  className="border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#0B2852]"
+                >
+                  <option value="ALL">All Categories</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Coaches Table */}
+              <div className="bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#F5F6F8] text-gray-500 uppercase text-[10px] font-bold border-b border-gray-200">
+                      <tr>
+                        <th className="py-3 px-4">Coach / Livery</th>
+                        <th className="py-3 px-3">SKU</th>
+                        <th className="py-3 px-3">Category</th>
+                        <th className="py-3 px-3">Regular Price</th>
+                        <th className="py-3 px-3">Offer Price</th>
+                        <th className="py-3 px-3">Availability</th>
+                        <th className="py-3 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {coachesList
+                        .filter((p) => {
+                          const matchesSearch =
+                            p.name.toLowerCase().includes(coachSearch.toLowerCase()) ||
+                            p.sku.toLowerCase().includes(coachSearch.toLowerCase());
+                          const matchesCat =
+                            coachCategoryFilter === "ALL" || p.categoryId === coachCategoryFilter;
+                          return matchesSearch && matchesCat;
+                        })
+                        .map((coach) => {
+                          const hasOffer = coach.salePrice !== null && coach.salePrice < coach.regularPrice;
+                          const isOutOfStock = coach.status === "OUT_OF_STOCK";
+
+                          return (
+                            <tr key={coach.id} className="hover:bg-gray-50">
+                              <td className="py-3 px-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-12 h-12 bg-[#F5F6F8] rounded-lg overflow-hidden border border-gray-200 flex-shrink-0 flex items-center justify-center">
+                                    <img
+                                      src={coach.images?.[0]?.url || "/assets/products/chaircar_standard.png"}
+                                      alt={coach.name}
+                                      className="w-full h-full object-contain p-1"
+                                    />
+                                  </div>
+                                  <div>
+                                    <span className="font-bold text-[#0B2852] block line-clamp-1">
+                                      {coach.name}
+                                    </span>
+                                    <span className="text-[10px] text-gray-400">
+                                      {coach.compatibility || "Open Rails / MSTS"}
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="py-3 px-3 font-mono text-[11px] text-gray-600">
+                                {coach.sku}
+                              </td>
+                              <td className="py-3 px-3 text-gray-600">
+                                {coach.category?.name || "LHB Coaches"}
+                              </td>
+                              <td className="py-3 px-3 font-semibold text-gray-800">
+                                ₹{coach.regularPrice.toFixed(2)}
+                              </td>
+                              <td className="py-3 px-3">
+                                {hasOffer ? (
+                                  <span className="text-[#FF6600] font-bold">
+                                    ₹{coach.salePrice.toFixed(2)}
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-400">-</span>
+                                )}
+                              </td>
+                              <td className="py-3 px-3">
+                                <span
+                                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                    isOutOfStock
+                                      ? "bg-rose-100 text-rose-700 border border-rose-300"
+                                      : coach.status === "COMING_SOON"
+                                      ? "bg-amber-100 text-amber-800 border border-amber-300"
+                                      : "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                                  }`}
+                                >
+                                  {isOutOfStock
+                                    ? "Out of Stock"
+                                    : coach.status === "COMING_SOON"
+                                    ? "Coming Soon"
+                                    : "Available"}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 text-right">
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    onClick={() => {
+                                      setEditingProduct(coach);
+                                      setIsAddProductOpen(false);
+                                    }}
+                                    className="p-1.5 rounded-lg border border-gray-200 text-[#0B2852] hover:bg-blue-50"
+                                    title="Edit / Rename Coach"
+                                  >
+                                    <Edit className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      setDeleteModal({
+                                        isOpen: true,
+                                        type: "product",
+                                        id: coach.id,
+                                        name: coach.name,
+                                      })
+                                    }
+                                    className="p-1.5 rounded-lg border border-gray-200 text-rose-600 hover:bg-rose-50"
+                                    title="Delete Coach"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: T-BOARD MANAGEMENT */}
+          {activeTab === "trainboards" && (
+            <div className="space-y-6 max-w-6xl">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200 pb-4">
+                <div>
+                  <h2 className="text-2xl font-light text-[#0B2852]">T-Board Management</h2>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Full CRUD for trainboards: Add, rename, edit railway zone, file size, download link, and delete.
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setEditingTrainboard(null);
+                    setIsAddTrainboardOpen(true);
+                  }}
+                  className="px-4 py-2 bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] rounded-full text-xs font-bold flex items-center gap-2 transition-all shadow-sm"
                 >
                   <Plus className="w-4 h-4" />
                   Add Trainboard
                 </button>
               </div>
-            </div>
 
-            <div className="bg-railway-card rounded-2xl border border-railway-border overflow-x-auto">
-              <table className="w-full text-xs text-left">
-                <thead className="text-slate-500 uppercase border-b border-railway-border/60 font-mono text-[10px] bg-railway-dark">
-                  <tr>
-                    <th className="py-3 px-4">Trainboard Title &bull; File Name</th>
-                    <th>Zone</th>
-                    <th>Zone Full Name</th>
-                    <th>Size</th>
-                    <th>File Path / Link</th>
-                    <th className="text-right px-4">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-railway-border/40">
-                  {trainboards
-                    .filter((t) =>
-                      t.name.toLowerCase().includes(trainboardSearch.toLowerCase()) ||
-                      t.zone.toLowerCase().includes(trainboardSearch.toLowerCase()) ||
-                      t.zoneName?.toLowerCase().includes(trainboardSearch.toLowerCase())
-                    )
-                    .map((tb) => (
-                      <tr key={tb.id} className="hover:bg-white/[0.02]">
-                        <td className="py-3 px-4 font-semibold text-white">
-                          <div className="flex items-center gap-2">
-                            <Train className="w-4 h-4 text-[#39FF00] flex-shrink-0" />
-                            <span className="font-mono text-white text-xs">{tb.name}</span>
-                          </div>
-                        </td>
-                        <td>
-                          <span className="px-2.5 py-0.5 rounded-full font-bold text-[10px] bg-blue-950 text-blue-300 border border-blue-800">
-                            {tb.zone}
-                          </span>
-                        </td>
-                        <td className="text-slate-300">{tb.zoneName}</td>
-                        <td className="font-mono text-slate-400">{tb.size || "2.5 MB"}</td>
-                        <td>
-                          <span className="text-slate-400 font-mono text-[11px] truncate max-w-[200px] block" title={tb.downloadUrl}>
-                            {tb.downloadUrl}
-                          </span>
-                        </td>
-                        <td className="text-right px-4">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => {
-                                setEditingTrainboard(tb);
-                                setIsAddTrainboardOpen(true);
-                              }}
-                              className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white flex items-center gap-1 text-[11px] border border-white/10"
-                              title="Rename / Edit Trainboard"
-                            >
-                              <Edit className="w-3.5 h-3.5" />
-                              <span>Rename / Edit</span>
-                            </button>
-                            <button
-                              onClick={() => handleDeleteTrainboard(tb.id, tb.name)}
-                              className="p-1.5 rounded-lg bg-red-950/40 hover:bg-red-950 text-red-400"
-                              title="Delete Trainboard"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  {trainboards.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="py-8 text-center text-slate-500">
-                        No trainboards found. Click &quot;Add Trainboard&quot; above to create one.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 3: PROJECTS MANAGEMENT */}
-        {activeTab === "projects" && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="font-bold text-white text-base">Projects Catalog Manager</h3>
-                <p className="text-xs text-slate-400">
-                  Manage the 7 signature sections. Changes reflect immediately on `/projects`.
-                </p>
+              {/* Search & Zone Filter */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    placeholder="Search trainboards by name or zone..."
+                    value={trainboardSearch}
+                    onChange={(e) => setTrainboardSearch(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#0B2852]"
+                  />
+                  <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
+                </div>
+                <select
+                  value={trainboardZoneFilter}
+                  onChange={(e) => setTrainboardZoneFilter(e.target.value)}
+                  className="border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#0B2852]"
+                >
+                  <option value="ALL">All Zones</option>
+                  <option value="WR">WR - Western Railway</option>
+                  <option value="CR">CR - Central Railway</option>
+                  <option value="ECoR">ECoR - East Coast Railway</option>
+                  <option value="NR">NR - Northern Railway</option>
+                  <option value="SR">SR - Southern Railway</option>
+                  <option value="ER">ER - Eastern Railway</option>
+                </select>
               </div>
 
-              <button
-                onClick={() => {
-                  setEditingProject(null);
-                  setIsAddProjectOpen(true);
-                }}
-                className="px-5 py-2.5 rounded-xl bg-railway-accent hover:bg-red-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-red-950"
-              >
-                <Plus className="w-4 h-4" />
-                Add New Project
-              </button>
+              {/* Trainboards Table */}
+              <div className="bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#F5F6F8] text-gray-500 uppercase text-[10px] font-bold border-b border-gray-200">
+                      <tr>
+                        <th className="py-3 px-4">Title / File Name</th>
+                        <th className="py-3 px-3">Railway Zone</th>
+                        <th className="py-3 px-3">Zone Full Name</th>
+                        <th className="py-3 px-3">File Size</th>
+                        <th className="py-3 px-3">Download Link</th>
+                        <th className="py-3 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {trainboards
+                        .filter((tb) => {
+                          const matchesSearch =
+                            tb.name.toLowerCase().includes(trainboardSearch.toLowerCase()) ||
+                            tb.zone.toLowerCase().includes(trainboardSearch.toLowerCase());
+                          const matchesZone =
+                            trainboardZoneFilter === "ALL" || tb.zone === trainboardZoneFilter;
+                          return matchesSearch && matchesZone;
+                        })
+                        .map((tb) => (
+                          <tr key={tb.id} className="hover:bg-gray-50">
+                            <td className="py-3 px-4 font-bold text-[#0B2852]">
+                              <div className="flex items-center gap-2">
+                                <Layers className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                <span>{tb.name}</span>
+                              </div>
+                            </td>
+                            <td className="py-3 px-3">
+                              <span className="px-2 py-0.5 rounded-full bg-[#0B2852] text-white text-[10px] font-bold">
+                                {tb.zone}
+                              </span>
+                            </td>
+                            <td className="py-3 px-3 text-gray-600">{tb.zoneName}</td>
+                            <td className="py-3 px-3 text-gray-500">{tb.size}</td>
+                            <td className="py-3 px-3 text-gray-400 font-mono text-[11px] truncate max-w-xs">
+                              {tb.downloadUrl}
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  onClick={() => {
+                                    setEditingTrainboard(tb);
+                                    setIsAddTrainboardOpen(false);
+                                  }}
+                                  className="p-1.5 rounded-lg border border-gray-200 text-[#0B2852] hover:bg-blue-50"
+                                  title="Rename / Edit Trainboard"
+                                >
+                                  <Edit className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    setDeleteModal({
+                                      isOpen: true,
+                                      type: "trainboard",
+                                      id: tb.id,
+                                      name: tb.name,
+                                    })
+                                  }
+                                  className="p-1.5 rounded-lg border border-gray-200 text-rose-600 hover:bg-rose-50"
+                                  title="Delete Trainboard"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
+          )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {projects.map((proj) => (
-                <div
-                  key={proj.id}
-                  className="rounded-2xl bg-railway-card border border-railway-border overflow-hidden flex flex-col justify-between"
+          {/* TAB 4: PRODUCT MANAGEMENT */}
+          {activeTab === "products" && (
+            <div className="space-y-6 max-w-6xl">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200 pb-4">
+                <div>
+                  <h2 className="text-2xl font-light text-[#0B2852]">Product Management</h2>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Full catalog items, route add-ons, and simulator models.
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setEditingProduct(null);
+                    setIsAddProductOpen(true);
+                  }}
+                  className="px-4 py-2 bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] rounded-full text-xs font-bold flex items-center gap-2 transition-all shadow-sm"
                 >
-                  <div className="relative aspect-[16/10] overflow-hidden bg-slate-950">
-                    <img
-                      src={proj.mainImage}
-                      alt={proj.title}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute top-3 left-3 px-2 py-0.5 rounded bg-railway-accent text-white font-black text-xs">
-                      {proj.projectNo}
-                    </div>
-                    <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-black/60 text-slate-300 font-semibold text-[10px] border border-white/10">
-                      {proj.status}
-                    </div>
-                  </div>
+                  <Plus className="w-4 h-4" />
+                  Add New Product
+                </button>
+              </div>
 
-                  <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
-                    <div>
-                      <h4 className="font-bold text-white text-sm">{proj.title}</h4>
-                      <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
-                        {proj.subtitle || proj.description}
-                      </p>
+              {/* Products Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {products.map((prod) => (
+                  <div
+                    key={prod.id}
+                    className="p-4 bg-white border border-gray-200 rounded-xl shadow-xs space-y-3 flex flex-col justify-between"
+                  >
+                    <div className="space-y-2">
+                      <div className="aspect-video bg-[#F5F6F8] rounded-lg overflow-hidden flex items-center justify-center border border-gray-100">
+                        <img
+                          src={prod.images?.[0]?.url || "/assets/products/chaircar_standard.png"}
+                          alt={prod.name}
+                          className="w-full h-full object-contain p-2"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] uppercase font-bold text-gray-400">
+                          {prod.category?.name || "Rolling Stock"}
+                        </span>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            prod.status === "OUT_OF_STOCK"
+                              ? "bg-rose-100 text-rose-700"
+                              : "bg-emerald-100 text-emerald-800"
+                          }`}
+                        >
+                          {prod.status === "OUT_OF_STOCK" ? "Out of Stock" : "In Stock"}
+                        </span>
+                      </div>
+                      <h4 className="font-bold text-sm text-[#0B2852] line-clamp-1">{prod.name}</h4>
                     </div>
 
-                    <div className="pt-3 border-t border-railway-border/60 flex items-center justify-between">
-                      <span className="text-[11px] text-slate-500 font-mono">
-                        Order: {proj.order}
-                      </span>
-                      <div className="flex gap-2">
+                    <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
+                      <div>
+                        <span className="text-sm font-bold text-gray-800">
+                          ₹{(prod.salePrice || prod.regularPrice).toFixed(2)}
+                        </span>
+                        {prod.salePrice && (
+                          <span className="line-through text-xs text-gray-400 ml-1.5">
+                            ₹{prod.regularPrice.toFixed(2)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => {
-                            setEditingProject(proj);
-                            setIsAddProjectOpen(true);
+                            setEditingProduct(prod);
+                            setIsAddProductOpen(false);
                           }}
-                          className="p-1.5 rounded bg-white/5 hover:bg-white/10 text-slate-300"
+                          className="p-1.5 rounded-lg border border-gray-200 text-[#0B2852] hover:bg-blue-50"
                         >
                           <Edit className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => handleDeleteProject(proj.id)}
-                          className="p-1.5 rounded bg-red-950/40 hover:bg-red-950 text-red-400"
+                          onClick={() =>
+                            setDeleteModal({
+                              isOpen: true,
+                              type: "product",
+                              id: prod.id,
+                              name: prod.name,
+                            })
+                          }
+                          className="p-1.5 rounded-lg border border-gray-200 text-rose-600 hover:bg-rose-50"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* TAB 4: ORDERS MANAGEMENT */}
-        {activeTab === "orders" && (
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div className="flex gap-3 w-full sm:w-auto">
-                <div className="relative w-full sm:w-72">
-                  <Search className="w-4 h-4 absolute left-3 top-3.5 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="Search orders..."
-                    value={orderSearch}
-                    onChange={(e) => setOrderSearch(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2 rounded-xl bg-railway-card border border-railway-border text-white text-xs placeholder-slate-500"
-                  />
-                </div>
-
-                <select
-                  value={orderFilter}
-                  onChange={(e) => setOrderFilter(e.target.value)}
-                  className="px-3 py-2 rounded-xl bg-railway-card border border-railway-border text-white text-xs"
-                >
-                  <option value="ALL">All Statuses</option>
-                  <option value="PAID">Paid</option>
-                  <option value="PENDING">Pending</option>
-                  <option value="REFUNDED">Refunded</option>
-                </select>
-              </div>
-
-              <span className="text-xs text-slate-400 font-mono">
-                Total Orders: <strong>{orders.length}</strong>
-              </span>
-            </div>
-
-            <div className="bg-railway-card rounded-2xl border border-railway-border overflow-x-auto">
-              <table className="w-full text-xs text-left">
-                <thead className="text-slate-500 uppercase border-b border-railway-border/60 font-mono text-[10px] bg-railway-dark">
-                  <tr>
-                    <th className="py-3 px-4">Order No</th>
-                    <th>Customer Name</th>
-                    <th>Customer Email</th>
-                    <th>Amount</th>
-                    <th>Payment Method</th>
-                    <th>Status</th>
-                    <th className="text-right px-4">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-railway-border/40">
-                  {orders
-                    .filter((o) => {
-                      if (orderFilter !== "ALL" && o.status !== orderFilter) return false;
-                      if (!orderSearch.trim()) return true;
-                      const q = orderSearch.toLowerCase();
-                      return (
-                        o.orderNumber.toLowerCase().includes(q) ||
-                        o.customerName.toLowerCase().includes(q) ||
-                        o.customerEmail.toLowerCase().includes(q)
-                      );
-                    })
-                    .map((ord) => (
-                      <tr key={ord.id} className="hover:bg-white/[0.02]">
-                        <td className="py-3 px-4 font-mono font-semibold text-white">
-                          #{ord.orderNumber}
-                        </td>
-                        <td className="font-semibold text-white">{ord.customerName}</td>
-                        <td className="text-slate-400">{ord.customerEmail}</td>
-                        <td className="font-bold text-emerald-400">
-                          {formatCurrency(ord.finalAmount)}
-                        </td>
-                        <td className="font-mono text-slate-400">{ord.paymentMethod}</td>
-                        <td>
-                          <select
-                            value={ord.status}
-                            onChange={(e) => handleUpdateOrderStatus(ord.id, e.target.value)}
-                            className={`px-2 py-1 rounded text-[10px] font-bold uppercase bg-railway-darkest border ${
-                              ord.status === "PAID"
-                                ? "text-emerald-400 border-emerald-800"
-                                : ord.status === "REFUNDED"
-                                ? "text-red-400 border-red-800"
-                                : "text-amber-400 border-amber-800"
-                            }`}
-                          >
-                            <option value="PAID">PAID</option>
-                            <option value="PENDING">PENDING</option>
-                            <option value="REFUNDED">REFUNDED</option>
-                            <option value="CANCELLED">CANCELLED</option>
-                          </select>
-                        </td>
-                        <td className="text-right px-4">
-                          <button
-                            onClick={() => setSelectedOrder(ord)}
-                            className="text-slate-300 hover:text-white underline text-xs"
-                          >
-                            View Order
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 5: USER APPROVAL & CUSTOMERS MANAGEMENT */}
-        {activeTab === "customers" && (
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-railway-card p-4 rounded-2xl border border-railway-border">
-              <div>
-                <h3 className="font-bold text-white text-base">User Approvals &amp; Member Directory</h3>
-                <p className="text-xs text-slate-400">Review registrations, authorize customer accounts, and manage member statuses.</p>
-              </div>
-
-              {/* Status Filter Pills */}
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { key: "ALL", label: `All (${customers.length})` },
-                  { key: "PENDING_APPROVAL", label: `Pending (${customers.filter((c) => c.status === "PENDING_APPROVAL").length})` },
-                  { key: "APPROVED", label: `Approved (${customers.filter((c) => c.status === "APPROVED").length})` },
-                  { key: "REJECTED", label: `Rejected (${customers.filter((c) => c.status === "REJECTED").length})` },
-                  { key: "SUSPENDED", label: `Suspended (${customers.filter((c) => c.status === "SUSPENDED").length})` },
-                ].map((pill) => (
-                  <button
-                    key={pill.key}
-                    onClick={() => setUserStatusFilter(pill.key)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                      userStatusFilter === pill.key
-                        ? "bg-railway-accent text-white shadow-sm"
-                        : "bg-railway-dark text-slate-400 hover:text-white"
-                    }`}
-                  >
-                    {pill.label}
-                  </button>
                 ))}
               </div>
             </div>
+          )}
 
-            {/* Search Bar */}
-            <div className="relative">
-              <input
-                type="text"
-                value={userSearch}
-                onChange={(e) => setUserSearch(e.target.value)}
-                placeholder="Search user by name, email, phone, city..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-railway-card border border-railway-border text-xs text-white placeholder-slate-500 focus:outline-none focus:border-railway-accent"
-              />
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-            </div>
+          {/* TAB 5: PRICE MANAGEMENT */}
+          {activeTab === "prices" && (
+            <div className="space-y-6 max-w-6xl">
+              <div className="border-b border-gray-200 pb-4">
+                <h2 className="text-2xl font-light text-[#0B2852]">Price Management</h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Change regular prices, set discounted offer prices, apply quick percentage discounts, and save immediately.
+                </p>
+              </div>
 
-            {/* Users Table */}
-            <div className="bg-railway-card rounded-2xl border border-railway-border overflow-x-auto shadow-sm">
-              <table className="w-full text-xs text-left">
-                <thead className="text-slate-400 uppercase border-b border-railway-border/60 font-mono text-[10px] bg-railway-dark">
-                  <tr>
-                    <th className="py-3 px-4">User Details</th>
-                    <th>Contact &amp; Location</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Registered</th>
-                    <th className="text-right px-4">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-railway-border/40">
-                  {customers
-                    .filter((c) => {
-                      if (userStatusFilter !== "ALL" && c.status !== userStatusFilter) return false;
-                      if (!userSearch) return true;
-                      const q = userSearch.toLowerCase();
-                      return (
-                        c.name?.toLowerCase().includes(q) ||
-                        c.email?.toLowerCase().includes(q) ||
-                        c.phone?.toLowerCase().includes(q) ||
-                        c.city?.toLowerCase().includes(q) ||
-                        c.country?.toLowerCase().includes(q)
-                      );
-                    })
-                    .map((cust) => (
-                      <tr key={cust.id} className="hover:bg-white/[0.02] transition-colors">
-                        <td className="py-3.5 px-4">
-                          <div className="font-semibold text-white text-sm">{cust.name}</div>
-                          <div className="text-slate-400 text-[11px] font-mono">{cust.email}</div>
-                          {cust.rejectionReason && cust.status === "REJECTED" && (
-                            <div className="text-[10px] text-red-400 mt-1 italic">
-                              Reason: {cust.rejectionReason}
-                            </div>
-                          )}
-                        </td>
+              {/* Search */}
+              <div className="relative max-w-md">
+                <input
+                  type="text"
+                  placeholder="Search products to adjust pricing..."
+                  value={priceSearch}
+                  onChange={(e) => setPriceSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#0B2852]"
+                />
+                <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
+              </div>
 
-                        <td className="text-slate-300">
-                          <div>{cust.phone || "No phone"}</div>
-                          <div className="text-slate-500 text-[11px]">
-                            {cust.city ? `${cust.city}, ` : ""}{cust.country || "India"}
-                          </div>
-                        </td>
-
-                        <td>
-                          <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                              cust.role === "ADMIN"
-                                ? "bg-red-950 text-red-400 border border-red-800"
-                                : "bg-slate-800 text-slate-300"
-                            }`}
-                          >
-                            {cust.role}
-                          </span>
-                        </td>
-
-                        <td>
-                          {cust.status === "PENDING_APPROVAL" ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-amber-950 text-amber-400 border border-amber-800">
-                              <Clock className="w-3 h-3" />
-                              Pending Approval
-                            </span>
-                          ) : cust.status === "APPROVED" ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-emerald-950 text-emerald-400 border border-emerald-800">
-                              <Check className="w-3 h-3" />
-                              Approved
-                            </span>
-                          ) : cust.status === "REJECTED" ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-red-950 text-red-400 border border-red-800">
-                              <UserX className="w-3 h-3" />
-                              Rejected
-                            </span>
-                          ) : cust.status === "SUSPENDED" ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-slate-800 text-slate-400 border border-slate-700">
-                              <Ban className="w-3 h-3" />
-                              Suspended
-                            </span>
-                          ) : (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-950 text-emerald-400">
-                              Approved
-                            </span>
-                          )}
-                        </td>
-
-                        <td className="text-slate-400 font-mono text-[11px]">
-                          {formatDate(cust.createdAt)}
-                        </td>
-
-                        <td className="text-right px-4 space-x-2 whitespace-nowrap">
-                          {cust.status === "PENDING_APPROVAL" && (
-                            <>
-                              <button
-                                onClick={() => handleUserStatusAction(cust.id, "approve")}
-                                className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-md text-[11px] font-bold shadow-sm transition-all"
-                                title="Approve registration application"
-                              >
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setRejectionModalUser(cust);
-                                  setRejectionReasonText("");
-                                }}
-                                className="px-3 py-1 bg-red-800 hover:bg-red-700 text-white rounded-md text-[11px] font-bold shadow-sm transition-all"
-                                title="Reject registration application"
-                              >
-                                Reject
-                              </button>
-                            </>
-                          )}
-
-                          {cust.status === "APPROVED" && cust.role !== "ADMIN" && (
-                            <button
-                              onClick={() => handleUserStatusAction(cust.id, "suspend")}
-                              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md text-[11px] font-medium transition-all"
-                              title="Temporarily suspend access"
-                            >
-                              Suspend
-                            </button>
-                          )}
-
-                          {(cust.status === "REJECTED" || cust.status === "SUSPENDED") && (
-                            <button
-                              onClick={() => handleUserStatusAction(cust.id, "reactivate")}
-                              className="px-3 py-1 bg-emerald-700 hover:bg-emerald-600 text-white rounded-md text-[11px] font-bold shadow-sm transition-all"
-                              title="Reactivate and approve user"
-                            >
-                              Reactivate
-                            </button>
-                          )}
-
-                          {cust.role !== "ADMIN" && (
-                            <button
-                              onClick={() => handleDeleteUser(cust.id)}
-                              className="p-1 text-slate-500 hover:text-red-400 transition-colors inline-flex items-center"
-                              title="Delete user record"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </td>
+              {/* Price Management Table */}
+              <div className="bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#F5F6F8] text-gray-500 uppercase text-[10px] font-bold border-b border-gray-200">
+                      <tr>
+                        <th className="py-3 px-4">Item Name</th>
+                        <th className="py-3 px-3">Regular Price (₹)</th>
+                        <th className="py-3 px-3">Discounted / Offer Price (₹)</th>
+                        <th className="py-3 px-3">Quick Discount</th>
+                        <th className="py-3 px-4 text-right">Save Action</th>
                       </tr>
-                    ))}
-                </tbody>
-              </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {products
+                        .filter((p) => p.name.toLowerCase().includes(priceSearch.toLowerCase()))
+                        .map((prod) => (
+                          <PriceRowItem
+                            key={prod.id}
+                            product={prod}
+                            onSave={handleSavePrice}
+                          />
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* TAB 6: ENQUIRIES DESK */}
-        {activeTab === "enquiries" && (
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="font-bold text-white text-base">Contact & Service Enquiries</h3>
-              <span className="text-xs text-slate-400 font-mono">
-                {enquiries.length} Enquiries Total
-              </span>
-            </div>
-
-            <div className="space-y-3">
-              {enquiries.map((enq) => (
-                <div
-                  key={enq.id}
-                  className="p-5 rounded-2xl bg-railway-card border border-railway-border space-y-3"
+          {/* TAB 6: OFFERS MANAGEMENT */}
+          {activeTab === "offers" && (
+            <div className="space-y-6 max-w-6xl">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200 pb-4">
+                <div>
+                  <h2 className="text-2xl font-light text-[#0B2852]">Offers & Discounts Management</h2>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Create promotional offers, set discount percentages, active date ranges, and badges.
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setEditingOffer(null);
+                    setIsAddOfferOpen(true);
+                  }}
+                  className="px-4 py-2 bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] rounded-full text-xs font-bold flex items-center gap-2 transition-all shadow-sm"
                 >
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-railway-border/40 pb-3">
-                    <div>
-                      <span className="px-2 py-0.5 rounded bg-white/10 text-[10px] font-bold uppercase mr-2">
-                        {enq.enquiryType}
-                      </span>
-                      <strong className="text-white text-sm">{enq.subject}</strong>
-                    </div>
+                  <Plus className="w-4 h-4" />
+                  Create New Offer
+                </button>
+              </div>
 
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-slate-500 font-mono">
-                        {formatDate(enq.createdAt)}
-                      </span>
-                      <select
-                        value={enq.status}
-                        onChange={(e) => handleUpdateEnquiryStatus(enq.id, e.target.value)}
-                        className={`px-2 py-1 rounded text-[10px] font-bold uppercase bg-railway-darkest border ${
-                          enq.status === "RESOLVED"
-                            ? "text-emerald-400 border-emerald-800"
-                            : "text-amber-400 border-amber-800"
+              {/* Offers List */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {offers.map((offer) => (
+                  <div
+                    key={offer.id}
+                    className={`p-5 rounded-2xl border transition-all space-y-4 bg-white ${
+                      offer.isActive ? "border-[#0B2852] shadow-md" : "border-gray-200 opacity-70"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                          offer.isActive ? "bg-[#FF6600] text-white" : "bg-gray-100 text-gray-500"
                         }`}
                       >
-                        <option value="NEW">NEW</option>
-                        <option value="IN_PROGRESS">IN PROGRESS</option>
-                        <option value="RESOLVED">RESOLVED</option>
-                      </select>
+                        {offer.badgeText || "SPECIAL OFFER"}
+                      </span>
+                      <button
+                        onClick={() => handleToggleOfferActive(offer)}
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase transition-colors ${
+                          offer.isActive
+                            ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
+                            : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                        }`}
+                      >
+                        {offer.isActive ? "Active" : "Disabled"}
+                      </button>
+                    </div>
+
+                    <div className="space-y-1">
+                      <h3 className="font-bold text-base text-[#0B2852]">{offer.title}</h3>
+                      <p className="text-xs text-gray-600 line-clamp-2">{offer.description || "Site-wide promotional discount."}</p>
+                    </div>
+
+                    <div className="p-3 bg-[#F5F6F8] rounded-xl flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-gray-400 block">Discount</span>
+                        <span className="text-xl font-black text-[#0B2852]">{offer.discountPercent}% OFF</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] uppercase font-bold text-gray-400 block">Scope</span>
+                        <span className="text-xs font-semibold text-gray-700">{offer.targetType}</span>
+                      </div>
+                    </div>
+
+                    <div className="text-[11px] text-gray-500 flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-gray-400" />
+                      <span>
+                        {offer.endDate ? `Ends: ${formatDate(offer.endDate)}` : "Ongoing Offer"}
+                      </span>
+                    </div>
+
+                    <div className="flex gap-2 pt-2 border-t border-gray-100">
+                      <button
+                        onClick={() => {
+                          setEditingOffer(offer);
+                          setIsAddOfferOpen(false);
+                        }}
+                        className="flex-1 py-1.5 rounded-lg border border-gray-200 text-xs font-bold text-[#0B2852] hover:bg-blue-50"
+                      >
+                        Edit Offer
+                      </button>
+                      <button
+                        onClick={() =>
+                          setDeleteModal({
+                            isOpen: true,
+                            type: "offer",
+                            id: offer.id,
+                            name: offer.title,
+                          })
+                        }
+                        className="p-1.5 rounded-lg border border-gray-200 text-rose-600 hover:bg-rose-50"
+                        title="Delete Offer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
+                ))}
 
-                  <p className="text-xs text-slate-300 leading-relaxed whitespace-pre-line">
-                    {enq.message}
-                  </p>
-
-                  <div className="pt-2 text-[11px] text-slate-500 flex flex-wrap gap-4 border-t border-railway-border/40">
-                    <span>From: <strong>{enq.name}</strong></span>
-                    <span>Email: <a href={`mailto:${enq.email}`} className="text-slate-300 underline">{enq.email}</a></span>
-                    {enq.phone && <span>Phone: {enq.phone}</span>}
+                {offers.length === 0 && (
+                  <div className="col-span-full py-12 text-center text-gray-400">
+                    No promotional offers created yet. Click &quot;Create New Offer&quot; to begin.
                   </div>
-                </div>
-              ))}
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* TAB 7: SETTINGS & LEGAL PAGES */}
-        {activeTab === "settings" && (
-          <form onSubmit={handleSaveSettings} className="space-y-6">
-            <div className="bg-railway-card p-6 sm:p-8 rounded-2xl border border-railway-border space-y-6">
-              <h3 className="font-bold text-white text-base border-b border-railway-border/60 pb-3">
-                Website Branding & Legal Policies
-              </h3>
+          {/* TAB 7: STOCK & INVENTORY MANAGEMENT */}
+          {activeTab === "stock" && (
+            <div className="space-y-6 max-w-6xl">
+              <div className="border-b border-gray-200 pb-4">
+                <h2 className="text-2xl font-light text-[#0B2852]">Stock & Availability Management</h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  1-Click toggle between Available, Out of Stock, and Coming Soon. Quantity reaches 0 automatically marks item Out of Stock.
+                </p>
+              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              {/* Filters */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    placeholder="Search product inventory..."
+                    value={stockSearch}
+                    onChange={(e) => setStockSearch(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#0B2852]"
+                  />
+                  <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
+                </div>
+                <select
+                  value={stockFilter}
+                  onChange={(e) => setStockFilter(e.target.value)}
+                  className="border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#0B2852]"
+                >
+                  <option value="ALL">All Stock Statuses</option>
+                  <option value="AVAILABLE">Available / In Stock</option>
+                  <option value="OUT_OF_STOCK">Out of Stock</option>
+                  <option value="COMING_SOON">Coming Soon</option>
+                </select>
+              </div>
+
+              {/* Stock Table */}
+              <div className="bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#F5F6F8] text-gray-500 uppercase text-[10px] font-bold border-b border-gray-200">
+                      <tr>
+                        <th className="py-3 px-4">Product Name / Image</th>
+                        <th className="py-3 px-3">SKU</th>
+                        <th className="py-3 px-3">Stock Quantity</th>
+                        <th className="py-3 px-3">Current Status</th>
+                        <th className="py-3 px-4 text-right">Quick 1-Click Status Switcher</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {products
+                        .filter((p) => {
+                          const matchesSearch = p.name.toLowerCase().includes(stockSearch.toLowerCase());
+                          const matchesFilter = stockFilter === "ALL" || p.status === stockFilter;
+                          return matchesSearch && matchesFilter;
+                        })
+                        .map((prod) => (
+                          <StockRowItem
+                            key={prod.id}
+                            product={prod}
+                            onUpdateAvailability={handleUpdateAvailability}
+                            onUpdateQuantity={handleUpdateStockQuantity}
+                          />
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 8: USER MANAGEMENT & RBAC */}
+          {activeTab === "users" && (
+            <div className="space-y-6 max-w-6xl">
+              <div className="border-b border-gray-200 pb-4">
+                <h2 className="text-2xl font-light text-[#0B2852]">User Management & Permissions</h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Role-based access control (Super Admin, Admin, Normal User) and registration approval workflows.
+                </p>
+              </div>
+
+              {/* Filters */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    placeholder="Search users by name, email, city..."
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#0B2852]"
+                  />
+                  <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
+                </div>
+                <select
+                  value={userStatusFilter}
+                  onChange={(e) => setUserStatusFilter(e.target.value)}
+                  className="border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#0B2852]"
+                >
+                  <option value="ALL">All Statuses</option>
+                  <option value="PENDING_APPROVAL">Pending Review</option>
+                  <option value="APPROVED">Approved Active</option>
+                  <option value="SUSPENDED">Suspended</option>
+                  <option value="REJECTED">Rejected</option>
+                </select>
+              </div>
+
+              {/* Users Table */}
+              <div className="bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#F5F6F8] text-gray-500 uppercase text-[10px] font-bold border-b border-gray-200">
+                      <tr>
+                        <th className="py-3 px-4">User</th>
+                        <th className="py-3 px-3">Role</th>
+                        <th className="py-3 px-3">Status</th>
+                        <th className="py-3 px-3">Registered Date</th>
+                        <th className="py-3 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {customers
+                        .filter((c) => {
+                          const matchesSearch =
+                            c.name?.toLowerCase().includes(userSearch.toLowerCase()) ||
+                            c.email?.toLowerCase().includes(userSearch.toLowerCase());
+                          const matchesFilter =
+                            userStatusFilter === "ALL" || c.status === userStatusFilter;
+                          return matchesSearch && matchesFilter;
+                        })
+                        .map((user) => (
+                          <tr key={user.id} className="hover:bg-gray-50">
+                            <td className="py-3 px-4">
+                              <span className="font-bold text-[#0B2852] block">{user.name}</span>
+                              <span className="text-[11px] text-gray-500">{user.email}</span>
+                            </td>
+                            <td className="py-3 px-3">
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                  user.role === "SUPER_ADMIN"
+                                    ? "bg-purple-100 text-purple-800 border border-purple-200"
+                                    : user.role === "ADMIN"
+                                    ? "bg-[#0B2852] text-white"
+                                    : "bg-gray-100 text-gray-600"
+                                }`}
+                              >
+                                {user.role}
+                              </span>
+                            </td>
+                            <td className="py-3 px-3">
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                  user.status === "APPROVED"
+                                    ? "bg-emerald-100 text-emerald-800"
+                                    : user.status === "PENDING_APPROVAL"
+                                    ? "bg-amber-100 text-amber-800"
+                                    : "bg-rose-100 text-rose-800"
+                                }`}
+                              >
+                                {user.status}
+                              </span>
+                            </td>
+                            <td className="py-3 px-3 text-gray-500">
+                              {formatDate(user.createdAt)}
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                {isSuperAdmin && (
+                                  <button
+                                    onClick={() => {
+                                      setRoleChangeUser(user);
+                                      setSelectedNewRole(user.role);
+                                    }}
+                                    className="px-2 py-1 rounded-md border border-gray-200 text-xs font-semibold text-[#0B2852] hover:bg-blue-50"
+                                  >
+                                    Assign Role
+                                  </button>
+                                )}
+
+                                {user.status === "PENDING_APPROVAL" && (
+                                  <>
+                                    <button
+                                      onClick={() => handleUserStatusAction(user.id, "approve")}
+                                      className="p-1 rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
+                                      title="Approve User"
+                                    >
+                                      <UserCheck className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setRejectionModalUser(user);
+                                        setRejectionReasonText("");
+                                      }}
+                                      className="p-1 rounded-md bg-rose-600 text-white hover:bg-rose-700"
+                                      title="Reject User"
+                                    >
+                                      <UserX className="w-3.5 h-3.5" />
+                                    </button>
+                                  </>
+                                )}
+
+                                {user.status === "APPROVED" && (
+                                  <button
+                                    onClick={() => handleUserStatusAction(user.id, "suspend")}
+                                    className="p-1 rounded-md border border-gray-200 text-rose-600 hover:bg-rose-50"
+                                    title="Suspend User"
+                                  >
+                                    <Ban className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+
+                                {user.status === "SUSPENDED" && (
+                                  <button
+                                    onClick={() => handleUserStatusAction(user.id, "reactivate")}
+                                    className="p-1 rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
+                                    title="Reactivate User"
+                                  >
+                                    <Check className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+
+                                {user.email !== "admin@vg3dmodelers.com" && (
+                                  <button
+                                    onClick={() =>
+                                      setDeleteModal({
+                                        isOpen: true,
+                                        type: "user",
+                                        id: user.id,
+                                        name: user.name,
+                                      })
+                                    }
+                                    className="p-1 rounded-md border border-gray-200 text-rose-600 hover:bg-rose-50"
+                                    title="Delete User"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 9: ORDERS & ENTITLEMENTS */}
+          {activeTab === "orders" && (
+            <div className="space-y-6 max-w-6xl">
+              <div className="border-b border-gray-200 pb-4">
+                <h2 className="text-2xl font-light text-[#0B2852]">Orders & Entitlements</h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Customer digital purchases and download entitlements.
+                </p>
+              </div>
+
+              <div className="bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#F5F6F8] text-gray-500 uppercase text-[10px] font-bold border-b border-gray-200">
+                      <tr>
+                        <th className="py-3 px-4">Order #</th>
+                        <th className="py-3 px-3">Customer</th>
+                        <th className="py-3 px-3">Amount</th>
+                        <th className="py-3 px-3">Payment Status</th>
+                        <th className="py-3 px-3">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {orders.map((o) => (
+                        <tr key={o.id} className="hover:bg-gray-50">
+                          <td className="py-3 px-4 font-mono font-bold text-[#0B2852]">
+                            {o.orderNumber}
+                          </td>
+                          <td className="py-3 px-3">
+                            <span className="font-semibold block">{o.customerName}</span>
+                            <span className="text-[10px] text-gray-400">{o.customerEmail}</span>
+                          </td>
+                          <td className="py-3 px-3 font-bold text-gray-800">
+                            ₹{o.finalAmount.toFixed(2)}
+                          </td>
+                          <td className="py-3 px-3">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                o.status === "PAID"
+                                  ? "bg-emerald-100 text-emerald-800"
+                                  : "bg-amber-100 text-amber-800"
+                              }`}
+                            >
+                              {o.status}
+                            </span>
+                          </td>
+                          <td className="py-3 px-3 text-gray-500">{formatDate(o.createdAt)}</td>
+                        </tr>
+                      ))}
+                      {orders.length === 0 && (
+                        <tr>
+                          <td colSpan={5} className="py-6 text-center text-gray-400">
+                            No orders recorded yet.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 10: CONTACT INQUIRIES */}
+          {activeTab === "enquiries" && (
+            <div className="space-y-6 max-w-6xl">
+              <div className="border-b border-gray-200 pb-4">
+                <h2 className="text-2xl font-light text-[#0B2852]">Contact Inquiries</h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Direct customer messages and custom model requests.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                {enquiries.map((enq) => (
+                  <div
+                    key={enq.id}
+                    className="p-5 bg-white border border-gray-200 rounded-2xl shadow-xs space-y-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-base text-[#0B2852]">{enq.subject}</span>
+                      <span className="text-[11px] text-gray-400">{formatDate(enq.createdAt)}</span>
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      From: <strong>{enq.name}</strong> ({enq.email})
+                    </div>
+                    <p className="text-xs text-gray-700 bg-[#F5F6F8] p-3 rounded-xl">{enq.message}</p>
+                  </div>
+                ))}
+                {enquiries.length === 0 && (
+                  <div className="py-12 text-center text-gray-400">
+                    No contact inquiries received yet.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 11: WEBSITE SETTINGS */}
+          {activeTab === "settings" && (
+            <div className="space-y-6 max-w-3xl">
+              <div className="border-b border-gray-200 pb-4">
+                <h2 className="text-2xl font-light text-[#0B2852]">Website Settings</h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  General platform configuration, legal text, and contact details.
+                </p>
+              </div>
+
+              <form onSubmit={handleSaveSettings} className="space-y-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-xs text-xs">
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">
-                    Website Name
-                  </label>
+                  <label className="block font-bold text-gray-700 mb-1">Website Brand Title</label>
                   <input
                     type="text"
                     value={settings.siteName || ""}
                     onChange={(e) => setSettings({ ...settings, siteName: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-railway-darkest border border-railway-border text-white"
+                    className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">
-                    Founder / Lead Modeler Name
-                  </label>
+                  <label className="block font-bold text-gray-700 mb-1">Founder / Creator Name</label>
                   <input
                     type="text"
                     value={settings.founderName || ""}
                     onChange={(e) => setSettings({ ...settings, founderName: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-railway-darkest border border-railway-border text-white"
+                    className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-slate-400 font-semibold mb-1">
-                    Official Support Email
-                  </label>
-                  <input
-                    type="email"
-                    value={settings.contactEmail || ""}
-                    onChange={(e) => setSettings({ ...settings, contactEmail: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-railway-darkest border border-railway-border text-white"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-bold text-gray-700 mb-1">Contact Email</label>
+                    <input
+                      type="email"
+                      value={settings.contactEmail || ""}
+                      onChange={(e) => setSettings({ ...settings, contactEmail: e.target.value })}
+                      className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-gray-700 mb-1">WhatsApp / Phone</label>
+                    <input
+                      type="text"
+                      value={settings.contactPhone || ""}
+                      onChange={(e) => setSettings({ ...settings, contactPhone: e.target.value })}
+                      className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                    />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">
-                    WhatsApp Contact Number
-                  </label>
+                  <label className="block font-bold text-gray-700 mb-1">Home Hero Tagline</label>
                   <input
                     type="text"
-                    value={settings.whatsappNumber || ""}
-                    onChange={(e) => setSettings({ ...settings, whatsappNumber: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-railway-darkest border border-railway-border text-white"
+                    value={settings.heroTitle || ""}
+                    onChange={(e) => setSettings({ ...settings, heroTitle: e.target.value })}
+                    className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
                   />
                 </div>
 
-                <div className="sm:col-span-2">
-                  <label className="block text-slate-400 font-semibold mb-1">
-                    Independent Railway Simulator Disclaimer
-                  </label>
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Official Disclaimer</label>
                   <textarea
                     rows={3}
                     value={settings.disclaimerText || ""}
                     onChange={(e) => setSettings({ ...settings, disclaimerText: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-railway-darkest border border-railway-border text-white"
+                    className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
                   />
                 </div>
 
-                <div className="sm:col-span-2">
-                  <label className="block text-slate-400 font-semibold mb-1">
-                    Terms & Conditions Content (Markdown / Plain Text)
-                  </label>
-                  <textarea
-                    rows={4}
-                    value={settings.termsContent || ""}
-                    onChange={(e) => setSettings({ ...settings, termsContent: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-railway-darkest border border-railway-border text-white"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-slate-400 font-semibold mb-1">
-                    End User License Agreement (EULA)
-                  </label>
-                  <textarea
-                    rows={4}
-                    value={settings.eulaContent || ""}
-                    onChange={(e) => setSettings({ ...settings, eulaContent: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-railway-darkest border border-railway-border text-white"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className="px-6 py-3 rounded-xl bg-railway-accent hover:bg-red-700 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-red-950 transition-colors"
-              >
-                <Save className="w-4 h-4" />
-                Save Website & Legal Settings
-              </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] rounded-full font-bold uppercase transition-all shadow-md"
+                >
+                  Save Website Settings
+                </button>
+              </form>
             </div>
-          </form>
-        )}
+          )}
+        </main>
       </div>
 
-      {/* Product Add / Edit Modal */}
-      {isAddProductOpen && (
+      {/* MODAL: ADD / EDIT COACH & PRODUCT */}
+      {(isAddProductOpen || editingProduct) && (
         <ProductFormModal
+          isOpen={isAddProductOpen || !!editingProduct}
+          product={editingProduct}
           categories={categories}
-          initialValues={editingProduct}
           onClose={() => {
             setIsAddProductOpen(false);
             setEditingProduct(null);
@@ -1463,10 +1887,11 @@ export default function AdminClient({
         />
       )}
 
-      {/* Trainboard Add / Edit Modal */}
-      {isAddTrainboardOpen && (
+      {/* MODAL: ADD / EDIT TRAINBOARD */}
+      {(isAddTrainboardOpen || editingTrainboard) && (
         <TrainboardFormModal
-          initialValues={editingTrainboard}
+          isOpen={isAddTrainboardOpen || !!editingTrainboard}
+          trainboard={editingTrainboard}
           onClose={() => {
             setIsAddTrainboardOpen(false);
             setEditingTrainboard(null);
@@ -1475,335 +1900,548 @@ export default function AdminClient({
         />
       )}
 
-      {/* Project Add / Edit Modal */}
-      {isAddProjectOpen && (
-        <ProjectFormModal
-          initialValues={editingProject}
+      {/* MODAL: ADD / EDIT OFFER */}
+      {(isAddOfferOpen || editingOffer) && (
+        <OfferFormModal
+          isOpen={isAddOfferOpen || !!editingOffer}
+          offer={editingOffer}
           onClose={() => {
-            setIsAddProjectOpen(false);
-            setEditingProject(null);
+            setIsAddOfferOpen(false);
+            setEditingOffer(null);
           }}
-          onSave={handleSaveProject}
+          onSave={handleSaveOffer}
         />
-      )}
-
-      {/* Order Details Modal */}
-      {selectedOrder && (
-        <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
-          onClick={() => setSelectedOrder(null)}
-        >
-          <div
-            className="w-full max-w-lg bg-railway-darkest border border-railway-border rounded-2xl p-6 sm:p-8 space-y-4 shadow-2xl relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => setSelectedOrder(null)}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <h3 className="text-base font-bold text-white">
-              Order #{selectedOrder.orderNumber}
-            </h3>
-
-            <div className="space-y-2 text-xs text-slate-300">
-              <p><strong>Customer:</strong> {selectedOrder.customerName} ({selectedOrder.customerEmail})</p>
-              <p><strong>Total Amount:</strong> {formatCurrency(selectedOrder.finalAmount)}</p>
-              <p><strong>Payment Method:</strong> {selectedOrder.paymentMethod} {selectedOrder.paymentId && `(${selectedOrder.paymentId})`}</p>
-              <p><strong>Status:</strong> {selectedOrder.status}</p>
-            </div>
-
-            <div className="pt-3 border-t border-railway-border space-y-2">
-              <span className="text-[11px] font-bold text-slate-400 uppercase">Items Ordered:</span>
-              {selectedOrder.items?.map((it: any) => (
-                <div key={it.id} className="text-xs text-white flex justify-between">
-                  <span>{it.productName}</span>
-                  <span className="font-mono text-emerald-400">{formatCurrency(it.price)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* User Rejection Reason Modal */}
-      {rejectionModalUser && (
-        <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
-          onClick={() => setRejectionModalUser(null)}
-        >
-          <div
-            className="w-full max-w-md bg-railway-darkest border border-railway-border rounded-2xl p-6 sm:p-7 space-y-4 shadow-2xl relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => setRejectionModalUser(null)}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="space-y-1">
-              <h3 className="text-base font-bold text-white">Reject Registration</h3>
-              <p className="text-xs text-slate-400">
-                Rejecting application for <strong className="text-white">{rejectionModalUser.name}</strong> ({rejectionModalUser.email}).
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Reason for Rejection (optional, will be sent to user):
-              </label>
-              <textarea
-                rows={3}
-                value={rejectionReasonText}
-                onChange={(e) => setRejectionReasonText(e.target.value)}
-                placeholder="e.g. Incomplete address details or unverified contact information."
-                className="w-full p-3 rounded-xl bg-railway-card border border-railway-border text-xs text-white focus:outline-none focus:border-red-500"
-              />
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setRejectionModalUser(null)}
-                className="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  handleUserStatusAction(rejectionModalUser.id, "reject", rejectionReasonText);
-                  setRejectionModalUser(null);
-                }}
-                className="px-5 py-2 rounded-xl bg-red-700 hover:bg-red-600 text-white text-xs font-bold transition-all shadow-md"
-              >
-                Confirm Rejection
-              </button>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );
 }
 
-// Subcomponent: Product Add/Edit Modal
-function ProductFormModal({ categories, initialValues, onClose, onSave }: any) {
-  const [formData, setFormData] = useState({
-    name: initialValues?.name || "",
-    sku: initialValues?.sku || "",
-    shortDesc: initialValues?.shortDesc || "",
-    description: initialValues?.description || "",
-    regularPrice: initialValues?.regularPrice || 799,
-    salePrice: initialValues?.salePrice || 599,
-    isFree: initialValues?.isFree || false,
-    categoryId: initialValues?.categoryId || categories[0]?.id || "",
-    compatibility: initialValues?.compatibility || "Open Rails / MSTS",
-    version: initialValues?.version || "v2.0",
-    fileSize: initialValues?.fileSize || "140 MB",
-    status: initialValues?.status || "AVAILABLE",
-    isFeatured: initialValues?.isFeatured || false,
-    imageUrl: initialValues?.images?.[0]?.url || "https://images.unsplash.com/photo-1532105956626-9569c03602f6?w=800",
-    fileName: initialValues?.files?.[0]?.fileName || "VG_LHB_Package.zip",
-  });
+// --- SUB-COMPONENT: PRICE ROW WITH QUICK DISCOUNT BUTTONS ---
+function PriceRowItem({
+  product,
+  onSave,
+}: {
+  product: any;
+  onSave: (id: string, regularPrice: number, salePrice: number | null) => void;
+}) {
+  const [regularPrice, setRegularPrice] = useState(product.regularPrice);
+  const [salePrice, setSalePrice] = useState<number | null>(product.salePrice);
+  const [isChanged, setIsChanged] = useState(false);
+
+  const applyDiscountPercent = (percent: number) => {
+    const discounted = Math.round(regularPrice * (1 - percent / 100));
+    setSalePrice(discounted);
+    setIsChanged(true);
+  };
+
+  const handleSave = () => {
+    onSave(product.id, regularPrice, salePrice);
+    setIsChanged(false);
+  };
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fadeIn"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-2xl bg-railway-darkest border border-railway-border rounded-2xl p-6 sm:p-8 space-y-4 shadow-2xl relative my-8"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <tr className="hover:bg-gray-50">
+      <td className="py-3 px-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-[#F5F6F8] rounded-lg overflow-hidden border border-gray-200 flex-shrink-0 flex items-center justify-center">
+            <img
+              src={product.images?.[0]?.url || "/assets/products/chaircar_standard.png"}
+              alt={product.name}
+              className="w-full h-full object-contain p-1"
+            />
+          </div>
+          <div>
+            <span className="font-bold text-[#0B2852] block line-clamp-1">{product.name}</span>
+            <span className="text-[10px] text-gray-400 font-mono">{product.sku}</span>
+          </div>
+        </div>
+      </td>
+      <td className="py-3 px-3">
+        <div className="flex items-center gap-1">
+          <span className="text-gray-400 font-bold">₹</span>
+          <input
+            type="number"
+            value={regularPrice}
+            onChange={(e) => {
+              setRegularPrice(parseFloat(e.target.value) || 0);
+              setIsChanged(true);
+            }}
+            className="w-24 p-1.5 border border-gray-300 rounded-lg text-xs font-semibold"
+          />
+        </div>
+      </td>
+      <td className="py-3 px-3">
+        <div className="flex items-center gap-1">
+          <span className="text-gray-400 font-bold">₹</span>
+          <input
+            type="number"
+            placeholder="No offer"
+            value={salePrice !== null ? salePrice : ""}
+            onChange={(e) => {
+              const val = e.target.value;
+              setSalePrice(val === "" ? null : parseFloat(val) || 0);
+              setIsChanged(true);
+            }}
+            className="w-24 p-1.5 border border-gray-300 rounded-lg text-xs font-bold text-[#FF6600]"
+          />
+          {salePrice !== null && salePrice < regularPrice && (
+            <span className="px-2 py-0.5 rounded bg-orange-100 text-[#FF6600] font-bold text-[10px]">
+              {Math.round(((regularPrice - salePrice) / regularPrice) * 100)}% OFF
+            </span>
+          )}
+        </div>
+      </td>
+      <td className="py-3 px-3">
+        <div className="flex items-center gap-1">
+          {[10, 20, 30, 50].map((pct) => (
+            <button
+              key={pct}
+              type="button"
+              onClick={() => applyDiscountPercent(pct)}
+              className="px-2 py-0.5 rounded border border-gray-200 text-[10px] font-bold text-gray-600 hover:border-[#0B2852] hover:bg-blue-50"
+            >
+              -{pct}%
+            </button>
+          ))}
+          {salePrice !== null && (
+            <button
+              type="button"
+              onClick={() => {
+                setSalePrice(null);
+                setIsChanged(true);
+              }}
+              className="px-2 py-0.5 rounded text-[10px] font-semibold text-rose-600 hover:bg-rose-50"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      </td>
+      <td className="py-3 px-4 text-right">
         <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white"
+          type="button"
+          onClick={handleSave}
+          disabled={!isChanged}
+          className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+            isChanged
+              ? "bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] shadow-sm cursor-pointer"
+              : "bg-gray-100 text-gray-400 cursor-not-allowed"
+          }`}
         >
-          <X className="w-5 h-5" />
+          Save Price
         </button>
+      </td>
+    </tr>
+  );
+}
 
-        <h3 className="text-base font-bold text-white">
-          {initialValues ? "Edit Coach / Product" : "Add New Railway Coach / Product"}
-        </h3>
+// --- SUB-COMPONENT: STOCK & INVENTORY ROW ---
+function StockRowItem({
+  product,
+  onUpdateAvailability,
+  onUpdateQuantity,
+}: {
+  product: any;
+  onUpdateAvailability: (product: any, status: "AVAILABLE" | "OUT_OF_STOCK" | "COMING_SOON") => void;
+  onUpdateQuantity: (product: any, qty: string) => void;
+}) {
+  const [qty, setQty] = useState(product.stockQuantity ?? 100);
 
-        <form onSubmit={(e) => onSave(e, formData)} className="space-y-4 text-xs">
+  return (
+    <tr className="hover:bg-gray-50">
+      <td className="py-3 px-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-[#F5F6F8] rounded-lg overflow-hidden border border-gray-200 flex-shrink-0 flex items-center justify-center">
+            <img
+              src={product.images?.[0]?.url || "/assets/products/chaircar_standard.png"}
+              alt={product.name}
+              className="w-full h-full object-contain p-1"
+            />
+          </div>
+          <div>
+            <span className="font-bold text-[#0B2852] block line-clamp-1">{product.name}</span>
+            <span className="text-[10px] text-gray-400">{product.category?.name || "Rolling Stock"}</span>
+          </div>
+        </div>
+      </td>
+      <td className="py-3 px-3 font-mono text-[11px] text-gray-600">{product.sku}</td>
+      <td className="py-3 px-3">
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            min="0"
+            value={qty}
+            onChange={(e) => setQty(parseInt(e.target.value, 10) || 0)}
+            className="w-20 p-1.5 border border-gray-300 rounded-lg text-xs font-semibold"
+          />
+          <button
+            type="button"
+            onClick={() => onUpdateQuantity(product, qty.toString())}
+            className="px-2.5 py-1 rounded-md border border-gray-300 hover:border-[#0B2852] text-[10px] font-bold"
+          >
+            Update Qty
+          </button>
+        </div>
+      </td>
+      <td className="py-3 px-3">
+        <span
+          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+            product.status === "OUT_OF_STOCK"
+              ? "bg-rose-100 text-rose-700 border border-rose-300"
+              : product.status === "COMING_SOON"
+              ? "bg-amber-100 text-amber-800 border border-amber-300"
+              : "bg-emerald-100 text-emerald-800 border border-emerald-300"
+          }`}
+        >
+          {product.status === "OUT_OF_STOCK"
+            ? "Out of Stock"
+            : product.status === "COMING_SOON"
+            ? "Coming Soon"
+            : "Available"}
+        </span>
+      </td>
+      <td className="py-3 px-4 text-right">
+        <div className="flex items-center justify-end gap-1.5">
+          <button
+            type="button"
+            onClick={() => onUpdateAvailability(product, "AVAILABLE")}
+            className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all ${
+              product.status === "AVAILABLE"
+                ? "bg-emerald-700 text-white shadow-xs"
+                : "border border-gray-200 text-gray-600 hover:bg-emerald-50 hover:text-emerald-700"
+            }`}
+          >
+            Available
+          </button>
+          <button
+            type="button"
+            onClick={() => onUpdateAvailability(product, "OUT_OF_STOCK")}
+            className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all ${
+              product.status === "OUT_OF_STOCK"
+                ? "bg-rose-700 text-white shadow-xs"
+                : "border border-gray-200 text-gray-600 hover:bg-rose-50 hover:text-rose-700"
+            }`}
+          >
+            Out of Stock
+          </button>
+          <button
+            type="button"
+            onClick={() => onUpdateAvailability(product, "COMING_SOON")}
+            className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all ${
+              product.status === "COMING_SOON"
+                ? "bg-amber-600 text-white shadow-xs"
+                : "border border-gray-200 text-gray-600 hover:bg-amber-50 hover:text-amber-700"
+            }`}
+          >
+            Coming Soon
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+// --- SUB-COMPONENT: PRODUCT & COACH FORM MODAL ---
+function ProductFormModal({
+  isOpen,
+  product,
+  categories,
+  onClose,
+  onSave,
+}: {
+  isOpen: boolean;
+  product: any | null;
+  categories: any[];
+  onClose: () => void;
+  onSave: (e: React.FormEvent, formValues: any) => void;
+}) {
+  const [name, setName] = useState(product?.name || "");
+  const [sku, setSku] = useState(product?.sku || "");
+  const [regularPrice, setRegularPrice] = useState(product?.regularPrice || "");
+  const [salePrice, setSalePrice] = useState(product?.salePrice || "");
+  const [categoryId, setCategoryId] = useState(
+    product?.categoryId || categories[0]?.id || ""
+  );
+  const [status, setStatus] = useState(product?.status || "AVAILABLE");
+  const [stockQuantity, setStockQuantity] = useState(product?.stockQuantity ?? 100);
+  const [specifications, setSpecifications] = useState(product?.specifications || "");
+  const [compatibility, setCompatibility] = useState(
+    product?.compatibility || "Open Rails / MSTS"
+  );
+  const [imageUrl, setImageUrl] = useState(product?.images?.[0]?.url || "");
+  const [description, setDescription] = useState(product?.description || "");
+  const [isFeatured, setIsFeatured] = useState(product?.isFeatured ?? true);
+
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Quick Coach Preset Images
+  const coachPresets = [
+    { label: "Academy Sleeper", url: "/assets/products/vg_academy_sleeper.avif" },
+    { label: "Humsafar V2", url: "/assets/products/humsafar_v2.avif" },
+    { label: "Sleeper V2", url: "/assets/products/sleeper_v2.avif" },
+    { label: "Tricolour Coaches", url: "/assets/products/indian_tricolour.avif" },
+    { label: "Amrit Bharat", url: "/assets/products/amrit_bharat.png" },
+    { label: "Bangladesh Coaches", url: "/assets/products/bangladesh_coaches.png" },
+    { label: "Chaircar Coaches", url: "/assets/products/chaircar_standard.png" },
+    { label: "Vistadome Premium", url: "/assets/products/vistadome_standard.png" },
+    { label: "WHR Route V2", url: "/assets/products/whr_route_v2.png" },
+  ];
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Upload failed");
+
+      setImageUrl(data.url);
+    } catch (err: any) {
+      alert(err.message || "Failed to upload image");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    onSave(e, {
+      name,
+      sku: sku || `VG-${Date.now().toString().slice(-6)}`,
+      regularPrice: parseFloat(regularPrice) || 0,
+      salePrice: salePrice ? parseFloat(salePrice) : null,
+      categoryId,
+      status,
+      stockQuantity: parseInt(stockQuantity.toString(), 10) || 0,
+      specifications,
+      compatibility,
+      imageUrl,
+      description: description || name,
+      isFeatured,
+    });
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-gray-200 my-8 space-y-5">
+        <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+          <div>
+            <h3 className="text-xl font-bold text-[#0B2852]">
+              {product ? `Edit Coach / Product: ${product.name}` : "Add New Coach or Add-on"}
+            </h3>
+            <p className="text-xs text-gray-500">Configure specifications, pricing, and media.</p>
+          </div>
+          <button onClick={onClose} className="p-1 rounded-lg text-gray-400 hover:text-gray-700">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="sm:col-span-2">
-              <label className="block text-slate-400 font-semibold mb-1">Coach / Product Name *</label>
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">Coach / Product Name *</label>
               <input
                 type="text"
                 required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="e.g. VG LHB ACADEMY LIVERY SLEEPER COACHES"
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white text-xs"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. VG LHB ACADEMY LIVERY SLEEPER"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
               />
             </div>
-
             <div>
-              <label className="block text-slate-400 font-semibold mb-1">Category *</label>
+              <label className="block font-semibold text-gray-700 mb-1">SKU / Code</label>
+              <input
+                type="text"
+                value={sku}
+                onChange={(e) => setSku(e.target.value)}
+                placeholder="e.g. VG-LHB-ACADEMY-01"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">Regular Price (₹) *</label>
+              <input
+                type="number"
+                required
+                value={regularPrice}
+                onChange={(e) => setRegularPrice(e.target.value)}
+                placeholder="1000"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">Sale / Offer Price (₹)</label>
+              <input
+                type="number"
+                value={salePrice}
+                onChange={(e) => setSalePrice(e.target.value)}
+                placeholder="Leave blank for regular"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">Category *</label>
               <select
-                value={formData.categoryId}
-                onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white text-xs"
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
               >
-                {categories.map((c: any) => (
+                {categories.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
                   </option>
                 ))}
               </select>
             </div>
+          </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-slate-400 font-semibold mb-1">Stock Availability *</label>
+              <label className="block font-semibold text-gray-700 mb-1">Availability Status</label>
               <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className={`w-full px-3.5 py-2 rounded-xl bg-railway-dark border text-xs font-semibold ${
-                  formData.status === "OUT_OF_STOCK"
-                    ? "border-rose-500 text-rose-300"
-                    : "border-railway-border text-emerald-400"
-                }`}
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
               >
-                <option value="AVAILABLE">In Stock (Available to Purchase)</option>
-                <option value="OUT_OF_STOCK">Out of Stock (Disable Cart Purchases)</option>
+                <option value="AVAILABLE">Available / In Stock</option>
+                <option value="OUT_OF_STOCK">Out of Stock</option>
                 <option value="COMING_SOON">Coming Soon</option>
               </select>
             </div>
-
             <div>
-              <label className="block text-slate-400 font-semibold mb-1">Regular Price (₹) *</label>
+              <label className="block font-semibold text-gray-700 mb-1">Stock Quantity</label>
               <input
                 type="number"
-                required
-                value={formData.regularPrice}
-                onChange={(e) => setFormData({ ...formData, regularPrice: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white text-xs font-mono"
+                min="0"
+                value={stockQuantity}
+                onChange={(e) => setStockQuantity(parseInt(e.target.value, 10) || 0)}
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
               />
             </div>
-
             <div>
-              <label className="block text-slate-400 font-semibold mb-1">
-                Offer / Sale Price (₹) <span className="text-slate-500 font-normal">(optional)</span>
-              </label>
-              <input
-                type="number"
-                value={formData.salePrice}
-                onChange={(e) => setFormData({ ...formData, salePrice: parseFloat(e.target.value) || 0 })}
-                placeholder="Leave empty or equal for standard price"
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white text-xs font-mono"
-              />
-            </div>
-
-            <div>
-              <label className="block text-slate-400 font-semibold mb-1">Compatibility</label>
+              <label className="block font-semibold text-gray-700 mb-1">Simulator Platform</label>
               <input
                 type="text"
-                value={formData.compatibility}
-                onChange={(e) => setFormData({ ...formData, compatibility: e.target.value })}
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white text-xs"
+                value={compatibility}
+                onChange={(e) => setCompatibility(e.target.value)}
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
               />
             </div>
+          </div>
 
+          {/* Image Upload and Selection */}
+          <div className="space-y-2">
+            <label className="block font-semibold text-gray-700">Coach Image</label>
+            <div className="flex gap-4 items-center">
+              <div className="w-16 h-16 bg-[#F5F6F8] rounded-xl border border-gray-200 overflow-hidden flex items-center justify-center flex-shrink-0">
+                {imageUrl ? (
+                  <img src={imageUrl} alt="Preview" className="w-full h-full object-contain p-1" />
+                ) : (
+                  <Train className="w-6 h-6 text-gray-400" />
+                )}
+              </div>
+              <div className="flex-1 space-y-2">
+                <input
+                  type="text"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="Image URL or choose/upload below"
+                  className="w-full p-2 border rounded-lg text-xs"
+                />
+                <div className="flex items-center gap-2">
+                  <label className="px-3 py-1.5 bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] rounded-lg text-[11px] font-bold cursor-pointer transition-colors flex items-center gap-1.5">
+                    <Upload className="w-3.5 h-3.5" />
+                    {isUploading ? "Uploading..." : "Upload from Disk"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      disabled={isUploading}
+                    />
+                  </label>
+                  <span className="text-[10px] text-gray-400">JPG, PNG, WEBP up to 15MB</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Preset Selector */}
             <div>
-              <label className="block text-slate-400 font-semibold mb-1">Version / File Size</label>
-              <input
-                type="text"
-                value={formData.fileSize}
-                onChange={(e) => setFormData({ ...formData, fileSize: e.target.value })}
-                placeholder="e.g. 140 MB"
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white text-xs"
-              />
-            </div>
-
-            <div className="sm:col-span-2 space-y-1.5">
-              <label className="block text-slate-400 font-semibold">Image URL *</label>
-              <input
-                type="text"
-                required
-                value={formData.imageUrl}
-                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white text-xs font-mono"
-              />
-              <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                <span className="text-[10px] text-slate-400">Quick Presets:</span>
-                {[
-                  { label: "Academy Sleeper", url: "/assets/products/vg_academy_sleeper.avif" },
-                  { label: "Humsafar V2", url: "/assets/products/humsafar_v2.avif" },
-                  { label: "Sleeper V2", url: "/assets/products/sleeper_v2.avif" },
-                  { label: "Chair Car", url: "/assets/products/chaircar_standard.png" },
-                  { label: "Vistadome", url: "/assets/products/vistadome_standard.png" },
-                  { label: "Amrit Bharat", url: "/assets/products/amrit_bharat.png" },
-                  { label: "Bangladesh", url: "/assets/products/bangladesh_coaches.png" },
-                  { label: "PNB Livery", url: "/assets/products/pnb_livery.png" },
-                  { label: "Tricolour", url: "/assets/products/indian_tricolour.avif" },
-                  { label: "WHR Route", url: "/assets/products/whr_route_v2.png" },
-                ].map((preset) => (
+              <span className="text-[10px] uppercase font-bold text-gray-400 block mb-1">
+                Quick VG Presets:
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {coachPresets.map((p) => (
                   <button
-                    key={preset.url}
+                    key={p.label}
                     type="button"
-                    onClick={() => setFormData({ ...formData, imageUrl: preset.url })}
-                    className="px-2 py-0.5 rounded bg-white/5 hover:bg-white/15 text-[10px] text-slate-300 border border-white/10"
+                    onClick={() => setImageUrl(p.url)}
+                    className={`px-2 py-0.5 rounded text-[10px] font-semibold border transition-all ${
+                      imageUrl === p.url
+                        ? "bg-[#0B2852] text-white border-[#0B2852]"
+                        : "bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-400"
+                    }`}
                   >
-                    {preset.label}
+                    {p.label}
                   </button>
                 ))}
               </div>
             </div>
-
-            <div className="sm:col-span-2">
-              <label className="block text-slate-400 font-semibold mb-1">Description</label>
-              <textarea
-                rows={3}
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white text-xs"
-              />
-            </div>
-
-            <div className="flex items-center gap-4 sm:col-span-2">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.isFeatured}
-                  onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
-                  className="rounded bg-railway-dark text-railway-accent"
-                />
-                <span className="text-white font-medium">Show in Home Page Carousel</span>
-              </label>
-
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.isFree}
-                  onChange={(e) => setFormData({ ...formData, isFree: e.target.checked })}
-                  className="rounded bg-railway-dark text-railway-accent"
-                />
-                <span className="text-white font-medium">Free Community Add-on</span>
-              </label>
-            </div>
           </div>
 
-          <div className="pt-2 flex justify-end gap-3 border-t border-railway-border/60">
+          <div>
+            <label className="block font-semibold text-gray-700 mb-1">
+              Specifications & Engineering Details
+            </label>
+            <textarea
+              rows={2}
+              value={specifications}
+              onChange={(e) => setSpecifications(e.target.value)}
+              placeholder="e.g. Bogie: FIAT-SIG 160km/h, Tare Weight: 40.5 tonnes, Sound: 3D High-Fidelity Physics"
+              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 pt-1">
+            <input
+              type="checkbox"
+              id="isFeatured"
+              checked={isFeatured}
+              onChange={(e) => setIsFeatured(e.target.checked)}
+              className="rounded text-[#0B2852]"
+            />
+            <label htmlFor="isFeatured" className="text-xs font-semibold text-gray-700 cursor-pointer">
+              Showcase in Home Sliding Window Carousel
+            </label>
+          </div>
+
+          <div className="flex gap-3 pt-4 border-t border-gray-200">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white"
+              className="flex-1 py-2.5 rounded-full border border-gray-300 text-gray-700 font-bold hover:bg-gray-100 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-railway-accent hover:bg-red-700 text-white font-bold text-xs shadow-md shadow-red-950 flex items-center gap-1.5"
+              className="flex-1 py-2.5 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] font-bold uppercase transition-all shadow-md"
             >
-              <Save className="w-4 h-4" />
-              <span>{initialValues ? "Update Coach" : "Publish Coach"}</span>
+              {product ? "Save Changes" : "Create Coach"}
             </button>
           </div>
         </form>
@@ -1812,140 +2450,150 @@ function ProductFormModal({ categories, initialValues, onClose, onSave }: any) {
   );
 }
 
-// Subcomponent: Trainboard (T-Board) Add/Edit Modal
+// --- SUB-COMPONENT: TRAINBOARD FORM MODAL ---
 function TrainboardFormModal({
-  initialValues,
+  isOpen,
+  trainboard,
   onClose,
   onSave,
 }: {
-  initialValues: any | null;
+  isOpen: boolean;
+  trainboard: any | null;
   onClose: () => void;
   onSave: (e: React.FormEvent, formValues: any) => void;
 }) {
-  const [formData, setFormData] = useState({
-    name: initialValues?.name || "",
-    zone: initialValues?.zone || "WR",
-    zoneName: initialValues?.zoneName || "Western Railway",
-    size: initialValues?.size || "2.5 MB",
-    downloadUrl: initialValues?.downloadUrl || "",
-  });
+  const [name, setName] = useState(trainboard?.name || "");
+  const [zone, setZone] = useState(trainboard?.zone || "WR");
+  const [zoneName, setZoneName] = useState(trainboard?.zoneName || "Western Railway");
+  const [size, setSize] = useState(trainboard?.size || "2.5 MB");
+  const [downloadUrl, setDownloadUrl] = useState(trainboard?.downloadUrl || "");
+  const [description, setDescription] = useState(trainboard?.description || "");
+  const [displayOrder, setDisplayOrder] = useState(trainboard?.displayOrder ?? 0);
 
-  const zonesList = [
-    { code: "WR", name: "Western Railway" },
-    { code: "CR", name: "Central Railway" },
-    { code: "ECoR", name: "East Coast Railway" },
-    { code: "NR", name: "Northern Railway" },
-    { code: "SR", name: "Southern Railway" },
-    { code: "ER", name: "Eastern Railway" },
-    { code: "NCR", name: "North Central Railway" },
-    { code: "NER", name: "North Eastern Railway" },
-    { code: "NWR", name: "North Western Railway" },
-    { code: "SECR", name: "South East Central Railway" },
-    { code: "SER", name: "South Eastern Railway" },
-    { code: "SWR", name: "South Western Railway" },
-    { code: "WCR", name: "West Central Railway" },
-  ];
+  const zonePresets: Record<string, string> = {
+    WR: "Western Railway",
+    CR: "Central Railway",
+    ECoR: "East Coast Railway",
+    NR: "Northern Railway",
+    SR: "Southern Railway",
+    ER: "Eastern Railway",
+    NCR: "North Central Railway",
+    NER: "North Eastern Railway",
+    NWR: "North Western Railway",
+    SECR: "South East Central Railway",
+    SER: "South Eastern Railway",
+    SWR: "South Western Railway",
+    WCR: "West Central Railway",
+  };
 
-  const handleZoneChange = (zCode: string) => {
-    const found = zonesList.find((z) => z.code === zCode);
-    setFormData({
-      ...formData,
-      zone: zCode,
-      zoneName: found ? found.name : `${zCode} Zone`,
+  const handleZoneSelect = (z: string) => {
+    setZone(z);
+    setZoneName(zonePresets[z] || `${z} Zone`);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    onSave(e, {
+      name,
+      zone,
+      zoneName,
+      size,
+      downloadUrl: downloadUrl || `/downloads/trainboards/${zone}/${name.trim().endsWith(".zip") ? name.trim() : `${name.trim()}.zip`}`,
+      description,
+      displayOrder,
     });
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fadeIn"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-lg bg-railway-darkest border border-railway-border rounded-2xl p-6 sm:p-7 space-y-4 shadow-2xl relative my-8"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white"
-        >
-          <X className="w-5 h-5" />
-        </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+      <div className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-gray-200 space-y-4">
+        <div className="flex items-center justify-between border-b pb-3">
+          <h3 className="text-xl font-bold text-[#0B2852]">
+            {trainboard ? `Edit Trainboard: ${trainboard.name}` : "Add New Trainboard Package"}
+          </h3>
+          <button onClick={onClose} className="p-1 rounded text-gray-400 hover:text-gray-700">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-        <h3 className="text-base font-bold text-white flex items-center gap-2">
-          <Train className="w-5 h-5 text-[#39FF00]" />
-          <span>{initialValues ? "Rename / Edit Trainboard" : "Add New Trainboard (T-Board)"}</span>
-        </h3>
-
-        <form onSubmit={(e) => onSave(e, formData)} className="space-y-4 text-xs">
+        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="block text-slate-400 font-semibold mb-1">
-              Trainboard Title &bull; File Name *
+            <label className="block font-semibold text-gray-700 mb-1">
+              Title / Zip File Name *
             </label>
             <input
               type="text"
               required
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="e.g. 12010 Ahmedabad - Mumbai Shatabdi Express.zip"
-              className="w-full px-3.5 py-2.5 rounded-xl bg-railway-dark border border-railway-border text-white text-xs font-mono"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. WR-Trainboard-Set-01.zip"
+              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-slate-400 font-semibold mb-1">Railway Zone *</label>
+              <label className="block font-semibold text-gray-700 mb-1">Railway Zone *</label>
               <select
-                value={formData.zone}
-                onChange={(e) => handleZoneChange(e.target.value)}
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white text-xs"
+                value={zone}
+                onChange={(e) => handleZoneSelect(e.target.value)}
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
               >
-                {zonesList.map((z) => (
-                  <option key={z.code} value={z.code}>
-                    {z.code} - {z.name}
+                {Object.keys(zonePresets).map((z) => (
+                  <option key={z} value={z}>
+                    {z} ({zonePresets[z]})
                   </option>
                 ))}
               </select>
             </div>
-
             <div>
-              <label className="block text-slate-400 font-semibold mb-1">File Size</label>
+              <label className="block font-semibold text-gray-700 mb-1">File Size</label>
               <input
                 type="text"
-                value={formData.size}
-                onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-                placeholder="e.g. 2.8 MB"
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white text-xs"
+                value={size}
+                onChange={(e) => setSize(e.target.value)}
+                placeholder="2.5 MB"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-slate-400 font-semibold mb-1">
-              Download Path / URL (optional, auto-generated if left empty)
-            </label>
+            <label className="block font-semibold text-gray-700 mb-1">Zone Full Name</label>
             <input
               type="text"
-              value={formData.downloadUrl}
-              onChange={(e) => setFormData({ ...formData, downloadUrl: e.target.value })}
-              placeholder={`/downloads/trainboards/${formData.zone}/${formData.name || "file.zip"}`}
-              className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white text-xs font-mono"
+              value={zoneName}
+              onChange={(e) => setZoneName(e.target.value)}
+              placeholder="Western Railway"
+              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
             />
           </div>
 
-          <div className="pt-2 flex justify-end gap-3 border-t border-railway-border/60">
+          <div>
+            <label className="block font-semibold text-gray-700 mb-1">Download URL</label>
+            <input
+              type="text"
+              value={downloadUrl}
+              onChange={(e) => setDownloadUrl(e.target.value)}
+              placeholder="/downloads/trainboards/WR/filename.zip"
+              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4 border-t border-gray-200">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white"
+              className="flex-1 py-2.5 rounded-full border border-gray-300 text-gray-700 font-bold hover:bg-gray-100"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-railway-accent hover:bg-red-700 text-white font-bold text-xs shadow-md shadow-red-950 flex items-center gap-1.5"
+              className="flex-1 py-2.5 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] font-bold uppercase transition-all shadow-md"
             >
-              <Save className="w-4 h-4" />
-              <span>{initialValues ? "Update Trainboard" : "Save Trainboard"}</span>
+              {trainboard ? "Save Trainboard" : "Add Trainboard"}
             </button>
           </div>
         </form>
@@ -1954,131 +2602,153 @@ function TrainboardFormModal({
   );
 }
 
-// Subcomponent: Project Add/Edit Modal
-function ProjectFormModal({ initialValues, onClose, onSave }: any) {
-  const [formData, setFormData] = useState({
-    projectNo: initialValues?.projectNo || "08",
-    title: initialValues?.title || "",
-    subtitle: initialValues?.subtitle || "",
-    description: initialValues?.description || "",
-    fullContent: initialValues?.fullContent || "",
-    mainImage: initialValues?.mainImage || "https://images.unsplash.com/photo-1532105956626-9569c03602f6?w=800",
-    status: initialValues?.status || "COMPLETED",
-    compatibility: initialValues?.compatibility || "Open Rails 1.4+, MSTS Bin 1.8",
-    order: initialValues?.order || 8,
-    isPublished: initialValues?.isPublished !== undefined ? initialValues.isPublished : true,
-  });
+// --- SUB-COMPONENT: OFFER FORM MODAL ---
+function OfferFormModal({
+  isOpen,
+  offer,
+  onClose,
+  onSave,
+}: {
+  isOpen: boolean;
+  offer: any | null;
+  onClose: () => void;
+  onSave: (e: React.FormEvent, formValues: any) => void;
+}) {
+  const [title, setTitle] = useState(offer?.title || "");
+  const [description, setDescription] = useState(offer?.description || "");
+  const [discountPercent, setDiscountPercent] = useState(offer?.discountPercent ?? 20);
+  const [targetType, setTargetType] = useState(offer?.targetType || "COACHES");
+  const [badgeText, setBadgeText] = useState(offer?.badgeText || "SPECIAL OFFER");
+  const [isActive, setIsActive] = useState(offer?.isActive ?? true);
+  const [endDate, setEndDate] = useState(
+    offer?.endDate ? new Date(offer.endDate).toISOString().split("T")[0] : ""
+  );
+
+  const handleSubmit = (e: React.FormEvent) => {
+    onSave(e, {
+      title,
+      description,
+      discountPercent: parseFloat(discountPercent.toString()) || 0,
+      targetType,
+      badgeText,
+      isActive,
+      endDate: endDate ? new Date(endDate) : null,
+    });
+  };
+
+  if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fadeIn"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-2xl bg-railway-darkest border border-railway-border rounded-2xl p-6 sm:p-8 space-y-4 shadow-2xl relative my-8"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white"
-        >
-          <X className="w-5 h-5" />
-        </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+      <div className="bg-white rounded-2xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-gray-200 space-y-4">
+        <div className="flex items-center justify-between border-b pb-3">
+          <h3 className="text-xl font-bold text-[#0B2852]">
+            {offer ? "Edit Promotional Offer" : "Create New Promotional Offer"}
+          </h3>
+          <button onClick={onClose} className="p-1 rounded text-gray-400 hover:text-gray-700">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-        <h3 className="text-base font-bold text-white">
-          {initialValues ? `Edit Project: ${initialValues.title}` : "Add New Project"}
-        </h3>
+        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+          <div>
+            <label className="block font-semibold text-gray-700 mb-1">Offer Title *</label>
+            <input
+              type="text"
+              required
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Festival Offer"
+              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+            />
+          </div>
 
-        <form onSubmit={(e) => onSave(e, formData)} className="space-y-4 text-xs">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-slate-400 font-semibold mb-1">Project Number *</label>
-              <input
-                type="text"
-                required
-                value={formData.projectNo}
-                onChange={(e) => setFormData({ ...formData, projectNo: e.target.value })}
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white"
-              />
-            </div>
-
-            <div>
-              <label className="block text-slate-400 font-semibold mb-1">Project Title *</label>
-              <input
-                type="text"
-                required
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white"
-              />
-            </div>
-
-            <div className="sm:col-span-2">
-              <label className="block text-slate-400 font-semibold mb-1">Subtitle</label>
-              <input
-                type="text"
-                value={formData.subtitle}
-                onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white"
-              />
-            </div>
-
-            <div className="sm:col-span-2">
-              <label className="block text-slate-400 font-semibold mb-1">Main Image URL</label>
-              <input
-                type="url"
-                value={formData.mainImage}
-                onChange={(e) => setFormData({ ...formData, mainImage: e.target.value })}
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white"
-              />
-            </div>
-
-            <div className="sm:col-span-2">
-              <label className="block text-slate-400 font-semibold mb-1">Description</label>
-              <textarea
-                rows={3}
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white"
-              />
-            </div>
-
-            <div>
-              <label className="block text-slate-400 font-semibold mb-1">Status</label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white"
-              >
-                <option value="COMPLETED">COMPLETED</option>
-                <option value="WORK_IN_PROGRESS">WORK_IN_PROGRESS</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-slate-400 font-semibold mb-1">Catalog Order</label>
+              <label className="block font-semibold text-gray-700 mb-1">Discount % *</label>
               <input
                 type="number"
-                value={formData.order}
-                onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) })}
-                className="w-full px-3.5 py-2 rounded-xl bg-railway-dark border border-railway-border text-white"
+                min="1"
+                max="100"
+                required
+                value={discountPercent}
+                onChange={(e) => setDiscountPercent(parseFloat(e.target.value) || 0)}
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">Badge Text</label>
+              <input
+                type="text"
+                value={badgeText}
+                onChange={(e) => setBadgeText(e.target.value)}
+                placeholder="SPECIAL OFFER"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
               />
             </div>
           </div>
 
-          <div className="pt-2 flex justify-end gap-3">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">Target Scope</label>
+              <select
+                value={targetType}
+                onChange={(e) => setTargetType(e.target.value)}
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              >
+                <option value="ALL">All Items</option>
+                <option value="COACHES">Coaches Only</option>
+                <option value="TRAINBOARDS">Trainboards Only</option>
+              </select>
+            </div>
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">Expiry Date</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-semibold text-gray-700 mb-1">Short Description</label>
+            <textarea
+              rows={2}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="e.g. Festival offer ends tonight at 11:45 PM. Please visit shop page."
+              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 pt-1">
+            <input
+              type="checkbox"
+              id="isActiveOffer"
+              checked={isActive}
+              onChange={(e) => setIsActive(e.target.checked)}
+              className="rounded text-[#0B2852]"
+            />
+            <label htmlFor="isActiveOffer" className="text-xs font-semibold text-gray-700 cursor-pointer">
+              Enable offer immediately on public website
+            </label>
+          </div>
+
+          <div className="flex gap-3 pt-4 border-t border-gray-200">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300"
+              className="flex-1 py-2.5 rounded-full border border-gray-300 text-gray-700 font-bold hover:bg-gray-100"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-railway-accent hover:bg-red-700 text-white font-bold"
+              className="flex-1 py-2.5 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] font-bold uppercase transition-all shadow-md"
             >
-              Save Project
+              {offer ? "Save Offer" : "Create Offer"}
             </button>
           </div>
         </form>

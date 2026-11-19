@@ -2,7 +2,7 @@ import React from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { verifyToken } from "@/lib/auth";
+import { verifyToken, isAdminRole } from "@/lib/auth";
 import AdminClient from "./AdminClient";
 
 export const revalidate = 0;
@@ -16,7 +16,7 @@ export default async function AdminPage() {
   }
 
   const payload = verifyToken(token);
-  if (!payload || payload.role !== "ADMIN") {
+  if (!payload || !isAdminRole(payload.role)) {
     redirect("/login?redirect=/admin");
   }
 
@@ -30,6 +30,8 @@ export default async function AdminPage() {
     enquiries,
     settings,
     trainboards,
+    offers,
+    auditLogs,
   ] = await Promise.all([
     prisma.product.findMany({
       orderBy: { createdAt: "desc" },
@@ -91,7 +93,22 @@ export default async function AdminPage() {
       where: { id: "default" },
     }),
     prisma.trainboard.findMany({
+      orderBy: [{ displayOrder: "asc" }, { createdAt: "desc" }],
+    }),
+    prisma.offer.findMany({
       orderBy: { createdAt: "desc" },
+    }),
+    prisma.auditLog.findMany({
+      take: 30,
+      orderBy: { createdAt: "desc" },
+      include: {
+        user: {
+          select: {
+            email: true,
+            name: true,
+          },
+        },
+      },
     }),
   ]);
 
@@ -105,6 +122,8 @@ export default async function AdminPage() {
       initialEnquiries={enquiries}
       initialSettings={settings}
       initialTrainboards={trainboards}
+      initialOffers={offers}
+      initialAuditLogs={auditLogs}
       currentAdmin={payload}
     />
   );

@@ -1,29 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getUserFromRequest } from "@/lib/auth";
+import { getUserFromRequest, isAdminRole } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
     const user = await getUserFromRequest(req);
-    if (!user || user.role !== "ADMIN") {
+    if (!user || !isAdminRole(user.role)) {
       return NextResponse.json({ error: "Access denied. Administrator privileges required." }, { status: 403 });
     }
 
     const [
       totalCustomers,
       totalProducts,
+      totalCoaches,
+      totalTrainboards,
+      availableProducts,
+      outOfStockProducts,
+      activeOffers,
       totalOrders,
       paidOrders,
       pendingOrders,
       totalDownloads,
       newEnquiries,
       recentOrders,
-      recentActivities
+      recentActivities,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.product.count(),
+      prisma.product.count({
+        where: {
+          OR: [
+            { category: { name: { contains: "Coach" } } },
+            { name: { contains: "Coach" } },
+            { name: { contains: "COACHES" } },
+          ],
+        },
+      }),
+      prisma.trainboard.count(),
+      prisma.product.count({ where: { status: "AVAILABLE" } }),
+      prisma.product.count({ where: { status: "OUT_OF_STOCK" } }),
+      prisma.offer.count({ where: { isActive: true } }),
       prisma.order.count(),
       prisma.order.findMany({ where: { status: "PAID" }, select: { finalAmount: true } }),
       prisma.order.count({ where: { status: "PENDING" } }),
@@ -35,7 +53,7 @@ export async function GET(req: NextRequest) {
         include: { items: true },
       }),
       prisma.auditLog.findMany({
-        take: 10,
+        take: 12,
         orderBy: { createdAt: "desc" },
       }),
     ]);
@@ -46,6 +64,11 @@ export async function GET(req: NextRequest) {
       metrics: {
         totalCustomers,
         totalProducts,
+        totalCoaches,
+        totalTrainboards,
+        availableProducts,
+        outOfStockProducts,
+        activeOffers,
         totalOrders,
         successfulPayments: paidOrders.length,
         pendingPayments: pendingOrders,

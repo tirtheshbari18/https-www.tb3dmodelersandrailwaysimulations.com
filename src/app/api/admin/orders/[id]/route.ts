@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getUserFromRequest } from "@/lib/auth";
+import { getUserFromRequest, isAdminRole } from "@/lib/auth";
 
 export async function PUT(
   req: NextRequest,
@@ -8,7 +8,7 @@ export async function PUT(
 ) {
   try {
     const user = await getUserFromRequest(req);
-    if (!user || user.role !== "ADMIN") {
+    if (!user || !isAdminRole(user.role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 

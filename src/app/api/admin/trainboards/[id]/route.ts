@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getUserFromRequest } from "@/lib/auth";
+import { getUserFromRequest, isAdminRole } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -10,13 +10,29 @@ export async function PUT(
 ) {
   try {
     const user = await getUserFromRequest(req);
-    if (!user || user.role !== "ADMIN") {
+    if (!user || !isAdminRole(user.role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     const { id } = params;
     const body = await req.json();
-    const { name, zone, zoneName, size, downloadUrl } = body;
+    const {
+      name,
+      zone,
+      zoneName,
+      size,
+      downloadUrl,
+      description,
+      image,
+      displayOrder,
+      specifications,
+      status,
+    } = body;
+
+    const existing = await prisma.trainboard.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ error: "Trainboard not found" }, { status: 404 });
+    }
 
     const defaultZoneNames: Record<string, string> = {
       WR: "Western Railway",
@@ -45,8 +61,30 @@ export async function PUT(
         ...(calculatedZoneName && { zoneName: calculatedZoneName }),
         ...(size && { size }),
         ...(downloadUrl && { downloadUrl }),
+        ...(description !== undefined && { description: description?.trim() || null }),
+        ...(image !== undefined && { image }),
+        ...(displayOrder !== undefined && { displayOrder: parseInt(displayOrder, 10) }),
+        ...(specifications !== undefined && { specifications }),
+        ...(body.regularPrice !== undefined && { regularPrice: parseFloat(body.regularPrice) }),
+        ...(body.salePrice !== undefined && { salePrice: body.salePrice !== null && body.salePrice !== "" ? parseFloat(body.salePrice) : null }),
+        ...(status && { status }),
       },
     });
+
+    // Audit Log
+    try {
+      await prisma.auditLog.create({
+        data: {
+          userId: user.id,
+          action: "TRAINBOARD_UPDATED",
+          entity: "TRAINBOARD",
+          entityId: id,
+          details: `Updated trainboard "${updated.name}" (${updated.zone}, Size: ${updated.size}).`,
+        },
+      });
+    } catch (e) {
+      // non-blocking
+    }
 
     return NextResponse.json({ success: true, trainboard: updated });
   } catch (error: any) {
@@ -60,14 +98,34 @@ export async function DELETE(
 ) {
   try {
     const user = await getUserFromRequest(req);
-    if (!user || user.role !== "ADMIN") {
+    if (!user || !isAdminRole(user.role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     const { id } = params;
+    const existing = await prisma.trainboard.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ error: "Trainboard not found" }, { status: 404 });
+    }
+
     await prisma.trainboard.delete({
       where: { id },
     });
+
+    // Audit Log
+    try {
+      await prisma.auditLog.create({
+        data: {
+          userId: user.id,
+          action: "TRAINBOARD_DELETED",
+          entity: "TRAINBOARD",
+          entityId: id,
+          details: `Permanently deleted trainboard "${existing.name}" (${existing.zone}).`,
+        },
+      });
+    } catch (e) {
+      // non-blocking
+    }
 
     return NextResponse.json({ success: true, message: "Trainboard deleted successfully" });
   } catch (error: any) {
