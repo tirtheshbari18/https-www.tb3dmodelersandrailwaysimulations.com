@@ -25,30 +25,6 @@ export default function HomeClient({
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [showNoticePopup, setShowNoticePopup] = useState(false);
-
-  // Check localStorage for dismissed status on mount
-  useEffect(() => {
-    try {
-      const isDismissed = localStorage.getItem("vg_notice_dismissed");
-      if (!isDismissed) {
-        setShowNoticePopup(true);
-      }
-    } catch (e) {
-      setShowNoticePopup(true);
-    }
-  }, []);
-
-  const handleDismissNotice = () => {
-    setShowNoticePopup(false);
-    try {
-      localStorage.setItem("vg_notice_dismissed", "true");
-    } catch (e) {}
-  };
-
-  const handleResetNotice = () => {
-    setShowNoticePopup(true);
-  };
 
   // Full 13-item collection matching reference screenshots and catalog
   const showcaseProducts = [
@@ -180,111 +156,6 @@ export default function HomeClient({
   return (
     <div className="w-full bg-white text-[#101C32]">
       {/* =========================================================================
-          A. OFFICIAL NOTICE POPUP (MODAL)
-          ========================================================================= */}
-      {showNoticePopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="relative w-full max-w-4xl bg-[#ECE8F8] text-[#2A1E68] rounded-2xl shadow-2xl border-2 border-[#D8CEF6] overflow-hidden p-6 sm:p-8 animate-in zoom-in-95 duration-200">
-            {/* Large White Close Button in Top-Right Corner */}
-            <button
-              onClick={handleDismissNotice}
-              aria-label="Close Official Notice"
-              className="absolute top-4 right-4 sm:top-5 sm:right-5 w-11 h-11 rounded-full bg-white text-[#2A1E68] shadow-lg flex items-center justify-center hover:bg-[#39FF00] hover:text-[#101C32] transition-all hover:scale-110 z-10 focus:outline-none"
-            >
-              <X className="w-6 h-6 stroke-[2.5]" />
-            </button>
-
-            {/* Two-Column Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center pt-2">
-              {/* Left Column: Official Notice Text */}
-              <div className="lg:col-span-7 space-y-4">
-                <div className="flex items-center gap-2 text-[#D21312]">
-                  <span className="text-2xl">⚠️</span>
-                  <h2 className="font-josefin font-bold text-lg sm:text-xl md:text-2xl tracking-wide uppercase">
-                    OFFICIAL NOTICE FROM VARUN GANESH
-                  </h2>
-                </div>
-
-                <p className="font-josefin font-medium text-[15px] sm:text-[16px] leading-relaxed text-[#2A1E68]">
-                  VG-3D Modelers & Railway Simulations is the exclusive, official source for all our 3D train models, coaches, and railway simulation add-ons.
-                </p>
-
-                <div className="space-y-2.5 bg-white/60 p-4 rounded-xl border border-[#D8CEF6]">
-                  <div className="flex items-start gap-2 text-[14px] sm:text-[15px] leading-snug">
-                    <span className="font-bold text-[#D21312] mt-0.5">•</span>
-                    <p>
-                      <strong>No Authorized Resellers:</strong> We do not partner with or sell through any third-party websites or individuals.
-                    </p>
-                  </div>
-
-                  <div className="flex items-start gap-2 text-[14px] sm:text-[15px] leading-snug">
-                    <span className="font-bold text-[#D21312] mt-0.5">•</span>
-                    <p>
-                      <strong>Scam Warning:</strong> Any other site, group, or person claiming to resell or distribute our files is fraudulent.
-                    </p>
-                  </div>
-
-                  <div className="flex items-start gap-2 text-[14px] sm:text-[15px] leading-snug">
-                    <span className="font-bold text-[#D21312] mt-0.5">•</span>
-                    <p>
-                      <strong>Safety Risk:</strong> Stolen files distributed on scam sites often contain malicious software, broken assets, or outdated data.
-                    </p>
-                  </div>
-                </div>
-
-                <p className="font-josefin font-semibold text-[14px] sm:text-[15px] leading-snug text-[#2A1E68] pt-1">
-                  To guarantee you receive authentic, high-quality, and secure add-ons, always purchase directly through this official platform.
-                </p>
-
-                <div className="pt-2 flex flex-wrap items-center gap-3">
-                  <button
-                    onClick={handleDismissNotice}
-                    className="bg-[#0B2852] hover:bg-[#39FF00] hover:text-[#101C32] text-white font-josefin font-semibold px-6 py-2.5 rounded-full shadow transition-all duration-200 text-sm"
-                  >
-                    I Understand & Proceed
-                  </button>
-                  <Link
-                    href="/shop"
-                    onClick={handleDismissNotice}
-                    className="text-xs sm:text-sm font-semibold underline text-[#2A1E68] hover:text-[#0B2852]"
-                  >
-                    Visit Official Shop →
-                  </Link>
-                </div>
-              </div>
-
-              {/* Right Column: Railway Coach Image Collage */}
-              <div className="lg:col-span-5 flex flex-col gap-3">
-                <div className="bg-white/90 p-2 rounded-xl shadow-md border border-[#D8CEF6] overflow-hidden">
-                  <img
-                    src="/assets/banners/about_hero_trio.png"
-                    alt="Official VG-3D Railway Models Collage"
-                    className="w-full h-auto object-contain rounded-lg"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-white/90 p-1.5 rounded-lg shadow-sm border border-[#D8CEF6]">
-                    <img
-                      src="/assets/products/vistadome_standard.png"
-                      alt="LHB Vistadome"
-                      className="w-full h-24 object-contain"
-                    />
-                  </div>
-                  <div className="bg-white/90 p-1.5 rounded-lg shadow-sm border border-[#D8CEF6]">
-                    <img
-                      src="/assets/products/chaircar_standard.png"
-                      alt="LHB Chair Car"
-                      className="w-full h-24 object-contain"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* =========================================================================
           B. PROMOTIONAL ANNOUNCEMENT BAR (ORANGE WITH GREEN ARROW SEPARATORS)
           ========================================================================= */}
       <div className="w-full bg-[#FF6600] text-white py-2 overflow-hidden select-none border-b border-[#E65C00] shadow-sm">
@@ -316,14 +187,16 @@ export default function HomeClient({
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             {/* Notice Recall Button */}
-            {!showNoticePopup && (
-              <button
-                onClick={handleResetNotice}
-                className="text-xs bg-[#ECE8F8] text-[#2A1E68] border border-[#D8CEF6] px-3 py-2 rounded-full font-semibold hover:bg-[#D8CEF6] transition-colors flex items-center justify-center gap-1.5 shadow-sm"
-              >
-                <span>⚠️ Official Notice</span>
-              </button>
-            )}
+            <button
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  window.dispatchEvent(new CustomEvent("open-anti-piracy-modal"));
+                }
+              }}
+              className="text-xs bg-[#ECE8F8] text-[#2A1E68] border border-[#D8CEF6] px-3 py-2 rounded-full font-semibold hover:bg-[#D8CEF6] transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              <span>⚠️ Official Notice</span>
+            </button>
 
             {/* Clean Search Box */}
             <form onSubmit={handleSearchSubmit} className="relative w-full sm:w-[280px]">

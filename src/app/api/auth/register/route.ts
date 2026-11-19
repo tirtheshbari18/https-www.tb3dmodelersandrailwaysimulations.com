@@ -1,95 +1,162 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { hashPassword, createToken } from "@/lib/auth";
+import { hashPassword } from "@/lib/auth";
+import { verifyCaptcha } from "@/lib/captcha";
+import { sendAdminNewUserAlert } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, password, phone, country, state } = await req.json();
+    const body = await req.json();
+    const {
+      firstName,
+      lastName,
+      email,
+      phone,
+      address,
+      address2,
+      city,
+      state,
+      postalCode,
+      country,
+      password,
+      confirmPassword,
+      termsAccepted,
+      privacyAccepted,
+      eulaAccepted,
+      captchaToken,
+      captchaAnswer,
+    } = body;
 
-    if (!email || !password || !name) {
+    // 1. Validate CAPTCHA
+    const captchaCheck = await verifyCaptcha(captchaToken, captchaAnswer);
+    if (!captchaCheck.valid) {
       return NextResponse.json(
-        { error: "Name, email and password are required" },
+        { error: captchaCheck.error || "Invalid CAPTCHA answer" },
         { status: 400 }
       );
     }
 
-    if (password.length < 6) {
+    // 2. Validate mandatory fields
+    if (!firstName || !lastName) {
       return NextResponse.json(
-        { error: "Password must be at least 6 characters" },
+        { error: "First and last name are required" },
+        { status: 400 }
+      );
+    }
+
+    if (!email) {
+      return NextResponse.json(
+        { error: "Email address is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!phone) {
+      return NextResponse.json(
+        { error: "Mobile phone number is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!address || !city || !state || !postalCode) {
+      return NextResponse.json(
+        { error: "Full postal address (address, city, state, postal code) is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!password) {
+      return NextResponse.json(
+        { error: "Password is required" },
+        { status: 400 }
+      );
+    }
+
+    if (password.length < 8) {
+      return NextResponse.json(
+        { error: "Password must be at least 8 characters long" },
+        { status: 400 }
+      );
+    }
+
+    if (password !== confirmPassword) {
+      return NextResponse.json(
+        { error: "Passwords do not match" },
+        { status: 400 }
+      );
+    }
+
+    if (!termsAccepted || !privacyAccepted || !eulaAccepted) {
+      return NextResponse.json(
+        { error: "You must accept the Terms & Conditions, Privacy Policy, and EULA to register" },
         { status: 400 }
       );
     }
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Check if user already exists
+    // 3. Check for existing user
     const existingUser = await prisma.user.findUnique({
       where: { email: normalizedEmail },
     });
 
     if (existingUser) {
       return NextResponse.json(
-        { error: "An account with this email already exists" },
+        { error: "An account with this email address already exists" },
         { status: 400 }
       );
     }
 
+    // 4. Hash password
     const passwordHash = await hashPassword(password);
+    const fullName = `${firstName.trim()} ${lastName.trim()}`;
 
+    // 5. Create user with PENDING_APPROVAL status
     const user = await prisma.user.create({
       data: {
-        name: name.trim(),
+        name: fullName,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
         email: normalizedEmail,
         passwordHash,
-        role: "USER",
-        phone: phone || null,
+        phone: phone.trim(),
+        address: address.trim(),
+        address2: address2 ? address2.trim() : null,
+        city: city.trim(),
+        state: state.trim(),
+        postalCode: postalCode.trim(),
         country: country || "India",
-        state: state || null,
-        isVerified: true,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        country: true,
-        state: true,
-        phone: true,
-        createdAt: true,
+        role: "USER",
+        status: "PENDING_APPROVAL",
+        isVerified: false,
       },
     });
 
-    // Create session token
-    const token = createToken({
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-      name: user.name,
+    // 6. Notify admin via email
+    try {
+      await sendAdminNewUserAlert({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        city: user.city,
+        country: user.country,
+        createdAt: user.createdAt,
+      });
+    } catch (e) {
+      console.error("Failed to send admin new user alert email:", e);
+    }
+
+    return NextResponse.json({
+      success: true,
+      status: "PENDING_APPROVAL",
+      message:
+        "Registration successful! Your account is currently pending administrator approval. You will be notified by email once your account has been reviewed and approved.",
     });
-
-    const response = NextResponse.json({
-      message: "Registration successful",
-      user,
-      token,
-    });
-
-    const isSecure = process.env.NODE_ENV === "production" && !req.url.includes("localhost");
-
-    response.cookies.set({
-      name: "vg_auth_token",
-      value: token,
-      httpOnly: true,
-      secure: isSecure,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7,
-    });
-
-    return response;
   } catch (error: any) {
     console.error("Registration error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to register user" },
+      { error: error.message || "Failed to complete registration" },
       { status: 500 }
     );
   }

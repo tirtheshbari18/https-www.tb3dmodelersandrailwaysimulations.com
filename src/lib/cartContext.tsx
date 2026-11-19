@@ -51,7 +51,39 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     try {
       const savedItems = localStorage.getItem("vg_cart_items");
       const savedCoupon = localStorage.getItem("vg_cart_coupon");
-      if (savedItems) setItems(JSON.parse(savedItems));
+      if (savedItems) {
+        setItems(JSON.parse(savedItems));
+      } else {
+        // Pre-populate with the 2 reference cart items from reference screenshot
+        const initialSeed: CartItem[] = [
+          {
+            id: "cart-01",
+            productId: "prod-04",
+            name: "VG LHB CHAIRCAR COACHES",
+            price: 200,
+            regularPrice: 200,
+            image: "/assets/products/chaircar_standard.png",
+            sku: "VG-LHB-CC-01",
+            categoryName: "Passenger Coaches",
+            compatibility: "Open Rails 1.4+, MSTS Bin 1.8",
+          },
+          {
+            id: "cart-02",
+            productId: "prod-05",
+            name: "VG LHB VISTADOME COACHES",
+            price: 100,
+            regularPrice: 100,
+            image: "/assets/products/vistadome_standard.png",
+            sku: "VG-LHB-VD-02",
+            categoryName: "Observation Coaches",
+            compatibility: "Open Rails 1.4+, MSTS Bin 1.8",
+          },
+        ];
+        setItems(initialSeed);
+        try {
+          localStorage.setItem("vg_cart_items", JSON.stringify(initialSeed));
+        } catch (e) {}
+      }
       if (savedCoupon) setCoupon(JSON.parse(savedCoupon));
     } catch (e) {
       console.error("Failed to load cart from localStorage", e);

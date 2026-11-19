@@ -34,32 +34,46 @@ async function main() {
   const adminPasswordHash = await bcrypt.hash('Admin@VG3D#2025', 10);
   const adminUser = await prisma.user.upsert({
     where: { email: 'admin@vg3dmodelers.com' },
-    update: {},
+    update: {
+      status: 'APPROVED',
+      approvedAt: new Date(),
+    },
     create: {
       name: 'Varun Ganesh (Admin)',
+      firstName: 'Varun',
+      lastName: 'Ganesh',
       email: 'admin@vg3dmodelers.com',
       passwordHash: adminPasswordHash,
       role: 'ADMIN',
+      status: 'APPROVED',
       phone: '+91 98401 23456',
       country: 'India',
       state: 'Tamil Nadu',
-      isVerified: true
+      isVerified: true,
+      approvedAt: new Date(),
     }
   });
 
   const demoUserPasswordHash = await bcrypt.hash('Passenger@2025', 10);
   const demoUser = await prisma.user.upsert({
     where: { email: 'demo@trainsim.com' },
-    update: {},
+    update: {
+      status: 'APPROVED',
+      approvedAt: new Date(),
+    },
     create: {
-      name: 'Rahul Sharma',
+      name: 'Tirthesh Bari',
+      firstName: 'Tirthesh',
+      lastName: 'Bari',
       email: 'demo@trainsim.com',
       passwordHash: demoUserPasswordHash,
       role: 'USER',
+      status: 'APPROVED',
       phone: '+91 98765 01234',
       country: 'India',
       state: 'Maharashtra',
-      isVerified: true
+      isVerified: true,
+      approvedAt: new Date(),
     }
   });
 
@@ -629,7 +643,12 @@ async function main() {
       }
     }
 
-    // Recreate files
+    // Recreate files safely
+    const existingFiles = await prisma.productFile.findMany({ where: { productId: createdProduct.id } });
+    for (const ef of existingFiles) {
+      await prisma.downloadLog.deleteMany({ where: { fileId: ef.id } }).catch(() => {});
+      await prisma.downloadEntitlement.deleteMany({ where: { productFileId: ef.id } }).catch(() => {});
+    }
     await prisma.productFile.deleteMany({ where: { productId: createdProduct.id } });
     if (files && files.length > 0) {
       for (const f of files) {

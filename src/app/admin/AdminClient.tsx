@@ -24,7 +24,12 @@ import {
   Save, 
   DollarSign, 
   TrendingUp, 
-  ExternalLink 
+  ExternalLink,
+  Clock,
+  Check,
+  Ban,
+  UserCheck,
+  UserX
 } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
@@ -74,6 +79,10 @@ export default function AdminClient({
   const [productSearch, setProductSearch] = useState("");
   const [orderSearch, setOrderSearch] = useState("");
   const [orderFilter, setOrderFilter] = useState("ALL");
+  const [userStatusFilter, setUserStatusFilter] = useState("ALL");
+  const [userSearch, setUserSearch] = useState("");
+  const [rejectionModalUser, setRejectionModalUser] = useState<any | null>(null);
+  const [rejectionReasonText, setRejectionReasonText] = useState("");
 
   // Status message
   const [toastMsg, setToastMsg] = useState<{ text: string; isError: boolean } | null>(null);
@@ -90,6 +99,7 @@ export default function AdminClient({
   const paidOrdersCount = orders.filter((o) => o.status === "PAID").length;
   const pendingOrdersCount = orders.filter((o) => o.status === "PENDING").length;
   const newEnquiriesCount = enquiries.filter((e) => e.status === "NEW").length;
+  const pendingUsersCount = customers.filter((c) => c.status === "PENDING_APPROVAL").length;
 
   // --- Product Handlers ---
   const handleSaveProduct = async (e: React.FormEvent, formValues: any) => {
@@ -241,6 +251,54 @@ export default function AdminClient({
     }
   };
 
+  // --- User Approval & Status Handlers ---
+  const handleUserStatusAction = async (userId: string, action: string, reason?: string) => {
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, reason }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update user status");
+
+      setCustomers((prev) =>
+        prev.map((c) => {
+          if (c.id === userId) {
+            let nextStatus = c.status;
+            if (action === "approve" || action === "reactivate") nextStatus = "APPROVED";
+            else if (action === "reject") nextStatus = "REJECTED";
+            else if (action === "suspend") nextStatus = "SUSPENDED";
+
+            return {
+              ...c,
+              status: nextStatus,
+              rejectionReason: action === "reject" ? reason : c.rejectionReason,
+              approvedAt: action === "approve" ? new Date().toISOString() : c.approvedAt,
+            };
+          }
+          return c;
+        })
+      );
+      showToast(`User status updated: ${action.toUpperCase()}`);
+    } catch (err: any) {
+      showToast(err.message, true);
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm("Are you sure you want to permanently delete this user?")) return;
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to delete user");
+      setCustomers((prev) => prev.filter((c) => c.id !== userId));
+      showToast("User account deleted successfully");
+    } catch (err: any) {
+      showToast(err.message, true);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-railway-darkest text-slate-100 pb-20">
       {/* Top Banner */}
@@ -357,7 +415,12 @@ export default function AdminClient({
             }`}
           >
             <Users className="w-4 h-4" />
-            Customers ({customers.length})
+            Users &amp; Approvals ({customers.length})
+            {pendingUsersCount > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-black text-[10px] font-black animate-pulse">
+                {pendingUsersCount} PENDING
+              </span>
+            )}
           </button>
 
           <button
@@ -791,50 +854,199 @@ export default function AdminClient({
           </div>
         )}
 
-        {/* TAB 5: CUSTOMERS MANAGEMENT */}
+        {/* TAB 5: USER APPROVAL & CUSTOMERS MANAGEMENT */}
         {activeTab === "customers" && (
-          <div className="bg-railway-card rounded-2xl border border-railway-border overflow-x-auto">
-            <div className="p-4 border-b border-railway-border flex items-center justify-between">
-              <h3 className="font-bold text-white text-base">Registered Users & Members</h3>
-              <span className="text-xs text-slate-400 font-mono">
-                {customers.length} Members
-              </span>
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-railway-card p-4 rounded-2xl border border-railway-border">
+              <div>
+                <h3 className="font-bold text-white text-base">User Approvals &amp; Member Directory</h3>
+                <p className="text-xs text-slate-400">Review registrations, authorize customer accounts, and manage member statuses.</p>
+              </div>
+
+              {/* Status Filter Pills */}
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { key: "ALL", label: `All (${customers.length})` },
+                  { key: "PENDING_APPROVAL", label: `Pending (${customers.filter((c) => c.status === "PENDING_APPROVAL").length})` },
+                  { key: "APPROVED", label: `Approved (${customers.filter((c) => c.status === "APPROVED").length})` },
+                  { key: "REJECTED", label: `Rejected (${customers.filter((c) => c.status === "REJECTED").length})` },
+                  { key: "SUSPENDED", label: `Suspended (${customers.filter((c) => c.status === "SUSPENDED").length})` },
+                ].map((pill) => (
+                  <button
+                    key={pill.key}
+                    onClick={() => setUserStatusFilter(pill.key)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      userStatusFilter === pill.key
+                        ? "bg-railway-accent text-white shadow-sm"
+                        : "bg-railway-dark text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    {pill.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <table className="w-full text-xs text-left">
-              <thead className="text-slate-500 uppercase border-b border-railway-border/60 font-mono text-[10px] bg-railway-dark">
-                <tr>
-                  <th className="py-3 px-4">Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Country</th>
-                  <th>Orders</th>
-                  <th>Joined Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-railway-border/40">
-                {customers.map((cust) => (
-                  <tr key={cust.id} className="hover:bg-white/[0.02]">
-                    <td className="py-3 px-4 font-semibold text-white">{cust.name}</td>
-                    <td className="text-slate-300">{cust.email}</td>
-                    <td>
-                      <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                          cust.role === "ADMIN"
-                            ? "bg-red-950 text-red-400 border border-red-800"
-                            : "bg-slate-800 text-slate-300"
-                        }`}
-                      >
-                        {cust.role}
-                      </span>
-                    </td>
-                    <td className="text-slate-400">{cust.country || "India"}</td>
-                    <td className="font-bold text-white">{cust._count?.orders || 0}</td>
-                    <td className="text-slate-500">{formatDate(cust.createdAt)}</td>
+            {/* Search Bar */}
+            <div className="relative">
+              <input
+                type="text"
+                value={userSearch}
+                onChange={(e) => setUserSearch(e.target.value)}
+                placeholder="Search user by name, email, phone, city..."
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-railway-card border border-railway-border text-xs text-white placeholder-slate-500 focus:outline-none focus:border-railway-accent"
+              />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+            </div>
+
+            {/* Users Table */}
+            <div className="bg-railway-card rounded-2xl border border-railway-border overflow-x-auto shadow-sm">
+              <table className="w-full text-xs text-left">
+                <thead className="text-slate-400 uppercase border-b border-railway-border/60 font-mono text-[10px] bg-railway-dark">
+                  <tr>
+                    <th className="py-3 px-4">User Details</th>
+                    <th>Contact &amp; Location</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Registered</th>
+                    <th className="text-right px-4">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-railway-border/40">
+                  {customers
+                    .filter((c) => {
+                      if (userStatusFilter !== "ALL" && c.status !== userStatusFilter) return false;
+                      if (!userSearch) return true;
+                      const q = userSearch.toLowerCase();
+                      return (
+                        c.name?.toLowerCase().includes(q) ||
+                        c.email?.toLowerCase().includes(q) ||
+                        c.phone?.toLowerCase().includes(q) ||
+                        c.city?.toLowerCase().includes(q) ||
+                        c.country?.toLowerCase().includes(q)
+                      );
+                    })
+                    .map((cust) => (
+                      <tr key={cust.id} className="hover:bg-white/[0.02] transition-colors">
+                        <td className="py-3.5 px-4">
+                          <div className="font-semibold text-white text-sm">{cust.name}</div>
+                          <div className="text-slate-400 text-[11px] font-mono">{cust.email}</div>
+                          {cust.rejectionReason && cust.status === "REJECTED" && (
+                            <div className="text-[10px] text-red-400 mt-1 italic">
+                              Reason: {cust.rejectionReason}
+                            </div>
+                          )}
+                        </td>
+
+                        <td className="text-slate-300">
+                          <div>{cust.phone || "No phone"}</div>
+                          <div className="text-slate-500 text-[11px]">
+                            {cust.city ? `${cust.city}, ` : ""}{cust.country || "India"}
+                          </div>
+                        </td>
+
+                        <td>
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                              cust.role === "ADMIN"
+                                ? "bg-red-950 text-red-400 border border-red-800"
+                                : "bg-slate-800 text-slate-300"
+                            }`}
+                          >
+                            {cust.role}
+                          </span>
+                        </td>
+
+                        <td>
+                          {cust.status === "PENDING_APPROVAL" ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-amber-950 text-amber-400 border border-amber-800">
+                              <Clock className="w-3 h-3" />
+                              Pending Approval
+                            </span>
+                          ) : cust.status === "APPROVED" ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-emerald-950 text-emerald-400 border border-emerald-800">
+                              <Check className="w-3 h-3" />
+                              Approved
+                            </span>
+                          ) : cust.status === "REJECTED" ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-red-950 text-red-400 border border-red-800">
+                              <UserX className="w-3 h-3" />
+                              Rejected
+                            </span>
+                          ) : cust.status === "SUSPENDED" ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-slate-800 text-slate-400 border border-slate-700">
+                              <Ban className="w-3 h-3" />
+                              Suspended
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-950 text-emerald-400">
+                              Approved
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="text-slate-400 font-mono text-[11px]">
+                          {formatDate(cust.createdAt)}
+                        </td>
+
+                        <td className="text-right px-4 space-x-2 whitespace-nowrap">
+                          {cust.status === "PENDING_APPROVAL" && (
+                            <>
+                              <button
+                                onClick={() => handleUserStatusAction(cust.id, "approve")}
+                                className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-md text-[11px] font-bold shadow-sm transition-all"
+                                title="Approve registration application"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setRejectionModalUser(cust);
+                                  setRejectionReasonText("");
+                                }}
+                                className="px-3 py-1 bg-red-800 hover:bg-red-700 text-white rounded-md text-[11px] font-bold shadow-sm transition-all"
+                                title="Reject registration application"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          )}
+
+                          {cust.status === "APPROVED" && cust.role !== "ADMIN" && (
+                            <button
+                              onClick={() => handleUserStatusAction(cust.id, "suspend")}
+                              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md text-[11px] font-medium transition-all"
+                              title="Temporarily suspend access"
+                            >
+                              Suspend
+                            </button>
+                          )}
+
+                          {(cust.status === "REJECTED" || cust.status === "SUSPENDED") && (
+                            <button
+                              onClick={() => handleUserStatusAction(cust.id, "reactivate")}
+                              className="px-3 py-1 bg-emerald-700 hover:bg-emerald-600 text-white rounded-md text-[11px] font-bold shadow-sm transition-all"
+                              title="Reactivate and approve user"
+                            >
+                              Reactivate
+                            </button>
+                          )}
+
+                          {cust.role !== "ADMIN" && (
+                            <button
+                              onClick={() => handleDeleteUser(cust.id)}
+                              className="p-1 text-slate-500 hover:text-red-400 transition-colors inline-flex items-center"
+                              title="Delete user record"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
@@ -1064,6 +1276,66 @@ export default function AdminClient({
                   <span className="font-mono text-emerald-400">{formatCurrency(it.price)}</span>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* User Rejection Reason Modal */}
+      {rejectionModalUser && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setRejectionModalUser(null)}
+        >
+          <div
+            className="w-full max-w-md bg-railway-darkest border border-railway-border rounded-2xl p-6 sm:p-7 space-y-4 shadow-2xl relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setRejectionModalUser(null)}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-white">Reject Registration</h3>
+              <p className="text-xs text-slate-400">
+                Rejecting application for <strong className="text-white">{rejectionModalUser.name}</strong> ({rejectionModalUser.email}).
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">
+                Reason for Rejection (optional, will be sent to user):
+              </label>
+              <textarea
+                rows={3}
+                value={rejectionReasonText}
+                onChange={(e) => setRejectionReasonText(e.target.value)}
+                placeholder="e.g. Incomplete address details or unverified contact information."
+                className="w-full p-3 rounded-xl bg-railway-card border border-railway-border text-xs text-white focus:outline-none focus:border-red-500"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setRejectionModalUser(null)}
+                className="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  handleUserStatusAction(rejectionModalUser.id, "reject", rejectionReasonText);
+                  setRejectionModalUser(null);
+                }}
+                className="px-5 py-2 rounded-xl bg-red-700 hover:bg-red-600 text-white text-xs font-bold transition-all shadow-md"
+              >
+                Confirm Rejection
+              </button>
             </div>
           </div>
         </div>

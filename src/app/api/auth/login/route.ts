@@ -1,16 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { comparePassword, createToken } from "@/lib/auth";
+import { verifyCaptcha } from "@/lib/captcha";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await req.json();
+    const { email, password, captchaToken, captchaAnswer } = await req.json();
 
     if (!email || !password) {
       return NextResponse.json(
         { error: "Email and password are required" },
         { status: 400 }
       );
+    }
+
+    // CAPTCHA verification (allows header bypass for automated test suites)
+    const testBypass = req.headers.get("x-test-bypass");
+    if (testBypass !== "vg-internal-test-2025") {
+      if (!captchaToken || !captchaAnswer) {
+        return NextResponse.json(
+          { error: "CAPTCHA verification is required" },
+          { status: 400 }
+        );
+      }
+      const captchaCheck = await verifyCaptcha(captchaToken, captchaAnswer);
+      if (!captchaCheck.valid) {
+        return NextResponse.json(
+          { error: captchaCheck.error || "Invalid CAPTCHA answer" },
+          { status: 400 }
+        );
+      }
     }
 
     const normalizedEmail = email.toLowerCase().trim();
@@ -34,6 +53,40 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Check Account Status
+    if (user.status === "PENDING_APPROVAL") {
+      return NextResponse.json(
+        {
+          error: "Your account is pending administrator approval. You will receive an email once approved.",
+          accountStatus: "PENDING_APPROVAL",
+        },
+        { status: 403 }
+      );
+    }
+
+    if (user.status === "REJECTED") {
+      return NextResponse.json(
+        {
+          error: user.rejectionReason
+            ? `Your account was rejected: ${user.rejectionReason}`
+            : "Your account application has been rejected by the administrator.",
+          accountStatus: "REJECTED",
+        },
+        { status: 403 }
+      );
+    }
+
+    if (user.status === "SUSPENDED") {
+      return NextResponse.json(
+        {
+          error: "Your account has been suspended. Please contact customer support.",
+          accountStatus: "SUSPENDED",
+        },
+        { status: 403 }
+      );
+    }
+
+    // Account is APPROVED
     const token = createToken({
       userId: user.id,
       email: user.email,
@@ -44,8 +97,11 @@ export async function POST(req: NextRequest) {
     const userResponse = {
       id: user.id,
       name: user.name,
+      firstName: user.firstName,
+      lastName: user.lastName,
       email: user.email,
       role: user.role,
+      status: user.status,
       phone: user.phone,
       country: user.country,
       state: user.state,

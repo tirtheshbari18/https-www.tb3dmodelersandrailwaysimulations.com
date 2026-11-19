@@ -55,14 +55,22 @@ export async function getUserFromRequest(req: NextRequest) {
       select: {
         id: true,
         name: true,
+        firstName: true,
+        lastName: true,
         email: true,
         role: true,
+        status: true,
         phone: true,
         country: true,
         state: true,
         createdAt: true,
       },
     });
+
+    if (!user || user.status === "SUSPENDED") {
+      return null;
+    }
+
     return user;
   } catch (e) {
     return null;

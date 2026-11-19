@@ -59,10 +59,21 @@ export default async function AdminPage() {
       select: {
         id: true,
         name: true,
+        firstName: true,
+        lastName: true,
         email: true,
         role: true,
+        status: true,
         phone: true,
+        city: true,
+        state: true,
+        postalCode: true,
         country: true,
+        approvedAt: true,
+        approvedBy: true,
+        rejectedAt: true,
+        rejectionReason: true,
+        suspendedAt: true,
         createdAt: true,
         _count: {
           select: {

@@ -89,6 +89,7 @@ export default function Navbar() {
     { name: "Projects", href: "/projects" },
     { name: "Shop", href: "/shop" },
     { name: "Downloads", href: "/downloads" },
+    { name: "Train Boards", href: "/trainboards" },
     { name: "Services", href: "/services" },
     { name: "Contact", href: "/contact" },
   ];

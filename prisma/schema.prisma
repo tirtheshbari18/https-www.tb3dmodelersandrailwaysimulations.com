@@ -14,25 +14,49 @@ datasource db {
 // Enums represented as strings for SQLite & universal database portability
 
 model User {
-  id            String    @id @default(cuid())
-  name          String
-  email         String    @unique
-  passwordHash  String
-  role          String    @default("USER") // USER, ADMIN
-  phone         String?
-  country       String?   @default("India")
-  state         String?
-  isVerified    Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                      String    @id @default(cuid())
+  name                    String
+  firstName               String?
+  lastName                String?
+  email                   String    @unique
+  passwordHash            String
+  role                    String    @default("USER") // USER, ADMIN
+  status                  String    @default("PENDING_APPROVAL") // PENDING_APPROVAL, APPROVED, REJECTED, SUSPENDED
+  phone                   String?
+  address                 String?
+  address2                String?
+  city                    String?
+  state                   String?
+  postalCode              String?
+  country                 String?   @default("India")
+  isVerified              Boolean   @default(true)
+  registeredAt            DateTime  @default(now())
+  approvedAt              DateTime?
+  approvedBy              String?
+  rejectedAt              DateTime?
+  rejectionReason         String?
+  suspendedAt             DateTime?
+  passwordResetTokenHash  String?
+  passwordResetExpiresAt  DateTime?
+  passwordResetUsedAt     DateTime?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
 
-  orders        Order[]
-  entitlements  DownloadEntitlement[]
-  downloadLogs  DownloadLog[]
-  wishlists     Wishlist[]
-  tickets       SupportTicket[]
-  notifications Notification[]
-  auditLogs     AuditLog[]
+  orders                  Order[]
+  entitlements            DownloadEntitlement[]
+  downloadLogs            DownloadLog[]
+  wishlists               Wishlist[]
+  tickets                 SupportTicket[]
+  notifications           Notification[]
+  auditLogs               AuditLog[]
+}
+
+model CaptchaChallenge {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  answer    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }
 
 model ProductCategory {
@@ -229,9 +253,9 @@ model DownloadEntitlement {
   createdAt     DateTime     @default(now())
 
   user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product       Product      @relation(fields: [productId], references: [id])
-  productFile   ProductFile  @relation(fields: [productFileId], references: [id])
-  order         Order?       @relation(fields: [orderId], references: [id])
+  product       Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productFile   ProductFile  @relation(fields: [productFileId], references: [id], onDelete: Cascade)
+  order         Order?       @relation(fields: [orderId], references: [id], onDelete: Cascade)
   downloadLogs  DownloadLog[]
 }
 
@@ -244,9 +268,9 @@ model DownloadLog {
   userAgent     String?
   downloadedAt  DateTime            @default(now())
 
-  entitlement   DownloadEntitlement? @relation(fields: [entitlementId], references: [id])
-  user          User?               @relation(fields: [userId], references: [id])
-  file          ProductFile         @relation(fields: [fileId], references: [id])
+  entitlement   DownloadEntitlement? @relation(fields: [entitlementId], references: [id], onDelete: Cascade)
+  user          User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  file          ProductFile         @relation(fields: [fileId], references: [id], onDelete: Cascade)
 }
 
 model Wishlist {

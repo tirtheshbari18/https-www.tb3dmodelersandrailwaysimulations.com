@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CartDrawer from "@/components/CartDrawer";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import AntiPiracyModal from "@/components/AntiPiracyModal";
 import { CartProvider } from "@/lib/cartContext";
 
 export const metadata: Metadata = {
@@ -49,6 +50,7 @@ export default function RootLayout({
     <html lang="en" className="scroll-smooth">
       <body className="min-h-screen flex flex-col bg-white text-[#101C32] antialiased font-josefin">
         <CartProvider>
+          <AntiPiracyModal />
           <Navbar />
           <main className="flex-grow">
             {children}

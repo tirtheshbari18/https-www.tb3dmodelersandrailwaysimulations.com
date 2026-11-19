@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Download, CheckCircle2, Lock, FileText, Sparkles } from "lucide-react";
+import { Download, Lock, AlertTriangle, Phone, ExternalLink, ShieldAlert, Sparkles, FolderArchive, ArrowRight } from "lucide-react";
 
 interface DownloadsClientProps {
   freeFiles: any[];
@@ -15,12 +15,6 @@ export default function DownloadsClient({ freeFiles, categories }: DownloadsClie
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [userEntitlements, setUserEntitlements] = useState<any[]>([]);
   const [isLoadingAuth, setIsLoadingAuth] = useState<boolean>(true);
-
-  // Login form state
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loginError, setLoginError] = useState("");
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   useEffect(() => {
     fetch("/api/downloads")
@@ -35,162 +29,231 @@ export default function DownloadsClient({ freeFiles, categories }: DownloadsClie
       .finally(() => setIsLoadingAuth(false));
   }, []);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoggingIn(true);
-    setLoginError("");
-
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Login failed");
-      }
-
-      setIsAuthenticated(true);
-      // Refresh downloads
-      const dlRes = await fetch("/api/downloads");
-      const dlData = await dlRes.json();
-      if (dlData.userEntitlements) {
-        setUserEntitlements(dlData.userEntitlements);
-      }
-    } catch (err: any) {
-      setLoginError(err.message || "Failed to log in");
-    } finally {
-      setIsLoggingIn(false);
-    }
-  };
-
-  const fillDemo = () => {
-    setEmail("admin@vg3dmodelers.com");
-    setPassword("Admin@VG3D#2025");
-  };
-
-  if (isLoadingAuth) {
-    return (
-      <div className="min-h-[50vh] flex items-center justify-center bg-white">
-        <p className="font-josefin text-[15px] text-gray-500">Loading downloads...</p>
-      </div>
-    );
-  }
-
-  // If not authenticated, display the member login dialog matching Wix layout
-  if (!isAuthenticated) {
-    return (
-      <div className="w-full bg-[#F5F6F8] text-[#101C32] py-20 px-4 min-h-[75vh] flex items-center justify-center">
-        <div className="w-full max-w-[440px] p-8 sm:p-10 border border-gray-200 shadow-xl rounded-2xl bg-white space-y-6">
-          <div className="text-center space-y-2">
-            <div className="w-12 h-12 bg-[#0B2852] text-[#39FF00] rounded-full flex items-center justify-center mx-auto shadow-md">
-              <Lock className="w-6 h-6" />
-            </div>
-            <h1 className="font-josefin text-[32px] sm:text-[38px] font-extralight text-[#0B2852]">
-              Member Log In
-            </h1>
-            <p className="font-josefin text-[14px] text-gray-600">
-              New to this site?{" "}
-              <Link href="/register" className="text-[#0B2852] font-semibold underline hover:text-[#39FF00]">
-                Sign Up
-              </Link>
-            </p>
-          </div>
-
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block font-josefin text-[13px] font-semibold text-gray-700 mb-1">
-                Email
-              </label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white font-josefin text-[14px] focus:outline-none focus:border-[#0B2852]"
-                placeholder="name@example.com"
-              />
-            </div>
-
-            <div>
-              <label className="block font-josefin text-[13px] font-semibold text-gray-700 mb-1">
-                Password
-              </label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white font-josefin text-[14px] focus:outline-none focus:border-[#0B2852]"
-                placeholder="••••••••"
-              />
-            </div>
-
-            {loginError && (
-              <p className="font-josefin text-xs text-red-600">{loginError}</p>
-            )}
-
-            <button
-              type="submit"
-              disabled={isLoggingIn}
-              className="w-full py-3 bg-[#0B2852] hover:bg-[#39FF00] hover:text-[#101C32] text-white font-josefin text-[15px] font-semibold rounded-full shadow transition-all duration-200 disabled:opacity-50"
-            >
-              {isLoggingIn ? "Logging In..." : "Log In & Access Downloads"}
-            </button>
-          </form>
-
-          {/* Quick Demo Fill helper */}
-          <div className="pt-3 text-center border-t border-gray-100">
-            <button
-              type="button"
-              onClick={fillDemo}
-              className="font-josefin text-xs text-gray-500 hover:text-[#0B2852] underline"
-            >
-              Auto-fill Admin / Demo Account
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // When logged in, display Member Downloads
   return (
-    <div className="w-full bg-white text-[#101C32] py-16 px-4 min-h-[75vh]">
-      <div className="max-w-[1080px] mx-auto space-y-10">
-        <div className="border-b border-gray-200 pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="font-josefin text-[34px] sm:text-[42px] font-extralight text-[#0B2852]">
-              Member Downloads Library
-            </h1>
-            <p className="font-josefin text-[15px] text-gray-600 mt-1">
-              Access your purchased high-fidelity rolling stock addons and simulator files.
-            </p>
+    <div className="w-full bg-[#0B2852] text-white min-h-[90vh] py-12 px-4 sm:px-6 lg:px-8 font-josefin">
+      <div className="max-w-5xl mx-auto space-y-10">
+        {/* Top Contact & Maintenance Banner */}
+        <div className="bg-[#0F356B] border-2 border-[#39FF00] rounded-2xl p-6 sm:p-8 shadow-2xl text-center space-y-4">
+          <div className="inline-flex items-center gap-2 bg-[#39FF00] text-[#0B2852] px-4 py-1.5 rounded-full font-bold text-xs uppercase tracking-wider shadow">
+            <AlertTriangle className="w-4 h-4" />
+            Official Downloads Portal
           </div>
-          <span className="bg-[#39FF00] text-[#101C32] px-4 py-1.5 rounded-full font-josefin font-semibold text-xs self-start sm:self-auto shadow-sm">
-            ✓ Authenticated Member
-          </span>
+
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extralight tracking-wide text-white">
+            VG-3D Modelers Download Center
+          </h1>
+
+          <p className="text-sm sm:text-base text-[#A7D2F7] max-w-2xl mx-auto leading-relaxed">
+            Download official rolling stock updates, sounds, trainboards, test consists, and licensed add-ons for Open Rails &amp; MSTS.
+          </p>
+
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-4 text-xs sm:text-sm">
+            <div className="flex items-center gap-2 bg-[#0B2852] px-4 py-2 rounded-full border border-blue-400/30">
+              <Phone className="w-4 h-4 text-[#39FF00]" />
+              <span>For Queries &amp; Consists: <strong>Varun Ganesh (+91 7738980989)</strong></span>
+            </div>
+            <a
+              href="https://wa.me/917738980989"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-[#25D366] hover:bg-[#20b857] text-white px-5 py-2 rounded-full font-bold flex items-center gap-1.5 transition-transform hover:scale-105 shadow"
+            >
+              <span>WhatsApp Direct</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
         </div>
 
-        {/* Purchased Entitlements */}
-        <div className="space-y-4">
-          <h2 className="font-josefin text-[24px] font-semibold text-[#0B2852]">
-            Your Licensed Add-ons ({userEntitlements.length})
-          </h2>
+        {/* Essential Navigation & Neon Green Buttons */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Link
+            href="/trainboards"
+            className="group bg-[#39FF00] hover:bg-white text-[#101C32] p-5 rounded-2xl font-bold text-center flex flex-col items-center justify-center gap-2 shadow-lg transition-all duration-300 hover:scale-[1.02] border-2 border-[#39FF00]"
+          >
+            <FolderArchive className="w-7 h-7 text-[#0B2852]" />
+            <span className="text-sm tracking-wider uppercase font-black">VG LHB TRAINBOARDS</span>
+            <span className="text-[11px] font-medium text-gray-700">CR, ECoR, WR Zonal Packs &rarr;</span>
+          </Link>
 
-          {userEntitlements.length === 0 ? (
-            <div className="p-10 border-2 border-dashed border-gray-200 rounded-2xl text-center space-y-4 bg-[#F5F6F8]">
-              <Sparkles className="w-10 h-10 text-[#0B2852] mx-auto" />
-              <p className="font-josefin text-[15px] text-gray-600 max-w-sm mx-auto">
-                You do not have any purchased simulator add-ons currently linked. Explore our official catalog to obtain high-precision train models.
+          <a
+            href="/downloads/files/VG_FIAT_Bogie_Audio_v1.2_FREE.zip"
+            download
+            className="group bg-[#39FF00] hover:bg-white text-[#101C32] p-5 rounded-2xl font-bold text-center flex flex-col items-center justify-center gap-2 shadow-lg transition-all duration-300 hover:scale-[1.02] border-2 border-[#39FF00]"
+          >
+            <Download className="w-7 h-7 text-[#0B2852]" />
+            <span className="text-sm tracking-wider uppercase font-black">RRG LHB SOUNDS</span>
+            <span className="text-[11px] font-medium text-gray-700">Bogie &amp; Flange Audio Package</span>
+          </a>
+
+          <a
+            href="/downloads/files/VG_Physics_Converter_v2.0.1_FREE.zip"
+            download
+            className="group bg-[#39FF00] hover:bg-white text-[#101C32] p-5 rounded-2xl font-bold text-center flex flex-col items-center justify-center gap-2 shadow-lg transition-all duration-300 hover:scale-[1.02] border-2 border-[#39FF00]"
+          >
+            <Download className="w-7 h-7 text-[#0B2852]" />
+            <span className="text-sm tracking-wider uppercase font-black">COMMON SOUNDS &amp; LIGHTS</span>
+            <span className="text-[11px] font-medium text-gray-700">Lighting Scripts &amp; Brakes</span>
+          </a>
+
+          <a
+            href="/downloads/files/VG_Route_Builder_Assets_v2.0.7z"
+            download
+            className="group bg-[#39FF00] hover:bg-white text-[#101C32] p-5 rounded-2xl font-bold text-center flex flex-col items-center justify-center gap-2 shadow-lg transition-all duration-300 hover:scale-[1.02] border-2 border-[#39FF00]"
+          >
+            <Download className="w-7 h-7 text-[#0B2852]" />
+            <span className="text-sm tracking-wider uppercase font-black">VG TEST CONSISTS</span>
+            <span className="text-[11px] font-medium text-gray-700">Ready CON files for Open Rails</span>
+          </a>
+        </div>
+
+        {/* Model Status & Maintenance Table */}
+        <div className="bg-[#0F356B]/60 border border-blue-400/20 rounded-2xl p-6 sm:p-8 space-y-4 shadow-xl">
+          <div className="border-b border-blue-400/20 pb-4 flex items-center justify-between">
+            <h2 className="text-xl sm:text-2xl font-light text-white tracking-wide">
+              Add-on Release Status &amp; Maintenance Matrix
+            </h2>
+            <span className="text-xs text-[#A7D2F7] font-mono">Updated November 2026</span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs sm:text-sm">
+              <thead className="text-[#A7D2F7] uppercase tracking-wider font-bold border-b border-blue-400/20">
+                <tr>
+                  <th className="py-3 px-3">Addon / Component</th>
+                  <th className="px-3">Category</th>
+                  <th className="px-3">Version Status</th>
+                  <th className="px-3 text-right">Action / Notes</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-blue-400/10">
+                <tr className="hover:bg-white/5 transition-colors">
+                  <td className="py-3.5 px-3 font-semibold text-white">VG LHB Chaircar Coaches Pack</td>
+                  <td className="px-3 text-[#A7D2F7]">Payware</td>
+                  <td className="px-3">
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-900/80 text-[#39FF00] border border-emerald-500/50 text-[11px] font-bold">
+                      V2.0 Version
+                    </span>
+                  </td>
+                  <td className="px-3 text-right">
+                    <Link href="/shop" className="text-[#39FF00] hover:underline font-semibold">Available in Shop</Link>
+                  </td>
+                </tr>
+
+                <tr className="hover:bg-white/5 transition-colors">
+                  <td className="py-3.5 px-3 font-semibold text-white">VG LHB Vistadome Panoramic Coaches</td>
+                  <td className="px-3 text-[#A7D2F7]">Payware</td>
+                  <td className="px-3">
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-900/80 text-[#39FF00] border border-emerald-500/50 text-[11px] font-bold">
+                      V2.0 Version
+                    </span>
+                  </td>
+                  <td className="px-3 text-right">
+                    <Link href="/shop" className="text-[#39FF00] hover:underline font-semibold">Available in Shop</Link>
+                  </td>
+                </tr>
+
+                <tr className="hover:bg-white/5 transition-colors">
+                  <td className="py-3.5 px-3 font-semibold text-white">VG LHB Sleeper Coaches (Standard &amp; Academy)</td>
+                  <td className="px-3 text-[#A7D2F7]">Payware</td>
+                  <td className="px-3">
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-900/80 text-amber-300 border border-amber-500/50 text-[11px] font-bold">
+                      V2.0 Update required!!!!!
+                    </span>
+                  </td>
+                  <td className="px-3 text-right text-gray-300">
+                    Upgrades in progress
+                  </td>
+                </tr>
+
+                <tr className="hover:bg-white/5 transition-colors">
+                  <td className="py-3.5 px-3 font-semibold text-white">VG LHB Humsafar Express 3-Tier</td>
+                  <td className="px-3 text-[#A7D2F7]">Payware</td>
+                  <td className="px-3">
+                    <span className="px-2.5 py-0.5 rounded-full bg-red-900/80 text-red-300 border border-red-500/50 text-[11px] font-bold">
+                      Under Maintenance!!!!!
+                    </span>
+                  </td>
+                  <td className="px-3 text-right text-gray-300">
+                    Texture remastering
+                  </td>
+                </tr>
+
+                <tr className="hover:bg-white/5 transition-colors">
+                  <td className="py-3.5 px-3 font-semibold text-white">VG Common Trainboards &amp; Sound Scripts</td>
+                  <td className="px-3 text-[#A7D2F7]">Common</td>
+                  <td className="px-3">
+                    <span className="px-2.5 py-0.5 rounded-full bg-blue-900/80 text-[#A7D2F7] border border-blue-500/50 text-[11px] font-bold">
+                      Public Release
+                    </span>
+                  </td>
+                  <td className="px-3 text-right">
+                    <Link href="/trainboards" className="text-[#39FF00] hover:underline font-semibold">Browse Trainboards &rarr;</Link>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Member Licensed Downloads Section */}
+        <div className="bg-white text-[#101C32] rounded-2xl p-6 sm:p-8 space-y-6 shadow-2xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200 pb-4">
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-light text-[#0B2852]">
+                Your Licensed Payware Downloads
+              </h2>
+              <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                Download your purchased rolling stock and route packages with unique license keys.
+              </p>
+            </div>
+
+            {isAuthenticated ? (
+              <span className="bg-[#39FF00] text-[#101C32] px-4 py-1.5 rounded-full font-bold text-xs self-start sm:self-auto shadow-sm">
+                ✓ Approved &amp; Logged In
+              </span>
+            ) : (
+              <Link
+                href="/login?redirect=/downloads"
+                className="bg-[#0B2852] hover:bg-[#39FF00] hover:text-[#101C32] text-white px-5 py-2 rounded-full font-bold text-xs uppercase tracking-wider transition-all self-start sm:self-auto shadow"
+              >
+                Log In to Access Files &rarr;
+              </Link>
+            )}
+          </div>
+
+          {!isAuthenticated ? (
+            <div className="p-8 bg-[#F5F6F8] rounded-xl text-center space-y-3 border border-gray-200">
+              <Lock className="w-8 h-8 text-[#0B2852] mx-auto" />
+              <h3 className="text-base font-bold text-[#0B2852]">Member Authentication Required</h3>
+              <p className="text-xs sm:text-sm text-gray-600 max-w-md mx-auto">
+                Payware downloads are restricted to verified accounts. Please log in with your approved credentials to access your simulator add-ons.
+              </p>
+              <div className="pt-2 flex justify-center gap-3">
+                <Link
+                  href="/login?redirect=/downloads"
+                  className="px-6 py-2 bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] rounded-full font-bold text-xs uppercase transition-colors"
+                >
+                  Log In
+                </Link>
+                <Link
+                  href="/register"
+                  className="px-6 py-2 border border-gray-400 text-gray-700 hover:bg-gray-100 rounded-full font-bold text-xs uppercase transition-colors"
+                >
+                  Sign Up
+                </Link>
+              </div>
+            </div>
+          ) : userEntitlements.length === 0 ? (
+            <div className="p-8 bg-[#F5F6F8] rounded-xl text-center space-y-3 border border-gray-200">
+              <Sparkles className="w-8 h-8 text-[#0B2852] mx-auto" />
+              <p className="text-xs sm:text-sm text-gray-600">
+                You do not have any purchased add-ons linked to this account yet.
               </p>
               <Link
                 href="/shop"
-                className="inline-block bg-[#0B2852] hover:bg-[#39FF00] hover:text-[#101C32] text-white font-josefin font-semibold px-6 py-2.5 rounded-full shadow transition-all duration-200 text-sm"
+                className="inline-block px-6 py-2 bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] rounded-full font-bold text-xs uppercase transition-colors"
               >
-                Browse Shop →
+                Browse Payware Shop
               </Link>
             </div>
           ) : (
@@ -198,21 +261,17 @@ export default function DownloadsClient({ freeFiles, categories }: DownloadsClie
               {userEntitlements.map((item, idx) => (
                 <div
                   key={idx}
-                  className="p-5 bg-[#F5F6F8] rounded-xl border border-gray-200 flex items-center justify-between gap-4 shadow-sm"
+                  className="p-4 bg-[#F5F6F8] rounded-xl border border-gray-200 flex items-center justify-between gap-4"
                 >
-                  <div className="space-y-1">
-                    <h3 className="font-josefin font-semibold text-base text-[#0B2852]">
-                      {item.productName || item.fileName}
-                    </h3>
-                    <p className="font-josefin text-xs text-gray-500">
-                      Version: {item.version || "Latest"} • Format: {item.fileType || "ZIP/RAR"}
-                    </p>
+                  <div>
+                    <h4 className="font-bold text-[#0B2852] text-sm">{item.productName || item.fileName}</h4>
+                    <p className="text-xs text-gray-500">Version: {item.version || "v2.0"} &bull; {item.fileType || "ZIP"}</p>
                   </div>
                   <a
                     href={`/api/downloads/${item.fileId || "sample"}`}
-                    className="flex items-center gap-2 bg-[#0B2852] hover:bg-[#39FF00] hover:text-[#101C32] text-white px-4 py-2 rounded-full font-josefin text-xs font-semibold shadow transition-all flex-shrink-0"
+                    className="flex items-center gap-1.5 bg-[#0B2852] hover:bg-[#39FF00] hover:text-[#101C32] text-white px-4 py-2 rounded-full font-bold text-xs transition-colors shadow-sm"
                   >
-                    <Download className="w-4 h-4" />
+                    <Download className="w-3.5 h-3.5" />
                     <span>Download</span>
                   </a>
                 </div>
@@ -221,56 +280,15 @@ export default function DownloadsClient({ freeFiles, categories }: DownloadsClie
           )}
         </div>
 
-        {/* Free Utilities & Sound Packs */}
-        <div className="space-y-4 pt-6 border-t border-gray-200">
-          <h2 className="font-josefin text-[24px] font-semibold text-[#0B2852]">
-            Free Community Tools & Acoustic Packs
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-5 bg-white rounded-xl border border-gray-200 flex items-center justify-between gap-4 shadow-sm hover:border-[#0B2852] transition-colors">
-              <div className="space-y-1">
-                <span className="text-[10px] bg-[#39FF00] text-[#101C32] font-bold px-2 py-0.5 rounded-full">
-                  FREE TOOL
-                </span>
-                <h3 className="font-josefin font-semibold text-base text-[#0B2852]">
-                  VG LHB FIAT Bogie Audio Pack v1.2
-                </h3>
-                <p className="font-josefin text-xs text-gray-500">
-                  Track joint acoustics & calibrated flange curves for Open Rails / MSTS.
-                </p>
-              </div>
-              <a
-                href="/downloads/files/VG_FIAT_Bogie_Audio_v1.2_FREE.zip"
-                download
-                className="flex items-center gap-2 bg-[#0B2852] hover:bg-[#39FF00] hover:text-[#101C32] text-white px-4 py-2 rounded-full font-josefin text-xs font-semibold shadow transition-all flex-shrink-0"
-              >
-                <Download className="w-4 h-4" />
-                <span>Get Free</span>
-              </a>
-            </div>
-
-            <div className="p-5 bg-white rounded-xl border border-gray-200 flex items-center justify-between gap-4 shadow-sm hover:border-[#0B2852] transition-colors">
-              <div className="space-y-1">
-                <span className="text-[10px] bg-[#39FF00] text-[#101C32] font-bold px-2 py-0.5 rounded-full">
-                  FREE UTILITY
-                </span>
-                <h3 className="font-josefin font-semibold text-base text-[#0B2852]">
-                  VG Physics Converter v2.0.1
-                </h3>
-                <p className="font-josefin text-xs text-gray-500">
-                  Mass, friction, and brake deceleration converter for Indian rolling stock.
-                </p>
-              </div>
-              <a
-                href="/downloads/files/VG_Physics_Converter_v2.0.1_FREE.zip"
-                download
-                className="flex items-center gap-2 bg-[#0B2852] hover:bg-[#39FF00] hover:text-[#101C32] text-white px-4 py-2 rounded-full font-josefin text-xs font-semibold shadow transition-all flex-shrink-0"
-              >
-                <Download className="w-4 h-4" />
-                <span>Get Free</span>
-              </a>
-            </div>
+        {/* Anti-Piracy Notice at bottom */}
+        <div className="bg-[#ECE8F8] text-[#2A1E68] p-5 sm:p-6 rounded-2xl border-2 border-[#D8CEF6] text-xs sm:text-sm space-y-2">
+          <div className="flex items-center gap-2 font-bold text-[#D21312]">
+            <ShieldAlert className="w-5 h-5 flex-shrink-0" />
+            <span>WARNING &bull; INTELLECTUAL PROPERTY NOTICE</span>
           </div>
+          <p className="leading-relaxed">
+            All files, textures, sound scripts, and 3D shapes downloaded from this website are proprietary works of <strong>Varun Ganesh / VG-3D Modelers &amp; Railway Simulations</strong>. Redistribution, leaking, re-uploading, or unauthorized modifications are strictly forbidden and subject to civil prosecution under Indian copyright legislation.
+          </p>
         </div>
       </div>
     </div>
