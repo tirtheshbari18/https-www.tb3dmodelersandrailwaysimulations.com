@@ -152,17 +152,6 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
       compatibility: "Open Rails / MSTS",
       categoryName: "International Coaches",
     },
-    {
-      id: "prod-audio-physics",
-      slug: "vg-fiat-bogie-audio-v1-2",
-      name: "VG LHB FIAT BOGIE AUDIO PACK",
-      badge: "FREE",
-      image: "/assets/projects/07_wip_sleeper_render.png",
-      regularPrice: 0,
-      salePrice: 0,
-      compatibility: "Open Rails / MSTS",
-      categoryName: "Sound & Physics",
-    },
   ];
 
   const handleAddToCart = (e: React.MouseEvent, prod: any) => {

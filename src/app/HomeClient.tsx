@@ -1,14 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Search,
   ChevronLeft,
   ChevronRight,
-  Play,
-  Pause,
 } from "lucide-react";
 
 interface HomeClientProps {
@@ -31,10 +29,6 @@ export default function HomeClient({
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [isHovered, setIsHovered] = useState(false);
-
-  const AUTO_SLIDE_DURATION_MS = 3800; // 3.8 seconds per slide
 
   // Full 13-item collection matching reference screenshots and catalog
   const showcaseProducts = [
@@ -45,7 +39,6 @@ export default function HomeClient({
       image: "/assets/products/vg_academy_sleeper.avif",
       slug: "vg-lhb-vg-academy-livery-sleeper-coaches",
       desc: "Hyper-realistic LHB Sleeper coach with custom Academy livery, high-poly bogies, and night lighting.",
-      tag: "Academy Livery",
     },
     {
       num: "02",
@@ -54,7 +47,6 @@ export default function HomeClient({
       image: "/assets/products/humsafar_v2.avif",
       slug: "vg-lhb-humsafar-coaches-v2",
       desc: "Signature geometric vinyl aesthetic with 3-tier sleeper passenger compartments and animated doors.",
-      tag: "V2 Update",
     },
     {
       num: "03",
@@ -63,7 +55,6 @@ export default function HomeClient({
       image: "/assets/products/sleeper_v2.avif",
       slug: "vg-lhb-sleeper-coaches-v2-update",
       desc: "Updated V2 long-distance sleeper rolling stock for Rajdhani, Duronto, and Superfast expresses.",
-      tag: "Sleeper Class",
     },
     {
       num: "04",
@@ -72,7 +63,6 @@ export default function HomeClient({
       image: "/assets/products/chaircar_standard.png",
       slug: "vg-lhb-coaches",
       desc: "Premier daytime express coaches including Shatabdi, Deccan Queen, and Anubhuti variants.",
-      tag: "Chair Car",
     },
     {
       num: "05",
@@ -81,7 +71,6 @@ export default function HomeClient({
       image: "/assets/products/vistadome_standard.png",
       slug: "vg-lhb-vistadome-coaches",
       desc: "Panoramic observation coaches with curved glass canopy roofs, swivel seating, and animated doors.",
-      tag: "Panoramic Dome",
     },
     {
       num: "06",
@@ -90,7 +79,6 @@ export default function HomeClient({
       image: "/assets/products/amrit_bharat.png",
       slug: "vg-lhb-amrit-bharat-coaches",
       desc: "Modern non-AC high-speed push-pull rake with signature vibrant orange and grey colorway.",
-      tag: "Push-Pull Fleet",
     },
     {
       num: "07",
@@ -99,7 +87,6 @@ export default function HomeClient({
       image: "/assets/products/bangladesh_coaches.png",
       slug: "vg-lhb-bangladesh-coaches",
       desc: "Export LHB rolling stock for international routes like Maitree Express connecting Dhaka and Kolkata.",
-      tag: "International Export",
     },
     {
       num: "08",
@@ -108,7 +95,6 @@ export default function HomeClient({
       image: "/assets/products/pnb_livery.png",
       slug: "vg-lhb-pnb-livery-chaircar-coaches",
       desc: "Commercial wrap edition featuring authentic Punjab National Bank advert livery.",
-      tag: "Commercial Wrap",
     },
     {
       num: "09",
@@ -117,7 +103,6 @@ export default function HomeClient({
       image: "/assets/products/indian_tricolour.avif",
       slug: "vg-lhb-indian-tricolour-coaches",
       desc: "Patriotic commemorative livery inspired by the national tricolour for celebration rakes.",
-      tag: "Special Edition",
     },
     {
       num: "10",
@@ -126,7 +111,6 @@ export default function HomeClient({
       image: "/assets/products/vistadome_livery.png",
       slug: "vg-lhb-vistadome-livery-coaches",
       desc: "Special scenic route livery with reflective glass shaders and high-detail passenger lounge.",
-      tag: "Vistadome Livery",
     },
     {
       num: "11",
@@ -135,7 +119,6 @@ export default function HomeClient({
       image: "/assets/products/whr_route_v2.png",
       slug: "whr-route-v2-ahmedabad-update",
       desc: "High-precision Western Railway route expansion featuring major yard layouts and custom scenery.",
-      tag: "Route Addon",
     },
     {
       num: "12",
@@ -144,31 +127,8 @@ export default function HomeClient({
       image: "/assets/projects/05_vg_lhb_bangladesh.png",
       slug: "vg-br-lhb-maitree-v1-5",
       desc: "Complete international express consist with custom bogie audio and bilingual trainboards.",
-      tag: "Complete Consist",
-    },
-    {
-      num: "13",
-      title: "VG LHB FIAT BOGIE AUDIO & PHYSICS EXPANSION",
-      subtitle: "(Free Community Utility) Download and calibrate your train simulator rakes.",
-      image: "/assets/projects/07_wip_sleeper_render.png",
-      slug: "vg-fiat-bogie-audio-v1-2",
-      desc: "Authentic track joint sounds, flange squeal, and calibrated deceleration physics curves.",
-      tag: "Physics & Audio",
     },
   ];
-
-  // Automatic Sliding Timer (pauses on user hover)
-  useEffect(() => {
-    if (!isAutoPlaying || isHovered) {
-      return;
-    }
-
-    const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % showcaseProducts.length);
-    }, AUTO_SLIDE_DURATION_MS);
-
-    return () => clearInterval(timer);
-  }, [isAutoPlaying, isHovered, showcaseProducts.length]);
 
   const handleNext = () => {
     setCurrentIndex((prev) => (prev + 1) % showcaseProducts.length);
@@ -217,7 +177,7 @@ export default function HomeClient({
               <span className="font-normal text-[#0B2852]">Products - 11x</span>
             </h1>
             <p className="font-josefin text-sm text-gray-500 mt-1">
-              Showing 13 high-fidelity Indian Railway rolling stock and route add-ons
+              Showing {showcaseProducts.length} high-fidelity Indian Railway rolling stock and route add-ons
             </p>
           </div>
 
@@ -248,12 +208,8 @@ export default function HomeClient({
           </div>
         </div>
 
-        {/* Center Showcase Sliding Window Box */}
-        <div
-          className="relative border-2 border-gray-200 rounded-2xl overflow-hidden bg-white shadow-xl transition-all"
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
+        {/* Center Showcase Carousel Box */}
+        <div className="relative border-2 border-gray-200 rounded-2xl overflow-hidden bg-white shadow-xl transition-all">
 
           {/* Main Showcase Image Area */}
           <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full flex items-center justify-center bg-[#F5F6F8] overflow-hidden group">
@@ -287,36 +243,9 @@ export default function HomeClient({
               <ChevronRight className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2.5]" />
             </button>
 
-            {/* Top Badges on Image */}
-            <div className="absolute top-4 left-4 flex items-center gap-2">
-              <span className="bg-[#0B2852]/85 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
-                Item {currentItem.num} / {showcaseProducts.length}
-              </span>
-              <span className="hidden sm:inline-block bg-[#39FF00] text-[#101C32] text-xs font-bold px-2.5 py-0.5 rounded-full shadow">
-                {currentItem.tag}
-              </span>
-            </div>
-
-            {/* Auto-Slide Status Toggle Pill */}
-            <div className="absolute top-4 right-4">
-              <button
-                type="button"
-                onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#0B2852]/80 backdrop-blur-sm text-white hover:bg-[#0B2852] border border-white/20 transition-all cursor-pointer shadow"
-                title={isAutoPlaying ? "Pause auto-slide" : "Play auto-slide"}
-              >
-                {isAutoPlaying && !isHovered ? (
-                  <>
-                    <Pause className="w-3.5 h-3.5 text-[#39FF00]" />
-                    <span className="hidden md:inline">Auto-Sliding</span>
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-3.5 h-3.5 text-[#39FF00]" />
-                    <span className="hidden md:inline">{isHovered ? "Paused on Hover" : "Paused"}</span>
-                  </>
-                )}
-              </button>
+            {/* Product Index Badge on Image */}
+            <div className="absolute top-4 left-4 bg-[#0B2852]/80 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
+              Item {currentItem.num} / {showcaseProducts.length}
             </div>
           </div>
 
