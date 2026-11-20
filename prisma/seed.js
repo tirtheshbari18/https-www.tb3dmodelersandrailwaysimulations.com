@@ -77,6 +77,33 @@ async function main() {
     }
   });
 
+  const passengerUser = await prisma.user.upsert({
+    where: { email: 'passenger@vg3dmodelers.com' },
+    update: {
+      passwordHash: demoUserPasswordHash,
+      status: 'APPROVED',
+      approvedAt: new Date(),
+      isVerified: true,
+    },
+    create: {
+      name: 'Passenger Member',
+      firstName: 'Passenger',
+      lastName: 'Member',
+      email: 'passenger@vg3dmodelers.com',
+      passwordHash: demoUserPasswordHash,
+      role: 'USER',
+      status: 'APPROVED',
+      phone: '+91 98765 43210',
+      country: 'India',
+      state: 'Maharashtra',
+      city: 'Mumbai',
+      address: 'VG Railway Simulations Station Road',
+      postalCode: '400001',
+      isVerified: true,
+      approvedAt: new Date(),
+    }
+  });
+
   // 3. Product Categories
   const categories = [
     {
@@ -758,6 +785,7 @@ async function main() {
 
   console.log('✅ Database seeding completed successfully!');
   console.log('Admin account: admin@vg3dmodelers.com / Admin@VG3D#2025');
+  console.log('Passenger account: passenger@vg3dmodelers.com / Passenger@2025');
   console.log('Demo user account: demo@trainsim.com / Passenger@2025');
 }
 
