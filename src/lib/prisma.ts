@@ -8,34 +8,76 @@ const globalForPrisma = globalThis as unknown as {
 
 /**
  * Resolves the database URL dynamically.
- * - If DATABASE_URL is set (e.g. Postgres / remote DB), it is used directly.
- * - On Vercel serverless environments, the filesystem at /var/task is read-only.
- *   We copy the pre-seeded SQLite database to /tmp/dev.db so write operations
- *   (user registration, logins, CAPTCHAs, approvals, and orders) succeed seamlessly.
+ * - If DATABASE_URL is set to a remote database (e.g. Postgres / MySQL), it is used directly.
+ * - On Vercel serverless environments, the filesystem at /var/task is strictly read-only.
+ *   If using a local SQLite file (file:...), we copy dev.db to /tmp/dev.db (if not already copied)
+ *   so that all write operations (creating/editing/deleting products, coaches, train boards,
+ *   home slides, orders, and user management) succeed without "attempt to write a readonly database" errors.
  * - In local development, the default file:./dev.db is used.
  */
 function resolveDatabaseUrl(): string | undefined {
-  if (process.env.DATABASE_URL) {
-    return process.env.DATABASE_URL;
+  const envUrl = process.env.DATABASE_URL;
+
+  // If using an external remote database (e.g. PostgreSQL, Supabase, MySQL)
+  if (
+    envUrl &&
+    !envUrl.startsWith("file:") &&
+    (envUrl.startsWith("postgres:") ||
+      envUrl.startsWith("postgresql:") ||
+      envUrl.startsWith("mysql:") ||
+      envUrl.startsWith("prisma:"))
+  ) {
+    return envUrl;
   }
 
-  if (process.env.VERCEL) {
+  // Check if we are running in Vercel or an AWS Lambda serverless environment
+  const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+
+  if (isVercel) {
     const tmpDbPath = "/tmp/dev.db";
-    const srcDbPath = path.join(process.cwd(), "prisma", "dev.db");
 
     try {
       if (!fs.existsSync(tmpDbPath)) {
-        if (fs.existsSync(srcDbPath)) {
-          fs.copyFileSync(srcDbPath, tmpDbPath);
+        // Look for the source seed dev.db across potential bundled paths
+        const candidatePaths = [
+          path.join(process.cwd(), "prisma", "dev.db"),
+          path.join(process.cwd(), "dev.db"),
+          path.resolve("./prisma/dev.db"),
+          path.resolve("./dev.db"),
+          path.join(__dirname, "..", "..", "prisma", "dev.db"),
+          path.join(__dirname, "..", "prisma", "dev.db"),
+          path.join(__dirname, "prisma", "dev.db"),
+        ];
+
+        let copied = false;
+        for (const candidate of candidatePaths) {
+          if (fs.existsSync(candidate)) {
+            try {
+              fs.copyFileSync(candidate, tmpDbPath);
+              console.log(`[Prisma] Copied SQLite database to writable location: ${tmpDbPath} from ${candidate}`);
+              copied = true;
+              break;
+            } catch (copyErr) {
+              console.warn(`[Prisma] Failed to copy from ${candidate} to ${tmpDbPath}:`, copyErr);
+            }
+          }
+        }
+
+        if (!copied) {
+          console.warn("[Prisma] Could not find seed dev.db to copy to /tmp/dev.db. Checked paths:", candidatePaths);
         }
       }
-      return `file:${tmpDbPath}`;
+
+      const sqliteUrl = `file:${tmpDbPath}`;
+      // Also sync process.env.DATABASE_URL so Prisma internals read the writable path
+      process.env.DATABASE_URL = sqliteUrl;
+      return sqliteUrl;
     } catch (err) {
-      console.error("Vercel SQLite database copy error:", err);
+      console.error("[Prisma] Vercel SQLite database copy error:", err);
     }
   }
 
-  return undefined;
+  return envUrl || "file:./dev.db";
 }
 
 const resolvedUrl = resolveDatabaseUrl();

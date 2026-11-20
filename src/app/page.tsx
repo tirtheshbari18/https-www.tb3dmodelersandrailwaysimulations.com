@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import HomeClient from "./HomeClient";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 0; // Dynamic server component
 
 export default async function HomePage() {

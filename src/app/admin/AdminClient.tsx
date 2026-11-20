@@ -847,37 +847,37 @@ export default function AdminClient({
                 <div className="p-3.5 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
                   <div className="flex items-center justify-between text-gray-400">
                     <span className="text-[10px] font-bold uppercase tracking-wider">Available</span>
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#2563EB]" />
                   </div>
-                  <p className="text-xl font-bold text-emerald-700">{availableProductsCount}</p>
-                  <span className="text-[9px] text-emerald-600">In Stock for Order</span>
+                  <p className="text-xl font-bold text-[#2563EB]">{availableProductsCount}</p>
+                  <span className="text-[9px] text-[#2563EB]">In Stock for Order</span>
                 </div>
 
                 <div className="p-3.5 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
                   <div className="flex items-center justify-between text-gray-400">
                     <span className="text-[10px] font-bold uppercase tracking-wider">Out of Stock</span>
-                    <Ban className="w-3.5 h-3.5 text-rose-600" />
+                    <Ban className="w-3.5 h-3.5 text-[#DC2626]" />
                   </div>
-                  <p className="text-xl font-bold text-rose-600">{outOfStockProductsCount}</p>
-                  <span className="text-[9px] text-rose-500">Purchases Disabled</span>
+                  <p className="text-xl font-bold text-[#DC2626]">{outOfStockProductsCount}</p>
+                  <span className="text-[9px] text-[#DC2626]">Purchases Disabled</span>
                 </div>
 
                 <div className="p-3.5 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
                   <div className="flex items-center justify-between text-gray-400">
                     <span className="text-[10px] font-bold uppercase tracking-wider">Coming Soon</span>
-                    <Clock className="w-3.5 h-3.5 text-amber-600" />
+                    <Clock className="w-3.5 h-3.5 text-[#16A34A]" />
                   </div>
-                  <p className="text-xl font-bold text-amber-600">{comingSoonProductsCount}</p>
-                  <span className="text-[9px] text-amber-500">Release Pending</span>
+                  <p className="text-xl font-bold text-[#16A34A]">{comingSoonProductsCount}</p>
+                  <span className="text-[9px] text-[#16A34A]">Release Pending</span>
                 </div>
 
                 <div className="p-3.5 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
                   <div className="flex items-center justify-between text-gray-400">
                     <span className="text-[10px] font-bold uppercase tracking-wider">Active Offers</span>
-                    <Tag className="w-3.5 h-3.5 text-[#FF6600]" />
+                    <Tag className="w-3.5 h-3.5 text-[#FF6B00]" />
                   </div>
-                  <p className="text-xl font-bold text-[#FF6600]">{activeOffersCount}</p>
-                  <span className="text-[9px] text-gray-500">Discounts Live</span>
+                  <p className="text-xl font-bold text-[#FF6B00]">{activeOffersCount}</p>
+                  <span className="text-[9px] text-[#FF6B00]">Discounts Live</span>
                 </div>
 
                 <div className="p-3.5 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
@@ -1250,10 +1250,10 @@ export default function AdminClient({
                                 <span
                                   className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                                     isOutOfStock
-                                      ? "bg-rose-100 text-rose-700 border border-rose-300"
+                                      ? "bg-[#DC2626]/10 text-[#DC2626] border border-[#DC2626]/30"
                                       : coach.status === "COMING_SOON"
-                                      ? "bg-amber-100 text-amber-800 border border-amber-300"
-                                      : "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                                      ? "bg-[#16A34A]/10 text-[#16A34A] border border-[#16A34A]/30"
+                                      : "bg-[#2563EB]/10 text-[#2563EB] border border-[#2563EB]/30"
                                   }`}
                                 >
                                   {isOutOfStock
@@ -2375,10 +2375,10 @@ function StockRowItem({
         <span
           className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
             product.status === "OUT_OF_STOCK"
-              ? "bg-rose-100 text-rose-700 border border-rose-300"
+              ? "bg-[#DC2626]/10 text-[#DC2626] border border-[#DC2626]/30"
               : product.status === "COMING_SOON"
-              ? "bg-amber-100 text-amber-800 border border-amber-300"
-              : "bg-emerald-100 text-emerald-800 border border-emerald-300"
+              ? "bg-[#16A34A]/10 text-[#16A34A] border border-[#16A34A]/30"
+              : "bg-[#2563EB]/10 text-[#2563EB] border border-[#2563EB]/30"
           }`}
         >
           {product.status === "OUT_OF_STOCK"
@@ -2395,8 +2395,8 @@ function StockRowItem({
             onClick={() => onUpdateAvailability(product, "AVAILABLE")}
             className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all ${
               product.status === "AVAILABLE"
-                ? "bg-emerald-700 text-white shadow-xs"
-                : "border border-gray-200 text-gray-600 hover:bg-emerald-50 hover:text-emerald-700"
+                ? "bg-[#2563EB] text-white shadow-xs"
+                : "border border-gray-200 text-gray-600 hover:bg-blue-50 hover:text-[#2563EB]"
             }`}
           >
             Available
@@ -2406,8 +2406,8 @@ function StockRowItem({
             onClick={() => onUpdateAvailability(product, "OUT_OF_STOCK")}
             className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all ${
               product.status === "OUT_OF_STOCK"
-                ? "bg-rose-700 text-white shadow-xs"
-                : "border border-gray-200 text-gray-600 hover:bg-rose-50 hover:text-rose-700"
+                ? "bg-[#DC2626] text-white shadow-xs"
+                : "border border-gray-200 text-gray-600 hover:bg-red-50 hover:text-[#DC2626]"
             }`}
           >
             Out of Stock
@@ -2417,8 +2417,8 @@ function StockRowItem({
             onClick={() => onUpdateAvailability(product, "COMING_SOON")}
             className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all ${
               product.status === "COMING_SOON"
-                ? "bg-amber-600 text-white shadow-xs"
-                : "border border-gray-200 text-gray-600 hover:bg-amber-50 hover:text-amber-700"
+                ? "bg-[#16A34A] text-white shadow-xs"
+                : "border border-gray-200 text-gray-600 hover:bg-green-50 hover:text-[#16A34A]"
             }`}
           >
             Coming Soon

@@ -198,8 +198,8 @@ export default function ProductDetailClient({
                       </span>
                     )}
                     {product.regularPrice > currentPrice && (
-                      <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 text-xs font-futura font-bold">
-                        Save {Math.round(((product.regularPrice - currentPrice) / product.regularPrice) * 100)}%
+                      <span className="px-2.5 py-0.5 rounded-full bg-[#FF6B00] text-white text-xs font-futura font-bold">
+                        Special Offer: Save {Math.round(((product.regularPrice - currentPrice) / product.regularPrice) * 100)}%
                       </span>
                     )}
                   </>
@@ -230,20 +230,20 @@ export default function ProductDetailClient({
             {/* Actions: Add to Cart and Buy Now */}
             <div className="space-y-3 pt-2">
               {isOutOfStock ? (
-                <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-center space-y-1">
-                  <span className="px-4 py-1.5 rounded-full bg-rose-600 text-white font-bold text-xs uppercase tracking-wider inline-block">
+                <div className="p-4 bg-red-50 border border-red-200 rounded-2xl text-center space-y-1">
+                  <span className="px-4 py-1.5 rounded-full bg-[#DC2626] text-white font-bold text-xs uppercase tracking-wider inline-block">
                     Out of Stock
                   </span>
-                  <p className="text-xs text-rose-800">
+                  <p className="text-xs text-red-800">
                     This coach / add-on is currently unavailable for order. Please check back soon or contact support.
                   </p>
                 </div>
               ) : isComingSoon ? (
-                <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-center space-y-1">
-                  <span className="px-4 py-1.5 rounded-full bg-amber-600 text-white font-bold text-xs uppercase tracking-wider inline-block">
+                <div className="p-4 bg-green-50 border border-green-200 rounded-2xl text-center space-y-1">
+                  <span className="px-4 py-1.5 rounded-full bg-[#16A34A] text-white font-bold text-xs uppercase tracking-wider inline-block">
                     Coming Soon
                   </span>
-                  <p className="text-xs text-amber-800">
+                  <p className="text-xs text-green-800">
                     This official release is in final testing and will be available for download shortly.
                   </p>
                 </div>

@@ -69,7 +69,7 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
           if (parsed && (parsed.role === "ADMIN" || parsed.role === "SUPER_ADMIN")) {
             setCurrentUser(parsed);
           }
-        } catch (e) {}
+        } catch (e) { }
       }
 
       const headers: Record<string, string> = {};
@@ -87,7 +87,7 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
           }
         }
       }
-    } catch (e) {}
+    } catch (e) { }
   };
 
   useEffect(() => {
@@ -260,36 +260,36 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
   const [products, setProducts] = useState<any[]>(
     initialProducts && initialProducts.length > 0
       ? initialProducts.map((p) => {
-          const hasOffer = p.salePrice !== null && p.salePrice !== undefined && p.salePrice < p.regularPrice;
-          const isOutOfStock = p.status === "OUT_OF_STOCK";
-          const isComingSoon = p.status === "COMING_SOON";
-          return {
-            id: p.id,
-            slug: p.slug,
-            name: p.name,
-            sku: p.sku || `VG-${p.id.slice(-5)}`,
-            badge: isOutOfStock
-              ? "Out of Stock"
-              : isComingSoon
+        const hasOffer = p.salePrice !== null && p.salePrice !== undefined && p.salePrice < p.regularPrice;
+        const isOutOfStock = p.status === "OUT_OF_STOCK";
+        const isComingSoon = p.status === "COMING_SOON";
+        return {
+          id: p.id,
+          slug: p.slug,
+          name: p.name,
+          sku: p.sku || `VG-${p.id.slice(-5)}`,
+          badge: isOutOfStock
+            ? "Out of Stock"
+            : isComingSoon
               ? "Coming Soon"
               : hasOffer
-              ? "Special Offer"
-              : p.isNewArrival
-              ? "New Arrival"
-              : p.version || "V1.0",
-            image: p.images?.[0]?.url || "/assets/products/chaircar_standard.png",
-            regularPrice: p.regularPrice,
-            salePrice: p.salePrice,
-            compatibility: p.compatibility || "Open Rails / MSTS",
-            categoryId: p.categoryId,
-            categoryName: p.category?.name || "LHB Coaches",
-            status: p.status,
-            stockQuantity: p.stockQuantity ?? 100,
-            description: p.description || "",
-            isOutOfStock,
-            isComingSoon,
-          };
-        })
+                ? "Special Offer"
+                : p.isNewArrival
+                  ? "New Arrival"
+                  : p.version || "V1.0",
+          image: p.images?.[0]?.url || "/assets/products/chaircar_standard.png",
+          regularPrice: p.regularPrice,
+          salePrice: p.salePrice,
+          compatibility: p.compatibility || "Open Rails / MSTS",
+          categoryId: p.categoryId,
+          categoryName: p.category?.name || "LHB Coaches",
+          status: p.status,
+          stockQuantity: p.stockQuantity ?? 100,
+          description: p.description || "",
+          isOutOfStock,
+          isComingSoon,
+        };
+      })
       : fallbackProducts
   );
 
@@ -310,18 +310,18 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
           prev.map((p) =>
             p.id === editingProduct.id
               ? {
-                  ...p,
-                  ...formValues,
-                  image: formValues.imageUrl || p.image,
-                  badge:
-                    formValues.status === "OUT_OF_STOCK"
-                      ? "Out of Stock"
-                      : formValues.status === "COMING_SOON"
+                ...p,
+                ...formValues,
+                image: formValues.imageUrl || p.image,
+                badge:
+                  formValues.status === "OUT_OF_STOCK"
+                    ? "Out of Stock"
+                    : formValues.status === "COMING_SOON"
                       ? "Coming Soon"
                       : formValues.salePrice && formValues.salePrice < formValues.regularPrice
-                      ? "Special Offer"
-                      : "V1.0",
-                }
+                        ? "Special Offer"
+                        : "V1.0",
+              }
               : p
           )
         );
@@ -346,10 +346,10 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
             newP.status === "OUT_OF_STOCK"
               ? "Out of Stock"
               : newP.status === "COMING_SOON"
-              ? "Coming Soon"
-              : newP.salePrice && newP.salePrice < newP.regularPrice
-              ? "Special Offer"
-              : "New Arrival",
+                ? "Coming Soon"
+                : newP.salePrice && newP.salePrice < newP.regularPrice
+                  ? "Special Offer"
+                  : "New Arrival",
           image: formValues.imageUrl || newP.images?.[0]?.url || "/assets/products/chaircar_standard.png",
           regularPrice: newP.regularPrice,
           salePrice: newP.salePrice,
@@ -401,19 +401,19 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
         prev.map((p) =>
           p.id === prod.id
             ? {
-                ...p,
-                status: newStatus,
-                isOutOfStock: newStatus === "OUT_OF_STOCK",
-                isComingSoon: newStatus === "COMING_SOON",
-                badge:
-                  newStatus === "OUT_OF_STOCK"
-                    ? "Out of Stock"
-                    : newStatus === "COMING_SOON"
+              ...p,
+              status: newStatus,
+              isOutOfStock: newStatus === "OUT_OF_STOCK",
+              isComingSoon: newStatus === "COMING_SOON",
+              badge:
+                newStatus === "OUT_OF_STOCK"
+                  ? "Out of Stock"
+                  : newStatus === "COMING_SOON"
                     ? "Coming Soon"
                     : p.salePrice && p.salePrice < p.regularPrice
-                    ? "Special Offer"
-                    : "Available",
-              }
+                      ? "Special Offer"
+                      : "Available",
+            }
             : p
         )
       );
@@ -437,18 +437,18 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
         prev.map((p) =>
           p.id === priceModalProduct.id
             ? {
-                ...p,
-                regularPrice,
-                salePrice,
-                badge:
-                  p.status === "OUT_OF_STOCK"
-                    ? "Out of Stock"
-                    : p.status === "COMING_SOON"
+              ...p,
+              regularPrice,
+              salePrice,
+              badge:
+                p.status === "OUT_OF_STOCK"
+                  ? "Out of Stock"
+                  : p.status === "COMING_SOON"
                     ? "Coming Soon"
                     : salePrice && salePrice < regularPrice
-                    ? "Special Offer"
-                    : "V1.0",
-              }
+                      ? "Special Offer"
+                      : "V1.0",
+            }
             : p
         )
       );
@@ -517,11 +517,11 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
         prev.map((p) =>
           p.id === id
             ? {
-                ...p,
-                isSpecialOffer,
-                badge: isSpecialOffer ? specialOfferText || "Special Offer" : p.badge,
-                salePrice: newSalePrice !== undefined ? newSalePrice : p.salePrice,
-              }
+              ...p,
+              isSpecialOffer,
+              badge: isSpecialOffer ? specialOfferText || "Special Offer" : p.badge,
+              salePrice: newSalePrice !== undefined ? newSalePrice : p.salePrice,
+            }
             : p
         )
       );
@@ -555,11 +555,10 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
       {/* Toast Notification */}
       {toastMsg && (
         <div
-          className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl shadow-2xl text-xs font-semibold flex items-center gap-2 border transition-all ${
-            toastMsg.isError
-              ? "bg-rose-900 text-white border-rose-700"
-              : "bg-[#0B2852] text-white border-[#39FF00]"
-          }`}
+          className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl shadow-2xl text-xs font-semibold flex items-center gap-2 border transition-all ${toastMsg.isError
+            ? "bg-rose-900 text-white border-rose-700"
+            : "bg-[#0B2852] text-white border-[#39FF00]"
+            }`}
         >
           {toastMsg.isError ? (
             <AlertCircle className="w-4 h-4 text-rose-300" />
@@ -617,11 +616,10 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
                 <button
                   type="button"
                   onClick={() => setIsAdminMode(!isAdminMode)}
-                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                    isAdminMode
-                      ? "bg-[#39FF00] text-[#101C32] shadow-sm"
-                      : "bg-gray-400 text-white"
-                  }`}
+                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${isAdminMode
+                    ? "bg-[#39FF00] text-[#101C32] shadow-sm"
+                    : "bg-gray-400 text-white"
+                    }`}
                 >
                   {isAdminMode ? "ON" : "OFF (Visitor View)"}
                 </button>
@@ -682,19 +680,20 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
                   {/* Badge top-left */}
                   {prod.badge && (
                     <span
-                      className={`absolute top-2.5 left-2.5 px-2.5 py-0.5 text-[11px] font-bold font-josefin uppercase rounded-full z-10 shadow-sm ${
-                        isOutOfStock
-                          ? "bg-rose-600 text-white"
-                          : isComingSoon
-                          ? "bg-amber-600 text-white"
+                      className={`absolute top-2.5 left-2.5 px-2.5 py-0.5 text-[11px] font-bold font-josefin uppercase rounded-full z-10 shadow-sm ${isOutOfStock
+                        ? "bg-[#DC2626] text-white"
+                        : isComingSoon
+                          ? "bg-[#16A34A] text-white"
                           : isFree
-                          ? "bg-[#39FF00] text-[#101C32]"
-                          : prod.badge === "Special Offer"
-                          ? "bg-[#FF6600] text-white"
-                          : prod.badge === "New Arrival"
-                          ? "bg-[#0B2852] text-white border border-[#39FF00]"
-                          : "bg-[#0B2852] text-white"
-                      }`}
+                            ? "bg-[#39FF00] text-[#101C32]"
+                            : prod.badge === "Special Offer"
+                              ? "bg-[#FF6B00] text-white"
+                              : prod.badge === "Available" || prod.status === "AVAILABLE"
+                                ? "bg-[#2563EB] text-white"
+                                : prod.badge === "New Arrival"
+                                  ? "bg-[#0B2852] text-white border border-[#39FF00]"
+                                  : "bg-[#0B2852] text-white"
+                        }`}
                     >
                       {prod.badge}
                     </span>
@@ -709,11 +708,11 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
                   {/* Hover Quick Actions */}
                   <div className="absolute inset-0 bg-[#0B2852]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[2px]">
                     {isOutOfStock ? (
-                      <span className="px-4 py-2 rounded-full bg-rose-700 text-white text-xs font-josefin font-bold shadow-lg">
+                      <span className="px-4 py-2 rounded-full bg-[#DC2626] text-white text-xs font-josefin font-bold shadow-lg">
                         Out of Stock
                       </span>
                     ) : isComingSoon ? (
-                      <span className="px-4 py-2 rounded-full bg-amber-600 text-white text-xs font-josefin font-bold shadow-lg">
+                      <span className="px-4 py-2 rounded-full bg-[#16A34A] text-white text-xs font-josefin font-bold shadow-lg">
                         Coming Soon
                       </span>
                     ) : (
@@ -829,7 +828,7 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
                       <button
                         type="button"
                         onClick={() => setOfferModalProduct(prod)}
-                        className="py-1.5 px-2 rounded-md bg-[#FF6600] text-white hover:bg-[#e05a00] font-bold text-[11px] flex items-center justify-center gap-1 transition-colors cursor-pointer shadow-xs"
+                        className="py-1.5 px-2 rounded-md bg-[#FF6B00] text-white hover:bg-[#e05a00] font-bold text-[11px] flex items-center justify-center gap-1 transition-colors cursor-pointer shadow-xs"
                         title="Special Offer & Discount Badge"
                       >
                         <Tag className="w-3 h-3" />
@@ -852,11 +851,10 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
                       <button
                         type="button"
                         onClick={() => handleUpdateAvailability(prod, "AVAILABLE")}
-                        className={`flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all cursor-pointer ${
-                          prod.status === "AVAILABLE"
-                            ? "bg-emerald-600 text-white shadow-xs"
-                            : "bg-white border border-gray-200 text-gray-600 hover:bg-emerald-50"
-                        }`}
+                        className={`flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all cursor-pointer ${prod.status === "AVAILABLE"
+                          ? "bg-[#2563EB] text-white shadow-xs"
+                          : "bg-white border border-gray-200 text-gray-600 hover:bg-blue-50"
+                          }`}
                         title="Mark Available"
                       >
                         Available
@@ -864,11 +862,10 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
                       <button
                         type="button"
                         onClick={() => handleUpdateAvailability(prod, "OUT_OF_STOCK")}
-                        className={`flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all cursor-pointer ${
-                          prod.status === "OUT_OF_STOCK"
-                            ? "bg-rose-600 text-white shadow-xs"
-                            : "bg-white border border-gray-200 text-gray-600 hover:bg-rose-50"
-                        }`}
+                        className={`flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all cursor-pointer ${prod.status === "OUT_OF_STOCK"
+                          ? "bg-[#DC2626] text-white shadow-xs"
+                          : "bg-white border border-gray-200 text-gray-600 hover:bg-red-50"
+                          }`}
                         title="Mark Out of Stock"
                       >
                         Out of Stock
@@ -876,11 +873,10 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
                       <button
                         type="button"
                         onClick={() => handleUpdateAvailability(prod, "COMING_SOON")}
-                        className={`flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all cursor-pointer ${
-                          prod.status === "COMING_SOON"
-                            ? "bg-amber-600 text-white shadow-xs"
-                            : "bg-white border border-gray-200 text-gray-600 hover:bg-amber-50"
-                        }`}
+                        className={`flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all cursor-pointer ${prod.status === "COMING_SOON"
+                          ? "bg-[#16A34A] text-white shadow-xs"
+                          : "bg-white border border-gray-200 text-gray-600 hover:bg-green-50"
+                          }`}
                         title="Mark Coming Soon"
                       >
                         Coming Soon
@@ -1339,11 +1335,10 @@ function ProductFormDialog({
                     key={p.label}
                     type="button"
                     onClick={() => setImageUrl(p.url)}
-                    className={`px-2 py-0.5 rounded text-[10px] font-semibold border transition-all ${
-                      imageUrl === p.url
-                        ? "bg-[#0B2852] text-white border-[#0B2852]"
-                        : "bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-400"
-                    }`}
+                    className={`px-2 py-0.5 rounded text-[10px] font-semibold border transition-all ${imageUrl === p.url
+                      ? "bg-[#0B2852] text-white border-[#0B2852]"
+                      : "bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-400"
+                      }`}
                   >
                     {p.label}
                   </button>
@@ -1559,11 +1554,10 @@ function ProductImageUploadModal({
                 key={p.url}
                 type="button"
                 onClick={() => setImageUrl(p.url)}
-                className={`text-[10px] px-2 py-0.5 rounded border transition-colors ${
-                  imageUrl === p.url
-                    ? "bg-[#0B2852] text-white border-[#0B2852]"
-                    : "bg-white text-gray-700 hover:bg-gray-100"
-                }`}
+                className={`text-[10px] px-2 py-0.5 rounded border transition-colors ${imageUrl === p.url
+                  ? "bg-[#0B2852] text-white border-[#0B2852]"
+                  : "bg-white text-gray-700 hover:bg-gray-100"
+                  }`}
               >
                 {p.label}
               </button>
@@ -1616,9 +1610,9 @@ function ProductOfferModal({
   );
   const [discountPercent, setDiscountPercent] = useState<number>(
     product.discountPercent ||
-      (product.salePrice && product.regularPrice > product.salePrice
-        ? Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100)
-        : 20)
+    (product.salePrice && product.regularPrice > product.salePrice
+      ? Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100)
+      : 20)
   );
 
   const regularPrice = product.regularPrice || 1000;
@@ -1630,7 +1624,7 @@ function ProductOfferModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
       <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200 space-y-4 font-josefin text-xs">
         <div className="flex items-center justify-between border-b pb-3">
-          <h3 className="text-base font-bold text-[#FF6600] flex items-center gap-1.5">
+          <h3 className="text-base font-bold text-[#FF6B00] flex items-center gap-1.5">
             <Tag className="w-4 h-4" />
             Special Offer & Discount: {product.name}
           </h3>
@@ -1651,7 +1645,7 @@ function ProductOfferModal({
             type="checkbox"
             checked={isSpecialOffer}
             onChange={(e) => setIsSpecialOffer(e.target.checked)}
-            className="w-5 h-5 text-[#FF6600] rounded focus:ring-[#FF6600]"
+            className="w-5 h-5 text-[#FF6B00] rounded focus:ring-[#FF6B00]"
           />
         </div>
 
@@ -1671,7 +1665,7 @@ function ProductOfferModal({
             <div>
               <div className="flex justify-between font-bold text-gray-700 mb-1">
                 <span>Discount Percentage:</span>
-                <span className="text-[#FF6600] font-mono text-sm">{discountPercent}% OFF</span>
+                <span className="text-[#FF6B00] font-mono text-sm">{discountPercent}% OFF</span>
               </div>
               <input
                 type="range"
@@ -1680,7 +1674,7 @@ function ProductOfferModal({
                 step={5}
                 value={discountPercent}
                 onChange={(e) => setDiscountPercent(parseInt(e.target.value, 10))}
-                className="w-full accent-[#FF6600]"
+                className="w-full accent-[#FF6B00]"
               />
               <div className="flex justify-between text-[10px] text-gray-400 mt-1">
                 <span>5%</span>
@@ -1699,7 +1693,7 @@ function ProductOfferModal({
               </div>
               <div className="text-right">
                 <span className="text-gray-500 block">Discounted Selling Price:</span>
-                <span className="font-bold text-[#FF6600] text-base">
+                <span className="font-bold text-[#FF6B00] text-base">
                   ₹{calculatedSalePrice.toFixed(2)}
                 </span>
               </div>
@@ -1725,7 +1719,7 @@ function ProductOfferModal({
                 isSpecialOffer ? calculatedSalePrice : null
               )
             }
-            className="flex-1 py-2 rounded-full bg-[#FF6600] text-white hover:bg-[#e05a00] font-bold uppercase transition-all shadow-md"
+            className="flex-1 py-2 rounded-full bg-[#FF6B00] text-white hover:bg-[#e05a00] font-bold uppercase transition-all shadow-md"
           >
             Save Offer
           </button>

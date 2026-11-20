@@ -573,8 +573,8 @@ export default function HomeClient({
                     onClick={() => handleToggleSlideActive(currentSlide)}
                     className={`p-1.5 rounded-md text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer ${
                       currentSlide.isActive
-                        ? "bg-emerald-600 text-white hover:bg-emerald-700"
-                        : "bg-amber-600 text-white hover:bg-amber-700"
+                        ? "bg-[#16A34A] text-white hover:bg-emerald-700"
+                        : "bg-gray-500 text-white hover:bg-gray-600"
                     }`}
                     title={currentSlide.isActive ? "Disable Slide" : "Enable Slide"}
                   >
@@ -607,7 +607,7 @@ export default function HomeClient({
                   <button
                     type="button"
                     onClick={() => setDeleteSlideModal({ id: currentSlide.id, title: currentSlide.title })}
-                    className="p-1.5 rounded-md bg-rose-600 text-white hover:bg-rose-700 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                    className="p-1.5 rounded-md bg-[#DC2626] text-white hover:bg-rose-700 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
                     title="Delete Slide"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -631,7 +631,7 @@ export default function HomeClient({
                   </p>
                 )}
                 {currentSlide.subtitle && (
-                  <p className="font-josefin text-[12px] sm:text-[13px] font-semibold text-[#FF6600]">
+                  <p className="font-josefin text-[12px] sm:text-[13px] font-semibold text-[#FF6B00]">
                     {currentSlide.subtitle}
                   </p>
                 )}
