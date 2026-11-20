@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserFromRequest, isAdminRole } from "@/lib/auth";
+import { applyTrainboardOverrides } from "@/lib/cloudStore";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
-    const trainboards = await prisma.trainboard.findMany({
+    const rawTrainboards = await prisma.trainboard.findMany({
       orderBy: [{ displayOrder: "asc" }, { createdAt: "desc" }],
     });
+    const trainboards = await applyTrainboardOverrides(rawTrainboards);
     return NextResponse.json({ trainboards });
   } catch (error: any) {
     return NextResponse.json({ error: "Failed to fetch trainboards" }, { status: 500 });

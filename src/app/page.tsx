@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { applyProductOverrides, applySlideOverrides } from "@/lib/cloudStore";
 import HomeClient from "./HomeClient";
 
 export const dynamic = "force-dynamic";
@@ -56,15 +57,20 @@ export default async function HomePage() {
     }),
   ]);
 
+  const [activeFeatured, activeSlides] = await Promise.all([
+    applyProductOverrides(featuredProducts),
+    applySlideOverrides(homeSlides),
+  ]);
+
   return (
     <HomeClient
-      featuredProducts={featuredProducts}
+      featuredProducts={activeFeatured}
       newArrivals={newArrivals}
       categories={categories}
       projects={projects}
       services={services}
       settings={settings}
-      homeSlides={homeSlides}
+      homeSlides={activeSlides}
     />
   );
 }

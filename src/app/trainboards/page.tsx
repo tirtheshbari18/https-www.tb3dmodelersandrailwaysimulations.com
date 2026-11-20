@@ -1,5 +1,6 @@
 import React, { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
+import { applyTrainboardOverrides } from "@/lib/cloudStore";
 import TrainboardsClient from "./TrainboardsClient";
 
 export const dynamic = "force-dynamic";
@@ -10,11 +11,13 @@ export default async function TrainboardsPage() {
     orderBy: [{ displayOrder: "asc" }, { createdAt: "desc" }],
   });
 
-  const trainboards = rawTrainboards.map((t) => ({
+  const formatted = rawTrainboards.map((t) => ({
     ...t,
     createdAt: t.createdAt.toISOString(),
     updatedAt: t.updatedAt.toISOString(),
   }));
+
+  const trainboards = await applyTrainboardOverrides(formatted);
 
   return (
     <Suspense

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getUserFromRequest, isAdminRole } from "@/lib/auth";
+import { saveProductOverride } from "@/lib/cloudStore";
 
 export const dynamic = "force-dynamic";
 
@@ -97,6 +99,31 @@ export async function PUT(
       // non-blocking
     }
 
+    // Persist to multi-lambda persistent cloud store
+    try {
+      await saveProductOverride(id, {
+        name: updated.name,
+        regularPrice: updated.regularPrice,
+        salePrice: updated.salePrice,
+        status: updated.status,
+        stockQuantity: updated.stockQuantity,
+        isSpecialOffer: (updated as any).isSpecialOffer,
+        specialOfferText: (updated as any).specialOfferText,
+        discountPercent: (updated as any).discountPercent,
+        description: updated.description,
+        ...(body.imageUrl && { imageUrl: body.imageUrl }),
+      });
+    } catch (cloudErr) {
+      console.warn("CloudStore error:", cloudErr);
+    }
+
+    // Bust Next.js static / SSR caches immediately
+    try {
+      revalidatePath("/shop");
+      revalidatePath("/");
+      revalidatePath(`/shop/${updated.slug}`);
+    } catch (e) {}
+
     return NextResponse.json({ success: true, product: updated });
   } catch (error: any) {
     console.error("Product update error:", error);
@@ -138,6 +165,11 @@ export async function DELETE(
     } catch (e) {
       // non-blocking
     }
+
+    try {
+      revalidatePath("/shop");
+      revalidatePath("/");
+    } catch (e) {}
 
     return NextResponse.json({ success: true, message: "Product deleted" });
   } catch (error: any) {

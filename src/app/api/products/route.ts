@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { applyProductOverrides } from "@/lib/cloudStore";
 
 export const dynamic = "force-dynamic";
 
@@ -43,7 +44,7 @@ export async function GET(req: NextRequest) {
       orderBy = { name: "asc" };
     }
 
-    const [products, categories] = await Promise.all([
+    const [rawProducts, categories] = await Promise.all([
       prisma.product.findMany({
         where,
         orderBy,
@@ -56,6 +57,8 @@ export async function GET(req: NextRequest) {
         orderBy: { order: "asc" },
       }),
     ]);
+
+    const products = await applyProductOverrides(rawProducts);
 
     return NextResponse.json({ products, categories });
   } catch (error: any) {

@@ -1,12 +1,13 @@
 import React, { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
+import { applyProductOverrides } from "@/lib/cloudStore";
 import ShopClient from "./ShopClient";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function ShopPage() {
-  const [products, categories] = await Promise.all([
+  const [rawProducts, categories] = await Promise.all([
     prisma.product.findMany({
       orderBy: { createdAt: "desc" },
       include: {
@@ -19,6 +20,8 @@ export default async function ShopPage() {
       orderBy: { order: "asc" },
     }),
   ]);
+
+  const products = await applyProductOverrides(rawProducts);
 
   return (
     <Suspense fallback={<div className="min-h-screen bg-railway-darkest text-slate-400 p-8 text-center text-xs">Loading shop add-ons...</div>}>

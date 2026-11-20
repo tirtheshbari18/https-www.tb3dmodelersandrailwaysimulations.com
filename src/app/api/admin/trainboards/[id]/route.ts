@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getUserFromRequest, isAdminRole } from "@/lib/auth";
+import { saveTrainboardOverride } from "@/lib/cloudStore";
 
 export const dynamic = "force-dynamic";
 
@@ -88,6 +90,22 @@ export async function PUT(
     } catch (e) {
       // non-blocking
     }
+
+    try {
+      await saveTrainboardOverride(id, {
+        name: updated.name,
+        regularPrice: updated.regularPrice,
+        salePrice: updated.salePrice,
+        status: updated.status,
+        discountPercent: (updated as any).discountPercent,
+        isSpecialOffer: (updated as any).isSpecialOffer,
+        ...(updated.image && { image: updated.image }),
+      });
+    } catch (cloudErr) {}
+
+    try {
+      revalidatePath("/trainboards");
+    } catch (e) {}
 
     return NextResponse.json({ success: true, trainboard: updated });
   } catch (error: any) {

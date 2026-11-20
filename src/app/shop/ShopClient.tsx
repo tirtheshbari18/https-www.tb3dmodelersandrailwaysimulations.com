@@ -293,18 +293,105 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
       : fallbackProducts
   );
 
+  // Admin Action Saving Indicator
+  const [isSavingAction, setIsSavingAction] = useState<boolean>(false);
+
+  const getAuthHeaders = () => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("vg_token") : null;
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    return headers;
+  };
+
+  const persistToLocalStorage = (productId: string, partial: any) => {
+    try {
+      const local = localStorage.getItem("vg_saved_products");
+      const current = local ? JSON.parse(local) : {};
+      current[productId] = { ...(current[productId] || {}), ...partial };
+      localStorage.setItem("vg_saved_products", JSON.stringify(current));
+    } catch (e) {}
+  };
+
+  // Revalidate from live database and sync across tabs & refreshes
+  useEffect(() => {
+    // 1. Instantly merge any saved overrides from localStorage
+    try {
+      const local = localStorage.getItem("vg_saved_products");
+      if (local) {
+        const parsed = JSON.parse(local);
+        if (parsed && typeof parsed === "object") {
+          setProducts((prev) =>
+            prev.map((p) => (parsed[p.id] ? { ...p, ...parsed[p.id] } : p))
+          );
+        }
+      }
+    } catch (e) {}
+
+    // 2. Fetch fresh real-time database state from /api/products
+    fetch("/api/products", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.products && data.products.length > 0) {
+          setProducts(
+            data.products.map((p: any) => {
+              const hasOffer = p.salePrice !== null && p.salePrice !== undefined && p.salePrice < p.regularPrice;
+              const isOutOfStock = p.status === "OUT_OF_STOCK";
+              const isComingSoon = p.status === "COMING_SOON";
+              return {
+                id: p.id,
+                slug: p.slug,
+                name: p.name,
+                sku: p.sku || `VG-${p.id.slice(-5)}`,
+                badge: isOutOfStock
+                  ? "Out of Stock"
+                  : isComingSoon
+                    ? "Coming Soon"
+                    : hasOffer
+                      ? "Special Offer"
+                      : p.isNewArrival
+                        ? "New Arrival"
+                        : p.version || "V1.0",
+                image: p.images?.[0]?.url || "/assets/products/chaircar_standard.png",
+                regularPrice: p.regularPrice,
+                salePrice: p.salePrice,
+                compatibility: p.compatibility || "Open Rails / MSTS",
+                categoryId: p.categoryId,
+                categoryName: p.category?.name || "LHB Coaches",
+                status: p.status,
+                stockQuantity: p.stockQuantity ?? 100,
+                description: p.description || "",
+                isOutOfStock,
+                isComingSoon,
+              };
+            })
+          );
+        }
+      })
+      .catch((e) => console.log("Using cached products"));
+  }, []);
+
   // Handlers for Admin Operations
   const handleSaveProduct = async (e: React.FormEvent, formValues: any) => {
     e.preventDefault();
+    if (isSavingAction) return;
+    setIsSavingAction(true);
     try {
       if (editingProduct) {
         const res = await fetch(`/api/admin/products/${editingProduct.id}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: getAuthHeaders(),
           body: JSON.stringify(formValues),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Failed to update product");
+
+        const confirmed = data.product || formValues;
+        persistToLocalStorage(editingProduct.id, {
+          ...confirmed,
+          ...(formValues.imageUrl && { image: formValues.imageUrl }),
+        });
 
         setProducts((prev) =>
           prev.map((p) =>
@@ -312,6 +399,8 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
               ? {
                 ...p,
                 ...formValues,
+                regularPrice: confirmed.regularPrice !== undefined ? confirmed.regularPrice : p.regularPrice,
+                salePrice: confirmed.salePrice !== undefined ? confirmed.salePrice : p.salePrice,
                 image: formValues.imageUrl || p.image,
                 badge:
                   formValues.status === "OUT_OF_STOCK"
@@ -330,7 +419,7 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
       } else {
         const res = await fetch("/api/admin/products", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: getAuthHeaders(),
           body: JSON.stringify(formValues),
         });
         const data = await res.json();
@@ -367,6 +456,8 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
       }
     } catch (err: any) {
       showToast(err.message, true);
+    } finally {
+      setIsSavingAction(false);
     }
   };
 
@@ -376,9 +467,13 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
     setDeleteProductModal(null);
 
     try {
-      const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/products/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
       if (!res.ok) throw new Error("Failed to delete product");
       setProducts((prev) => prev.filter((p) => p.id !== id));
+      persistToLocalStorage(id, { _deleted: true });
       showToast(`"${name}" permanently deleted.`);
     } catch (err: any) {
       showToast(err.message, true);
@@ -389,13 +484,19 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
     try {
       const res = await fetch(`/api/admin/products/${prod.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           status: newStatus,
           stockQuantity: newStatus === "OUT_OF_STOCK" ? 0 : prod.stockQuantity || 100,
         }),
       });
-      if (!res.ok) throw new Error("Failed to update status");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update status");
+
+      persistToLocalStorage(prod.id, {
+        status: newStatus,
+        stockQuantity: newStatus === "OUT_OF_STOCK" ? 0 : prod.stockQuantity || 100,
+      });
 
       setProducts((prev) =>
         prev.map((p) =>
@@ -417,35 +518,45 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
             : p
         )
       );
-      showToast(`Marked ${prod.name} as ${newStatus.replace("_", " ")}`);
+      showToast(`Saved: Marked ${prod.name} as ${newStatus.replace("_", " ")}`);
     } catch (err: any) {
       showToast(err.message, true);
     }
   };
 
   const handleSavePriceChange = async (regularPrice: number, salePrice: number | null) => {
-    if (!priceModalProduct) return;
+    if (!priceModalProduct || isSavingAction) return;
+    setIsSavingAction(true);
     try {
       const res = await fetch(`/api/admin/products/${priceModalProduct.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ regularPrice, salePrice }),
       });
-      if (!res.ok) throw new Error("Failed to update price");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update price");
+
+      const confirmedRegular = data.product?.regularPrice !== undefined ? data.product.regularPrice : regularPrice;
+      const confirmedSale = data.product?.salePrice !== undefined ? data.product.salePrice : salePrice;
+
+      persistToLocalStorage(priceModalProduct.id, {
+        regularPrice: confirmedRegular,
+        salePrice: confirmedSale,
+      });
 
       setProducts((prev) =>
         prev.map((p) =>
           p.id === priceModalProduct.id
             ? {
               ...p,
-              regularPrice,
-              salePrice,
+              regularPrice: confirmedRegular,
+              salePrice: confirmedSale,
               badge:
                 p.status === "OUT_OF_STOCK"
                   ? "Out of Stock"
                   : p.status === "COMING_SOON"
                     ? "Coming Soon"
-                    : salePrice && salePrice < regularPrice
+                    : confirmedSale && confirmedSale < confirmedRegular
                       ? "Special Offer"
                       : "V1.0",
             }
@@ -453,41 +564,57 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
         )
       );
       setPriceModalProduct(null);
-      showToast("Price changes saved and live!");
+      showToast(`Saved successfully: Price set to ₹${confirmedRegular.toFixed(2)}!`);
     } catch (err: any) {
       showToast(err.message, true);
+    } finally {
+      setIsSavingAction(false);
     }
   };
 
   const handleSaveRename = async (id: string, name: string) => {
+    if (isSavingAction) return;
+    setIsSavingAction(true);
     try {
       const res = await fetch(`/api/admin/products/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ name }),
       });
-      if (!res.ok) throw new Error("Failed to rename product");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to rename product");
+
+      persistToLocalStorage(id, { name });
       setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, name } : p)));
       setRenameModalProduct(null);
-      showToast(`Renamed to "${name}" successfully!`);
+      showToast(`Saved successfully: Renamed to "${name}"!`);
     } catch (err: any) {
       showToast(err.message, true);
+    } finally {
+      setIsSavingAction(false);
     }
   };
 
   const handleSaveImage = async (id: string, imageUrl: string) => {
+    if (isSavingAction) return;
+    setIsSavingAction(true);
     try {
       const res = await fetch(`/api/admin/products/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ imageUrl }),
       });
-      if (!res.ok) throw new Error("Failed to update product image");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update product image");
+
+      persistToLocalStorage(id, { image: imageUrl });
       setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, image: imageUrl } : p)));
       setImageModalProduct(null);
-      showToast("Product image updated successfully!");
+      showToast("Saved successfully: Product image updated!");
     } catch (err: any) {
       showToast(err.message, true);
+    } finally {
+      setIsSavingAction(false);
     }
   };
 
@@ -498,6 +625,8 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
     discountPercent: number,
     newSalePrice?: number | null
   ) => {
+    if (isSavingAction) return;
+    setIsSavingAction(true);
     try {
       const payload: any = {
         isSpecialOffer,
@@ -509,10 +638,19 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
       }
       const res = await fetch(`/api/admin/products/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error("Failed to update special offer");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update special offer");
+
+      persistToLocalStorage(id, {
+        isSpecialOffer,
+        specialOfferText,
+        discountPercent,
+        salePrice: newSalePrice !== undefined ? newSalePrice : null,
+      });
+
       setProducts((prev) =>
         prev.map((p) =>
           p.id === id
@@ -526,9 +664,11 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
         )
       );
       setOfferModalProduct(null);
-      showToast("Special offer saved successfully!");
+      showToast("Saved successfully: Special offer live in database!");
     } catch (err: any) {
       showToast(err.message, true);
+    } finally {
+      setIsSavingAction(false);
     }
   };
 
@@ -932,6 +1072,7 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
       {priceModalProduct && (
         <QuickPriceModal
           product={priceModalProduct}
+          isSaving={isSavingAction}
           onClose={() => setPriceModalProduct(null)}
           onSave={handleSavePriceChange}
         />
@@ -959,6 +1100,7 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
       {offerModalProduct && (
         <ProductOfferModal
           product={offerModalProduct}
+          isSaving={isSavingAction}
           onClose={() => setOfferModalProduct(null)}
           onSave={(isSpecialOffer, specialOfferText, discountPercent, newSalePrice) =>
             handleSaveSpecialOffer(
@@ -994,10 +1136,12 @@ function QuickPriceModal({
   product,
   onClose,
   onSave,
+  isSaving,
 }: {
   product: any;
   onClose: () => void;
   onSave: (regularPrice: number, salePrice: number | null) => void;
+  isSaving?: boolean;
 }) {
   const [regularPrice, setRegularPrice] = useState(product.regularPrice);
   const [salePrice, setSalePrice] = useState<number | null>(product.salePrice);
@@ -1073,17 +1217,23 @@ function QuickPriceModal({
         <div className="flex gap-3 pt-3 border-t">
           <button
             type="button"
+            disabled={isSaving}
             onClick={onClose}
-            className="flex-1 py-2.5 rounded-full border border-gray-300 text-gray-700 font-bold hover:bg-gray-100"
+            className="flex-1 py-2.5 rounded-full border border-gray-300 text-gray-700 font-bold hover:bg-gray-100 disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             type="button"
+            disabled={isSaving}
             onClick={() => onSave(regularPrice, salePrice)}
-            className="flex-1 py-2.5 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] font-bold uppercase transition-all shadow-md"
+            className={`flex-1 py-2.5 rounded-full font-bold uppercase transition-all shadow-md ${
+              isSaving
+                ? "bg-gray-400 text-white cursor-not-allowed"
+                : "bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32]"
+            }`}
           >
-            Save Price
+            {isSaving ? "Saving to Database..." : "Save Price"}
           </button>
         </div>
       </div>
@@ -1592,9 +1742,11 @@ function ProductOfferModal({
   product,
   onClose,
   onSave,
+  isSaving,
 }: {
   product: any;
   onClose: () => void;
+  isSaving?: boolean;
   onSave: (
     isSpecialOffer: boolean,
     specialOfferText: string,
@@ -1704,13 +1856,15 @@ function ProductOfferModal({
         <div className="flex gap-2 pt-3 border-t">
           <button
             type="button"
+            disabled={isSaving}
             onClick={onClose}
-            className="flex-1 py-2 rounded-full border border-gray-300 text-gray-700 font-bold hover:bg-gray-100"
+            className="flex-1 py-2 rounded-full border border-gray-300 text-gray-700 font-bold hover:bg-gray-100 disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             type="button"
+            disabled={isSaving}
             onClick={() =>
               onSave(
                 isSpecialOffer,
@@ -1719,9 +1873,13 @@ function ProductOfferModal({
                 isSpecialOffer ? calculatedSalePrice : null
               )
             }
-            className="flex-1 py-2 rounded-full bg-[#FF6B00] text-white hover:bg-[#e05a00] font-bold uppercase transition-all shadow-md"
+            className={`flex-1 py-2 rounded-full font-bold uppercase transition-all shadow-md ${
+              isSaving
+                ? "bg-gray-400 text-white cursor-not-allowed"
+                : "bg-[#FF6B00] text-white hover:bg-[#e05a00]"
+            }`}
           >
-            Save Offer
+            {isSaving ? "Saving to Database..." : "Save Offer"}
           </button>
         </div>
       </div>

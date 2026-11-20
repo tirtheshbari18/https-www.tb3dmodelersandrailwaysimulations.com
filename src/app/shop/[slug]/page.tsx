@@ -1,16 +1,20 @@
 import React from "react";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { applySingleProductOverride, applyProductOverrides } from "@/lib/cloudStore";
 import ProductDetailClient from "./ProductDetailClient";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const product = await prisma.product.findFirst({
+  const rawProduct = await prisma.product.findFirst({
     where: {
       OR: [{ slug: params.slug }, { id: params.slug }],
     },
   });
+
+  const product = await applySingleProductOverride(rawProduct);
 
   if (!product) return { title: "Product Not Found" };
 
@@ -25,7 +29,7 @@ export default async function ProductDetailPage({
 }: {
   params: { slug: string };
 }) {
-  const product = await prisma.product.findFirst({
+  const rawProduct = await prisma.product.findFirst({
     where: {
       OR: [{ slug: params.slug }, { id: params.slug }],
     },
@@ -37,15 +41,17 @@ export default async function ProductDetailPage({
     },
   });
 
-  if (!product) {
+  if (!rawProduct) {
     notFound();
   }
 
+  const product = await applySingleProductOverride(rawProduct);
+
   // Related products
-  const relatedProducts = await prisma.product.findMany({
+  const rawRelated = await prisma.product.findMany({
     where: {
-      categoryId: product.categoryId,
-      id: { not: product.id },
+      categoryId: rawProduct.categoryId,
+      id: { not: rawProduct.id },
     },
     take: 3,
     include: {
@@ -54,9 +60,11 @@ export default async function ProductDetailPage({
     },
   });
 
+  const relatedProducts = await applyProductOverrides(rawRelated);
+
   return (
     <ProductDetailClient
-      product={product}
+      product={product!}
       relatedProducts={relatedProducts}
     />
   );

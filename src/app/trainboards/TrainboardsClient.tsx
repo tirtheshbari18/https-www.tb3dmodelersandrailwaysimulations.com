@@ -157,8 +157,40 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
     setTimeout(() => setToastMsg(null), 3500);
   };
 
+  const getAuthHeaders = () => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("vg_token") : null;
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    return headers;
+  };
+
+  const persistTbToLocalStorage = (tbId: string, partial: any) => {
+    try {
+      const local = localStorage.getItem("vg_saved_trainboards");
+      const current = local ? JSON.parse(local) : {};
+      current[tbId] = { ...(current[tbId] || {}), ...partial };
+      localStorage.setItem("vg_saved_trainboards", JSON.stringify(current));
+    } catch (e) {}
+  };
+
   // Fetch trainboards from backend API
   const refreshTrainboards = () => {
+    // 1. Instant check from localStorage
+    try {
+      const local = localStorage.getItem("vg_saved_trainboards");
+      if (local) {
+        const parsed = JSON.parse(local);
+        if (parsed && typeof parsed === "object") {
+          setTrainboardFiles((prev) =>
+            prev.map((tb) => (parsed[tb.id] ? { ...tb, ...parsed[tb.id] } : tb))
+          );
+        }
+      }
+    } catch (e) {}
+
+    // 2. Fetch fresh real-time database state
     fetch("/api/admin/trainboards", { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
@@ -217,12 +249,13 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
       if (editingTrainboard) {
         const res = await fetch(`/api/admin/trainboards/${editingTrainboard.id}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: getAuthHeaders(),
           body: JSON.stringify(formValues),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Failed to update trainboard");
 
+        persistTbToLocalStorage(editingTrainboard.id, data.trainboard || formValues);
         setTrainboardFiles((prev) =>
           prev.map((tb) => (tb.id === editingTrainboard.id ? { ...tb, ...data.trainboard } : tb))
         );
@@ -231,7 +264,7 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
       } else {
         const res = await fetch("/api/admin/trainboards", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: getAuthHeaders(),
           body: JSON.stringify(formValues),
         });
         const data = await res.json();
@@ -252,8 +285,12 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
     setDeleteModal(null);
 
     try {
-      const res = await fetch(`/api/admin/trainboards/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/trainboards/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
       if (!res.ok) throw new Error("Failed to delete trainboard");
+      persistTbToLocalStorage(id, { _deleted: true });
       setTrainboardFiles((prev) => prev.filter((tb) => tb.id !== id));
       showToast(`Trainboard "${name}" permanently deleted.`);
     } catch (err: any) {
@@ -266,10 +303,11 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
       const cleanName = name.trim().endsWith(".zip") ? name.trim() : `${name.trim()}.zip`;
       const res = await fetch(`/api/admin/trainboards/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ name: cleanName }),
       });
       if (!res.ok) throw new Error("Failed to rename trainboard");
+      persistTbToLocalStorage(id, { name: cleanName });
       setTrainboardFiles((prev) =>
         prev.map((tb) => (tb.id === id ? { ...tb, name: cleanName } : tb))
       );
@@ -284,10 +322,11 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
     try {
       const res = await fetch(`/api/admin/trainboards/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ image }),
       });
       if (!res.ok) throw new Error("Failed to update trainboard image");
+      persistTbToLocalStorage(id, { image });
       setTrainboardFiles((prev) =>
         prev.map((tb) => (tb.id === id ? { ...tb, image } : tb))
       );
@@ -308,10 +347,11 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
     try {
       const res = await fetch(`/api/admin/trainboards/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ regularPrice, salePrice, discountPercent, isSpecialOffer }),
       });
       if (!res.ok) throw new Error("Failed to update trainboard pricing");
+      persistTbToLocalStorage(id, { regularPrice, salePrice, discountPercent, isSpecialOffer });
       setTrainboardFiles((prev) =>
         prev.map((tb) =>
           tb.id === id ? { ...tb, regularPrice, salePrice, discountPercent, isSpecialOffer } : tb
@@ -328,11 +368,12 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
     try {
       const res = await fetch(`/api/admin/trainboards/${tb.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ status: newStatus }),
       });
       if (!res.ok) throw new Error("Failed to update status");
 
+      persistTbToLocalStorage(tb.id, { status: newStatus });
       setTrainboardFiles((prev) =>
         prev.map((item) => (item.id === tb.id ? { ...item, status: newStatus } : item))
       );

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getUserFromRequest, isAdminRole } from "@/lib/auth";
+import { saveSlideOverride } from "@/lib/cloudStore";
 
 export const dynamic = "force-dynamic";
 
@@ -74,6 +76,23 @@ export async function PUT(
           details: `Admin ${user.email} updated home slide "${updated.title}"`,
         },
       });
+    } catch (e) {}
+
+    try {
+      await saveSlideOverride(params.id, {
+        title: updated.title,
+        subtitle: updated.subtitle,
+        description: updated.description,
+        image: updated.image,
+        buttonText: updated.buttonText,
+        buttonUrl: updated.buttonUrl,
+        order: updated.order,
+        isActive: updated.isActive,
+      });
+    } catch (cloudErr) {}
+
+    try {
+      revalidatePath("/");
     } catch (e) {}
 
     return NextResponse.json({ slide: updated });

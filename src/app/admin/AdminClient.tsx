@@ -173,6 +173,15 @@ export default function AdminClient({
   const activeOffersCount = offers.filter((o) => o.isActive).length;
   const totalProductsCount = products.length;
 
+  const getAuthHeaders = () => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("vg_token") : null;
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    return headers;
+  };
+
   // --- Handlers: Home Slide Management ---
   const handleSaveSlide = async (e: React.FormEvent, formValues: any, isNew: boolean = false) => {
     e.preventDefault();
@@ -181,7 +190,7 @@ export default function AdminClient({
       const method = isNew ? "POST" : "PUT";
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify(formValues),
       });
       const data = await res.json();
@@ -217,7 +226,7 @@ export default function AdminClient({
     try {
       const res = await fetch(`/api/admin/slides/${slide.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ isActive: !slide.isActive }),
       });
       if (res.ok) {
@@ -236,7 +245,7 @@ export default function AdminClient({
       if (editingProduct) {
         const res = await fetch(`/api/admin/products/${editingProduct.id}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: getAuthHeaders(),
           body: JSON.stringify(formValues),
         });
         const data = await res.json();
@@ -250,7 +259,7 @@ export default function AdminClient({
       } else {
         const res = await fetch("/api/admin/products", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: getAuthHeaders(),
           body: JSON.stringify(formValues),
         });
         const data = await res.json();
@@ -303,7 +312,7 @@ export default function AdminClient({
     try {
       const res = await fetch(`/api/admin/products/${product.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           status: newStatus,
           stockQuantity: newStatus === "OUT_OF_STOCK" ? 0 : product.stockQuantity || 100,
@@ -361,7 +370,7 @@ export default function AdminClient({
     try {
       const res = await fetch(`/api/admin/products/${productId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           regularPrice,
           salePrice,
@@ -386,7 +395,7 @@ export default function AdminClient({
       if (editingTrainboard) {
         const res = await fetch(`/api/admin/trainboards/${editingTrainboard.id}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: getAuthHeaders(),
           body: JSON.stringify(formValues),
         });
         const data = await res.json();
@@ -400,7 +409,7 @@ export default function AdminClient({
       } else {
         const res = await fetch("/api/admin/trainboards", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: getAuthHeaders(),
           body: JSON.stringify(formValues),
         });
         const data = await res.json();
