@@ -217,7 +217,7 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
       stockQuantity: 999,
     },
     {
-      id: "prod-vistadome",
+      id: "prod-vistadome-std",
       slug: "vg-lhb-vistadome-coaches",
       name: "VG LHB VISTADOME COACHES",
       badge: "V1.0",
@@ -230,7 +230,7 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
       stockQuantity: 999,
     },
     {
-      id: "prod-chaircar",
+      id: "prod-chaircar-std",
       slug: "vg-lhb-chaircar-coaches",
       name: "VG LHB CHAIRCAR COACHES",
       badge: "V1.0",
@@ -314,7 +314,39 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
     } catch (e) {}
   };
 
-  // Revalidate from live database and sync across tabs & refreshes
+  const formatProductFromApi = (p: any) => {
+    const isOutOfStock = p.status === "OUT_OF_STOCK" || (p.stockQuantity !== undefined && p.stockQuantity <= 0);
+    const isComingSoon = p.status === "COMING_SOON";
+    const hasOffer = Boolean(p.isSpecialOffer) || (p.salePrice !== null && p.salePrice !== undefined && p.salePrice < p.regularPrice);
+    return {
+      id: p.id,
+      slug: p.slug,
+      name: p.name,
+      sku: p.sku || `VG-${p.id.slice(-5)}`,
+      badge: isOutOfStock
+        ? "Out of Stock"
+        : isComingSoon
+          ? "Coming Soon"
+          : hasOffer
+            ? (p.specialOfferText || "Special Offer")
+            : p.isNewArrival
+              ? "New Arrival"
+              : p.version || "V1.0",
+      image: p.images?.[0]?.url || p.image || "/assets/products/chaircar_standard.png",
+      regularPrice: p.regularPrice,
+      salePrice: p.salePrice,
+      compatibility: p.compatibility || "Open Rails / MSTS",
+      categoryId: p.categoryId,
+      categoryName: p.category?.name || p.categoryName || "LHB Coaches",
+      status: p.status,
+      stockQuantity: p.stockQuantity ?? 100,
+      description: p.description || "",
+      isOutOfStock,
+      isComingSoon,
+    };
+  };
+
+  // Revalidate from live database and sync across tabs, passenger logins & refreshes
   useEffect(() => {
     // 1. Instantly merge any saved overrides from localStorage
     try {
@@ -323,53 +355,37 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
         const parsed = JSON.parse(local);
         if (parsed && typeof parsed === "object") {
           setProducts((prev) =>
-            prev.map((p) => (parsed[p.id] ? { ...p, ...parsed[p.id] } : p))
+            prev.map((p) => {
+              if (!parsed[p.id]) return p;
+              const merged = { ...p, ...parsed[p.id] };
+              return formatProductFromApi(merged);
+            })
           );
         }
       }
     } catch (e) {}
 
     // 2. Fetch fresh real-time database state from /api/products
-    fetch("/api/products", { cache: "no-store" })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.products && data.products.length > 0) {
-          setProducts(
-            data.products.map((p: any) => {
-              const hasOffer = p.salePrice !== null && p.salePrice !== undefined && p.salePrice < p.regularPrice;
-              const isOutOfStock = p.status === "OUT_OF_STOCK";
-              const isComingSoon = p.status === "COMING_SOON";
-              return {
-                id: p.id,
-                slug: p.slug,
-                name: p.name,
-                sku: p.sku || `VG-${p.id.slice(-5)}`,
-                badge: isOutOfStock
-                  ? "Out of Stock"
-                  : isComingSoon
-                    ? "Coming Soon"
-                    : hasOffer
-                      ? "Special Offer"
-                      : p.isNewArrival
-                        ? "New Arrival"
-                        : p.version || "V1.0",
-                image: p.images?.[0]?.url || "/assets/products/chaircar_standard.png",
-                regularPrice: p.regularPrice,
-                salePrice: p.salePrice,
-                compatibility: p.compatibility || "Open Rails / MSTS",
-                categoryId: p.categoryId,
-                categoryName: p.category?.name || "LHB Coaches",
-                status: p.status,
-                stockQuantity: p.stockQuantity ?? 100,
-                description: p.description || "",
-                isOutOfStock,
-                isComingSoon,
-              };
-            })
-          );
-        }
-      })
-      .catch((e) => console.log("Using cached products"));
+    const loadProductsFromApi = () => {
+      fetch(`/api/products?nocache=${Date.now()}`, { cache: "no-store" })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.products && data.products.length > 0) {
+            setProducts(data.products.map(formatProductFromApi));
+          }
+        })
+        .catch((e) => console.log("Using cached products"));
+    };
+
+    loadProductsFromApi();
+
+    const handleFocus = () => loadProductsFromApi();
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleFocus);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleFocus);
+    };
   }, []);
 
   // Handlers for Admin Operations
@@ -804,8 +820,33 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
           {products.map((prod: any) => {
             const added = isInCart(prod.id);
             const isFree = prod.salePrice === 0 && prod.regularPrice === 0;
-            const isOutOfStock = prod.status === "OUT_OF_STOCK" || Boolean(prod.isOutOfStock);
-            const isComingSoon = prod.status === "COMING_SOON" || Boolean(prod.isComingSoon);
+            const isOutOfStock = prod.status === "OUT_OF_STOCK" || (prod.stockQuantity !== undefined && prod.stockQuantity <= 0);
+            const isComingSoon = prod.status === "COMING_SOON";
+            const hasOffer = Boolean(prod.isSpecialOffer) || (prod.salePrice !== null && prod.salePrice !== undefined && prod.salePrice < prod.regularPrice);
+
+            const badgeText = isOutOfStock
+              ? "Out of Stock"
+              : isComingSoon
+                ? "Coming Soon"
+                : isFree
+                  ? "Free"
+                  : hasOffer
+                    ? (prod.specialOfferText || "Special Offer")
+                    : prod.badge === "New Arrival"
+                      ? "New Arrival"
+                      : prod.status === "AVAILABLE"
+                        ? "Available"
+                        : prod.badge || "Available";
+
+            const badgeBg = isOutOfStock
+              ? "bg-[#DC2626] text-white"
+              : isComingSoon
+                ? "bg-[#16A34A] text-white"
+                : isFree
+                  ? "bg-[#39FF00] text-[#101C32]"
+                  : hasOffer
+                    ? "bg-[#FF6B00] text-white"
+                    : "bg-[#2563EB] text-white";
 
             return (
               <div
@@ -818,26 +859,11 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
                   className="relative aspect-square w-full bg-[#F5F6F8] overflow-hidden flex items-center justify-center rounded-lg border border-gray-100"
                 >
                   {/* Badge top-left */}
-                  {prod.badge && (
-                    <span
-                      className={`absolute top-2.5 left-2.5 px-2.5 py-0.5 text-[11px] font-bold font-josefin uppercase rounded-full z-10 shadow-sm ${isOutOfStock
-                        ? "bg-[#DC2626] text-white"
-                        : isComingSoon
-                          ? "bg-[#16A34A] text-white"
-                          : isFree
-                            ? "bg-[#39FF00] text-[#101C32]"
-                            : prod.badge === "Special Offer"
-                              ? "bg-[#FF6B00] text-white"
-                              : prod.badge === "Available" || prod.status === "AVAILABLE"
-                                ? "bg-[#2563EB] text-white"
-                                : prod.badge === "New Arrival"
-                                  ? "bg-[#0B2852] text-white border border-[#39FF00]"
-                                  : "bg-[#0B2852] text-white"
-                        }`}
-                    >
-                      {prod.badge}
-                    </span>
-                  )}
+                  <span
+                    className={`absolute top-2.5 left-2.5 px-2.5 py-0.5 text-[11px] font-bold font-josefin uppercase rounded-full z-10 shadow-sm ${badgeBg}`}
+                  >
+                    {badgeText}
+                  </span>
 
                   <img
                     src={prod.image}
@@ -906,6 +932,32 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
                       {prod.compatibility}
                     </span>
                   </div>
+
+                  {/* Customer / Passenger Action Row */}
+                  {(!currentUser || !isAdminMode) && (
+                    <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between gap-2">
+                      {isOutOfStock ? (
+                        <span className="w-full py-1.5 rounded-lg bg-[#DC2626]/10 text-[#DC2626] border border-[#DC2626]/20 font-bold text-xs flex items-center justify-center gap-1.5">
+                          <Ban className="w-3.5 h-3.5" />
+                          Out of Stock
+                        </span>
+                      ) : isComingSoon ? (
+                        <span className="w-full py-1.5 rounded-lg bg-[#16A34A]/10 text-[#16A34A] border border-[#16A34A]/20 font-bold text-xs flex items-center justify-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5" />
+                          Coming Soon
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={(e) => handleAddToCart(e, prod)}
+                          className="w-full py-1.5 rounded-lg bg-[#0B2852] hover:bg-[#39FF00] text-white hover:text-[#101C32] font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                        >
+                          {added ? <Check className="w-3.5 h-3.5 text-[#39FF00]" /> : <ShoppingCart className="w-3.5 h-3.5" />}
+                          {added ? "In Cart" : isFree ? "Get Free" : "Add to Cart"}
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* 5. VISIBLE ADMIN MANAGEMENT CONTROLS ON PRODUCT CARD */}

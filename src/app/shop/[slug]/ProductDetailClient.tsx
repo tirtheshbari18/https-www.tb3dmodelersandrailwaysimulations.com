@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { 
@@ -33,9 +33,35 @@ export default function ProductDetailClient({
   const router = useRouter();
   const { addToCart, isInCart } = useCart();
 
+  const [currentProduct, setCurrentProduct] = useState(product);
+
+  useEffect(() => {
+    try {
+      const local = localStorage.getItem("vg_saved_products");
+      if (local) {
+        const parsed = JSON.parse(local);
+        if (parsed && parsed[product.id]) {
+          setCurrentProduct((prev: any) => ({ ...prev, ...parsed[product.id] }));
+        }
+      }
+    } catch (e) {}
+
+    fetch(`/api/products?nocache=${Date.now()}`, { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.products) {
+          const fresh = data.products.find((p: any) => p.id === product.id || p.slug === product.slug);
+          if (fresh) {
+            setCurrentProduct((prev: any) => ({ ...prev, ...fresh }));
+          }
+        }
+      })
+      .catch(() => {});
+  }, [product.id, product.slug]);
+
   const images =
-    product.images && product.images.length > 0
-      ? product.images.map((i: any) => i.url)
+    currentProduct.images && currentProduct.images.length > 0
+      ? currentProduct.images.map((i: any) => i.url)
       : ["https://images.unsplash.com/photo-1532105956626-9569c03602f6?w=1000"];
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -43,16 +69,16 @@ export default function ProductDetailClient({
   const [isZoomOpen, setIsZoomOpen] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
 
-  const isOutOfStock = product.status === "OUT_OF_STOCK";
-  const isComingSoon = product.status === "COMING_SOON";
-  const currentPrice = product.salePrice ?? product.regularPrice;
-  const isFree = product.isFree || currentPrice === 0;
-  const inCart = isInCart(product.id);
+  const isOutOfStock = currentProduct.status === "OUT_OF_STOCK" || (currentProduct.stockQuantity !== undefined && currentProduct.stockQuantity <= 0);
+  const isComingSoon = currentProduct.status === "COMING_SOON";
+  const currentPrice = currentProduct.salePrice ?? currentProduct.regularPrice;
+  const isFree = currentProduct.isFree || currentPrice === 0;
+  const inCart = isInCart(currentProduct.id);
 
   let parsedSpecs: Record<string, string> = {};
-  if (product.fullSpecs) {
+  if (currentProduct.fullSpecs) {
     try {
-      parsedSpecs = JSON.parse(product.fullSpecs);
+      parsedSpecs = JSON.parse(currentProduct.fullSpecs);
     } catch (e) {
       // not json, treat as plain text
     }
@@ -60,15 +86,15 @@ export default function ProductDetailClient({
 
   const handleAddToCart = () => {
     addToCart({
-      id: product.id,
-      productId: product.id,
-      name: product.name,
+      id: currentProduct.id,
+      productId: currentProduct.id,
+      name: currentProduct.name,
       price: currentPrice,
-      regularPrice: product.regularPrice,
+      regularPrice: currentProduct.regularPrice,
       image: images[0],
-      sku: product.sku,
-      categoryName: product.category?.name,
-      compatibility: product.compatibility,
+      sku: currentProduct.sku,
+      categoryName: currentProduct.category?.name,
+      compatibility: currentProduct.compatibility,
       isFree,
     });
   };
@@ -165,10 +191,10 @@ export default function ProductDetailClient({
             <div>
               <div className="flex items-center justify-between text-xs text-gray-500 mb-2 font-futura">
                 <span className="text-[#041229] font-semibold uppercase tracking-wider">
-                  {product.category?.name || "LHB Coach Pack"}
+                  {currentProduct.category?.name || "LHB Coach Pack"}
                 </span>
                 <div className="flex items-center gap-3">
-                  <span className="font-mono text-gray-400">SKU: {product.sku}</span>
+                  <span className="font-mono text-gray-400">SKU: {currentProduct.sku}</span>
                   <button
                     onClick={handleShare}
                     className="flex items-center gap-1 text-gray-500 hover:text-black transition-colors"
@@ -180,7 +206,7 @@ export default function ProductDetailClient({
               </div>
 
               <h1 className="text-2xl sm:text-3xl font-normal text-[#041229] font-futura leading-tight">
-                {product.name}
+                {currentProduct.name}
               </h1>
 
               {/* Price display */}
@@ -192,14 +218,14 @@ export default function ProductDetailClient({
                     <span className="text-3xl font-bold font-futura text-[#041229]">
                       {formatCurrency(currentPrice)}
                     </span>
-                    {product.regularPrice > currentPrice && (
+                    {currentProduct.regularPrice > currentPrice && (
                       <span className="text-lg text-gray-400 line-through font-futura">
-                        {formatCurrency(product.regularPrice)}
+                        {formatCurrency(currentProduct.regularPrice)}
                       </span>
                     )}
-                    {product.regularPrice > currentPrice && (
+                    {currentProduct.regularPrice > currentPrice && (
                       <span className="px-2.5 py-0.5 rounded-full bg-[#FF6B00] text-white text-xs font-futura font-bold">
-                        Special Offer: Save {Math.round(((product.regularPrice - currentPrice) / product.regularPrice) * 100)}%
+                        Special Offer: Save {Math.round(((currentProduct.regularPrice - currentPrice) / currentProduct.regularPrice) * 100)}%
                       </span>
                     )}
                   </>
@@ -211,15 +237,15 @@ export default function ProductDetailClient({
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-gray-50 p-4 rounded-lg border border-gray-200 font-futura">
               <div>
                 <span className="text-gray-500 block text-[10px] uppercase font-bold">Simulator</span>
-                <span className="text-[#041229] font-semibold">{product.compatibility}</span>
+                <span className="text-[#041229] font-semibold">{currentProduct.compatibility}</span>
               </div>
               <div>
                 <span className="text-gray-500 block text-[10px] uppercase font-bold">File Size</span>
-                <span className="text-[#041229] font-semibold">{product.fileSize || "140 MB"}</span>
+                <span className="text-[#041229] font-semibold">{currentProduct.fileSize || "140 MB"}</span>
               </div>
               <div>
                 <span className="text-gray-500 block text-[10px] uppercase font-bold">Version</span>
-                <span className="text-[#041229] font-semibold">{product.version || "v2.0"}</span>
+                <span className="text-[#041229] font-semibold">{currentProduct.version || "v2.0"}</span>
               </div>
               <div>
                 <span className="text-gray-500 block text-[10px] uppercase font-bold">Delivery</span>

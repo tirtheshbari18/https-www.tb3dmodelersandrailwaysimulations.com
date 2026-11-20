@@ -15,11 +15,63 @@ interface CloudDatabaseState {
   slides: Record<string, any>;
 }
 
+// Built-in baseline snapshot to ensure resilience against cloud store cold resets
+const BASELINE_SNAPSHOT: CloudDatabaseState = {
+  products: {
+    "prod-maitree": {
+      regularPrice: 400,
+      salePrice: 250,
+      status: "OUT_OF_STOCK",
+      isOutOfStock: true,
+      stockQuantity: 0,
+    },
+    "prod-chaircar-std": {
+      regularPrice: 600,
+      salePrice: 200,
+      status: "COMING_SOON",
+      isComingSoon: true,
+      stockQuantity: 0,
+    },
+    "prod-vistadome-std": {
+      regularPrice: 600,
+      salePrice: 50,
+      status: "OUT_OF_STOCK",
+      isOutOfStock: true,
+      stockQuantity: 0,
+    },
+    "prod-vistadome-livery": {
+      regularPrice: 300,
+      salePrice: 70,
+      status: "COMING_SOON",
+      isComingSoon: true,
+      stockQuantity: 0,
+    },
+    "prod-academy": {
+      regularPrice: 899,
+      salePrice: 799,
+      status: "AVAILABLE",
+      isSpecialOffer: true,
+      stockQuantity: 999,
+    },
+  },
+  trainboards: {
+    "ecor-22823": {
+      regularPrice: 249,
+      salePrice: 199,
+      status: "AVAILABLE",
+    },
+  },
+  slides: {},
+};
+
 // In-memory short-lived cache (3 seconds) to prevent redundant HTTP requests within a single render cycle
 let memoryCache: {
   data: CloudDatabaseState;
   timestamp: number;
-} | null = null;
+} = {
+  data: BASELINE_SNAPSHOT,
+  timestamp: Date.now(),
+};
 
 const CACHE_TTL_MS = 3000;
 
@@ -42,18 +94,18 @@ export async function getCloudState(): Promise<CloudDatabaseState> {
     if (res.ok) {
       const json = await res.json();
       const state: CloudDatabaseState = {
-        products: json.data?.products || {},
-        trainboards: json.data?.trainboards || {},
-        slides: json.data?.slides || {},
+        products: { ...BASELINE_SNAPSHOT.products, ...(json.data?.products || {}) },
+        trainboards: { ...BASELINE_SNAPSHOT.trainboards, ...(json.data?.trainboards || {}) },
+        slides: { ...BASELINE_SNAPSHOT.slides, ...(json.data?.slides || {}) },
       };
       memoryCache = { data: state, timestamp: now };
       return state;
     }
   } catch (err) {
-    console.warn("[CloudStore] Failed to fetch cloud state, using memory cache or empty:", err);
+    console.warn("[CloudStore] Failed to fetch cloud state, using memory cache:", err);
   }
 
-  return memoryCache?.data || { products: {}, trainboards: {}, slides: {} };
+  return memoryCache?.data || BASELINE_SNAPSHOT;
 }
 
 async function updateCloudState(
@@ -63,8 +115,11 @@ async function updateCloudState(
     const currentState = await getCloudState();
     updater(currentState);
 
+    // Keep memory cache updated immediately
+    memoryCache = { data: currentState, timestamp: Date.now() };
+
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    const timeoutId = setTimeout(() => controller.abort(), 4500);
 
     const res = await fetch(CLOUD_URL, {
       method: "PUT",
@@ -78,7 +133,6 @@ async function updateCloudState(
     clearTimeout(timeoutId);
 
     if (res.ok) {
-      memoryCache = { data: currentState, timestamp: Date.now() };
       return true;
     }
   } catch (err) {
@@ -88,12 +142,34 @@ async function updateCloudState(
 }
 
 export async function saveProductOverride(productId: string, data: any): Promise<boolean> {
+  // Extract only lightweight override fields to avoid payload bloating
+  const cleanData: any = {};
+  if (data.name !== undefined) cleanData.name = data.name;
+  if (data.regularPrice !== undefined) cleanData.regularPrice = data.regularPrice;
+  if (data.salePrice !== undefined) cleanData.salePrice = data.salePrice;
+  if (data.status !== undefined) {
+    cleanData.status = data.status;
+    cleanData.isOutOfStock = data.status === "OUT_OF_STOCK";
+    cleanData.isComingSoon = data.status === "COMING_SOON";
+  }
+  if (data.stockQuantity !== undefined) cleanData.stockQuantity = data.stockQuantity;
+  if (data.isSpecialOffer !== undefined) cleanData.isSpecialOffer = Boolean(data.isSpecialOffer);
+  if (data.specialOfferText !== undefined) cleanData.specialOfferText = data.specialOfferText;
+  if (data.discountPercent !== undefined) cleanData.discountPercent = data.discountPercent;
+  if (data.imageUrl !== undefined) cleanData.imageUrl = data.imageUrl;
+
   return updateCloudState((state) => {
     state.products[productId] = {
       ...(state.products[productId] || {}),
-      ...data,
+      ...cleanData,
       updatedAt: new Date().toISOString(),
     };
+  });
+}
+
+export async function deleteProductOverride(productId: string): Promise<boolean> {
+  return updateCloudState((state) => {
+    delete state.products[productId];
   });
 }
 

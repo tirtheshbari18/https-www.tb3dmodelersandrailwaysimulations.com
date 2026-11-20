@@ -212,7 +212,10 @@ export default function AdminClient({
   const handleDeleteSlide = async () => {
     if (!deleteSlideModal) return;
     try {
-      const res = await fetch(`/api/admin/slides/${deleteSlideModal.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/slides/${deleteSlideModal.id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
       if (!res.ok) throw new Error("Failed to delete slide");
       setSlides(slides.filter((s) => s.id !== deleteSlideModal.id));
       setDeleteSlideModal(null);
@@ -281,22 +284,22 @@ export default function AdminClient({
 
     try {
       if (type === "product") {
-        const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
+        const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE", headers: getAuthHeaders() });
         if (!res.ok) throw new Error("Failed to delete product");
         setProducts((prev) => prev.filter((p) => p.id !== id));
         showToast(`"${name}" was permanently deleted.`);
       } else if (type === "trainboard") {
-        const res = await fetch(`/api/admin/trainboards/${id}`, { method: "DELETE" });
+        const res = await fetch(`/api/admin/trainboards/${id}`, { method: "DELETE", headers: getAuthHeaders() });
         if (!res.ok) throw new Error("Failed to delete trainboard");
         setTrainboards((prev) => prev.filter((tb) => tb.id !== id));
         showToast(`Trainboard "${name}" permanently deleted.`);
       } else if (type === "offer") {
-        const res = await fetch(`/api/admin/offers/${id}`, { method: "DELETE" });
+        const res = await fetch(`/api/admin/offers/${id}`, { method: "DELETE", headers: getAuthHeaders() });
         if (!res.ok) throw new Error("Failed to delete offer");
         setOffers((prev) => prev.filter((o) => o.id !== id));
         showToast(`Offer "${name}" deleted.`);
       } else if (type === "user") {
-        const res = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
+        const res = await fetch(`/api/admin/users/${id}`, { method: "DELETE", headers: getAuthHeaders() });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Failed to delete user");
         setCustomers((prev) => prev.filter((c) => c.id !== id));
@@ -346,7 +349,7 @@ export default function AdminClient({
     try {
       const res = await fetch(`/api/admin/products/${product.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           stockQuantity: qty,
           status: newStatus,
@@ -431,7 +434,7 @@ export default function AdminClient({
       if (editingOffer) {
         const res = await fetch(`/api/admin/offers/${editingOffer.id}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: getAuthHeaders(),
           body: JSON.stringify(formValues),
         });
         const data = await res.json();
@@ -445,7 +448,7 @@ export default function AdminClient({
       } else {
         const res = await fetch("/api/admin/offers", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: getAuthHeaders(),
           body: JSON.stringify(formValues),
         });
         const data = await res.json();
@@ -464,7 +467,7 @@ export default function AdminClient({
     try {
       const res = await fetch(`/api/admin/offers/${offer.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ isActive: !offer.isActive }),
       });
       const data = await res.json();
@@ -484,7 +487,7 @@ export default function AdminClient({
     try {
       const res = await fetch(`/api/admin/users/${userId}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ action, reason }),
       });
       const data = await res.json();
@@ -517,7 +520,7 @@ export default function AdminClient({
     try {
       const res = await fetch(`/api/admin/users/${userId}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ action: "setRole", role: newRole }),
       });
       const data = await res.json();
@@ -539,7 +542,7 @@ export default function AdminClient({
     try {
       const res = await fetch("/api/admin/settings", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify(settings),
       });
       if (!res.ok) throw new Error("Failed to save settings");
@@ -1039,7 +1042,7 @@ export default function AdminClient({
                       try {
                         await fetch("/api/admin/settings", {
                           method: "PUT",
-                          headers: { "Content-Type": "application/json" },
+                          headers: getAuthHeaders(),
                           body: JSON.stringify({ sliderInterval: newInterval }),
                         });
                         showToast(`Slide timing set to ${newInterval / 1000} seconds!`);

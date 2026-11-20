@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getUserFromRequest, isAdminRole } from "@/lib/auth";
 import { slugify } from "@/lib/utils";
+import { saveProductOverride } from "@/lib/cloudStore";
 
 export const dynamic = "force-dynamic";
 
@@ -141,6 +143,27 @@ export async function POST(req: NextRequest) {
     } catch (e) {
       // non-blocking
     }
+
+    // Persist to multi-lambda persistent cloud store
+    try {
+      await saveProductOverride(product.id, {
+        name: product.name,
+        regularPrice: product.regularPrice,
+        salePrice: product.salePrice,
+        status: product.status,
+        stockQuantity: product.stockQuantity,
+        isSpecialOffer: (product as any).isSpecialOffer,
+        specialOfferText: (product as any).specialOfferText,
+        discountPercent: (product as any).discountPercent,
+        description: product.description,
+        ...(imageUrl && { imageUrl }),
+      });
+    } catch (e) {}
+
+    try {
+      revalidatePath("/shop");
+      revalidatePath("/");
+    } catch (e) {}
 
     return NextResponse.json({ success: true, product });
   } catch (error: any) {

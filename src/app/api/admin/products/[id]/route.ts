@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getUserFromRequest, isAdminRole } from "@/lib/auth";
-import { saveProductOverride } from "@/lib/cloudStore";
+import { saveProductOverride, deleteProductOverride } from "@/lib/cloudStore";
 
 export const dynamic = "force-dynamic";
 
@@ -165,6 +165,10 @@ export async function DELETE(
     } catch (e) {
       // non-blocking
     }
+
+    try {
+      await deleteProductOverride(id);
+    } catch (e) {}
 
     try {
       revalidatePath("/shop");
