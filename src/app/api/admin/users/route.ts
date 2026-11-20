@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
     if (search) {
       where.OR = [
         { name: { contains: search } },
+        { username: { contains: search } },
         { email: { contains: search } },
         { phone: { contains: search } },
         { city: { contains: search } },
@@ -36,6 +37,7 @@ export async function GET(req: NextRequest) {
       select: {
         id: true,
         name: true,
+        username: true,
         firstName: true,
         lastName: true,
         email: true,

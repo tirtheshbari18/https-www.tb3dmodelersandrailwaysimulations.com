@@ -136,12 +136,12 @@ function LoginForm() {
 
       {/* Account Status Alerts */}
       {accountStatus === "PENDING_APPROVAL" && (
-        <div className="p-4 rounded-xl bg-amber-50 border-2 border-amber-300 text-amber-900 text-xs sm:text-sm flex items-start gap-3 shadow-sm">
-          <Clock className="w-5 h-5 flex-shrink-0 text-amber-600 mt-0.5" />
+        <div className="p-4 rounded-xl bg-red-50 border-2 border-red-400 text-red-900 text-xs sm:text-sm flex items-start gap-3 shadow-sm">
+          <Clock className="w-5 h-5 flex-shrink-0 text-red-600 mt-0.5" />
           <div className="space-y-1">
-            <strong className="font-bold block">Account Pending Approval</strong>
-            <p className="leading-snug">
-              Your registration application is currently under review by the administrator. Once verified, you will receive an approval email notification.
+            <strong className="font-bold block text-red-700">Account Pending Approval</strong>
+            <p className="leading-snug font-semibold text-red-600">
+              Please ask for approval from VG. Your account has not been approved yet.
             </p>
           </div>
         </div>
@@ -222,18 +222,18 @@ function LoginForm() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4 text-xs sm:text-sm">
-        {/* Email */}
+        {/* Email or Username */}
         <div>
           <label className="block text-gray-700 font-semibold mb-1">
-            Email Address <span className="text-red-500">*</span>
+            Email Address or Username <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <input
-              type="email"
+              type="text"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@example.com"
+              placeholder="name@example.com or username"
               className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-[#101C32] text-sm focus:outline-none focus:ring-2 focus:ring-[#0B2852] focus:border-transparent transition-all"
             />
             <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-3.5 pointer-events-none" />
@@ -331,6 +331,15 @@ function LoginForm() {
         >
           {isSubmitting ? "Signing in..." : "Log In"}
         </button>
+
+        {/* Display red text directly below login button for unapproved accounts */}
+        {accountStatus === "PENDING_APPROVAL" && (
+          <div className="pt-2 text-center animate-fade-in">
+            <p className="text-sm font-bold text-red-600 leading-snug">
+              Please ask for approval from VG. Your account has not been approved yet.
+            </p>
+          </div>
+        )}
       </form>
     </div>
   );

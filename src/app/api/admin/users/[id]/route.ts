@@ -192,6 +192,7 @@ export async function PATCH(
       user: {
         id: updatedUser.id,
         name: updatedUser.name,
+        username: updatedUser.username,
         email: updatedUser.email,
         status: updatedUser.status,
         role: updatedUser.role,

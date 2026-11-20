@@ -311,7 +311,7 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
       const current = local ? JSON.parse(local) : {};
       current[productId] = { ...(current[productId] || {}), ...partial };
       localStorage.setItem("vg_saved_products", JSON.stringify(current));
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const formatProductFromApi = (p: any) => {
@@ -363,7 +363,7 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
           );
         }
       }
-    } catch (e) {}
+    } catch (e) { }
 
     // 2. Fetch fresh real-time database state from /api/products
     const loadProductsFromApi = () => {
@@ -1279,11 +1279,10 @@ function QuickPriceModal({
             type="button"
             disabled={isSaving}
             onClick={() => onSave(regularPrice, salePrice)}
-            className={`flex-1 py-2.5 rounded-full font-bold uppercase transition-all shadow-md ${
-              isSaving
-                ? "bg-gray-400 text-white cursor-not-allowed"
-                : "bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32]"
-            }`}
+            className={`flex-1 py-2.5 rounded-full font-bold uppercase transition-all shadow-md ${isSaving
+              ? "bg-gray-400 text-white cursor-not-allowed"
+              : "bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32]"
+              }`}
           >
             {isSaving ? "Saving to Database..." : "Save Price"}
           </button>
@@ -1925,11 +1924,10 @@ function ProductOfferModal({
                 isSpecialOffer ? calculatedSalePrice : null
               )
             }
-            className={`flex-1 py-2 rounded-full font-bold uppercase transition-all shadow-md ${
-              isSaving
-                ? "bg-gray-400 text-white cursor-not-allowed"
-                : "bg-[#FF6B00] text-white hover:bg-[#e05a00]"
-            }`}
+            className={`flex-1 py-2 rounded-full font-bold uppercase transition-all shadow-md ${isSaving
+              ? "bg-gray-400 text-white cursor-not-allowed"
+              : "bg-[#FF6B00] text-white hover:bg-[#e05a00]"
+              }`}
           >
             {isSaving ? "Saving to Database..." : "Save Offer"}
           </button>

@@ -132,6 +132,7 @@ export default function AdminClient({
 
   const [rejectionModalUser, setRejectionModalUser] = useState<any | null>(null);
   const [rejectionReasonText, setRejectionReasonText] = useState("");
+  const [viewDetailsUser, setViewDetailsUser] = useState<any | null>(null);
 
   const [roleChangeUser, setRoleChangeUser] = useState<any | null>(null);
   const [selectedNewRole, setSelectedNewRole] = useState("USER");
@@ -682,6 +683,184 @@ export default function AdminClient({
                 className="flex-1 py-2.5 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] text-xs font-bold transition-all"
               >
                 Save Role
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View User Details Modal */}
+      {viewDetailsUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-200 space-y-4 font-josefin text-xs">
+            <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-blue-100 text-[#0B2852] flex items-center justify-center">
+                  <Eye className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-[#0B2852]">User Account Details</h3>
+                  <p className="text-[11px] text-gray-500 font-mono">ID: {viewDetailsUser.id}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewDetailsUser(null)}
+                className="text-gray-400 hover:text-gray-600 p-1 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-200">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-gray-500 block">Full Name</span>
+                <span className="font-bold text-gray-800 text-sm">{viewDetailsUser.name}</span>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-gray-500 block">Username</span>
+                <span className="font-semibold text-emerald-700 text-sm">
+                  {viewDetailsUser.username ? `@${viewDetailsUser.username}` : "Not specified"}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-gray-500 block">Email Address</span>
+                <span className="font-medium text-gray-800">{viewDetailsUser.email}</span>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-gray-500 block">Phone</span>
+                <span className="font-medium text-gray-800">{viewDetailsUser.phone || "Not provided"}</span>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-gray-500 block">Location</span>
+                <span className="text-gray-700">
+                  {viewDetailsUser.city || "N/A"}{viewDetailsUser.state ? `, ${viewDetailsUser.state}` : ""}{viewDetailsUser.country ? `, ${viewDetailsUser.country}` : ""}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-gray-500 block">Registration Date</span>
+                <span className="text-gray-700">{formatDate(viewDetailsUser.createdAt)}</span>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-gray-500 block">Current Status</span>
+                <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold mt-0.5 ${
+                  viewDetailsUser.status === "APPROVED"
+                    ? "bg-emerald-100 text-emerald-800"
+                    : viewDetailsUser.status === "PENDING_APPROVAL"
+                    ? "bg-amber-100 text-amber-800"
+                    : "bg-rose-100 text-rose-800"
+                }`}>
+                  {viewDetailsUser.status}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-gray-500 block">Assigned Role</span>
+                <span className="font-bold text-[#0B2852]">{viewDetailsUser.role}</span>
+              </div>
+            </div>
+
+            {viewDetailsUser.rejectionReason && (
+              <div className="bg-red-50 p-3 rounded-lg border border-red-200 text-red-800">
+                <span className="font-bold block text-[11px]">Rejection Reason:</span>
+                <p className="text-xs mt-0.5">{viewDetailsUser.rejectionReason}</p>
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-gray-200">
+              {viewDetailsUser.status === "PENDING_APPROVAL" && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleUserStatusAction(viewDetailsUser.id, "approve");
+                      setViewDetailsUser(null);
+                    }}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-colors flex items-center gap-1.5"
+                  >
+                    <UserCheck className="w-4 h-4" />
+                    Approve Account
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRejectionModalUser(viewDetailsUser);
+                      setRejectionReasonText("");
+                      setViewDetailsUser(null);
+                    }}
+                    className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg transition-colors flex items-center gap-1.5"
+                  >
+                    <UserX className="w-4 h-4" />
+                    Reject Account
+                  </button>
+                </>
+              )}
+              <button
+                type="button"
+                onClick={() => setViewDetailsUser(null)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-100 font-bold rounded-lg transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject User Modal */}
+      {rejectionModalUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200 space-y-4 font-josefin text-xs">
+            <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center">
+                  <UserX className="w-4 h-4" />
+                </div>
+                <h3 className="text-base font-bold text-[#0B2852]">Reject Account Application</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRejectionModalUser(null)}
+                className="text-gray-400 hover:text-gray-600 p-1 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-gray-600">
+              You are about to reject the registration application for:
+              <strong className="block text-[#0B2852] mt-1 text-sm">{rejectionModalUser.name} ({rejectionModalUser.email})</strong>
+            </p>
+
+            <div>
+              <label className="block text-gray-700 font-semibold mb-1">
+                Reason for Rejection (optional, will be emailed to user)
+              </label>
+              <textarea
+                rows={3}
+                value={rejectionReasonText}
+                onChange={(e) => setRejectionReasonText(e.target.value)}
+                placeholder="e.g. Incomplete registration details or invalid credentials."
+                className="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0B2852]"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setRejectionModalUser(null)}
+                className="flex-1 py-2.5 rounded-full border border-gray-300 text-gray-700 text-xs font-bold hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  handleUserStatusAction(rejectionModalUser.id, "reject", rejectionReasonText);
+                  setRejectionModalUser(null);
+                }}
+                className="flex-1 py-2.5 rounded-full bg-rose-600 text-white hover:bg-rose-700 text-xs font-bold transition-all shadow-xs"
+              >
+                Confirm Rejection
               </button>
             </div>
           </div>
@@ -1779,6 +1958,122 @@ export default function AdminClient({
                 </p>
               </div>
 
+              {/* DEDICATED SECTION: PENDING ACCOUNT APPROVALS */}
+              <div className="bg-amber-50/70 border-2 border-amber-300 rounded-2xl p-5 shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200/80 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-xs">
+                      <Clock className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-[#0B2852]">Pending Account Approvals</h3>
+                      <p className="text-xs text-amber-900/80">
+                        Review customer registration requests and grant or reject platform access.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 rounded-full bg-amber-200/90 text-amber-950 font-bold text-xs border border-amber-300">
+                      {customers.filter((c) => c.status === "PENDING_APPROVAL").length} Awaiting Approval
+                    </span>
+                  </div>
+                </div>
+
+                {customers.filter((c) => c.status === "PENDING_APPROVAL").length === 0 ? (
+                  <div className="bg-white/80 rounded-xl p-6 text-center border border-amber-200 text-xs text-gray-500">
+                    <CheckCircle2 className="w-7 h-7 text-emerald-500 mx-auto mb-2" />
+                    <p className="font-semibold text-gray-700">No pending account registrations.</p>
+                    <p className="text-[11px] text-gray-400 mt-0.5">All customer accounts have been reviewed and approved.</p>
+                  </div>
+                ) : (
+                  <div className="bg-white border border-amber-200 rounded-xl shadow-xs overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-amber-100/60 text-amber-950 uppercase text-[10px] font-bold border-b border-amber-200">
+                          <tr>
+                            <th className="py-3 px-4">Registration ID</th>
+                            <th className="py-3 px-3">Full Name</th>
+                            <th className="py-3 px-3">Username</th>
+                            <th className="py-3 px-3">Email</th>
+                            <th className="py-3 px-3">Registration Date</th>
+                            <th className="py-3 px-3">Status</th>
+                            <th className="py-3 px-4 text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {customers
+                            .filter((c) => c.status === "PENDING_APPROVAL")
+                            .map((user) => (
+                              <tr key={user.id} className="hover:bg-amber-50/40 transition-colors">
+                                <td className="py-3 px-4 font-mono text-[11px] text-gray-600 font-bold">
+                                  {user.id}
+                                </td>
+                                <td className="py-3 px-3 font-bold text-[#0B2852]">
+                                  {user.name}
+                                </td>
+                                <td className="py-3 px-3 font-semibold text-emerald-800">
+                                  {user.username ? `@${user.username}` : "—"}
+                                </td>
+                                <td className="py-3 px-3 text-gray-700">
+                                  {user.email}
+                                </td>
+                                <td className="py-3 px-3 text-gray-500">
+                                  {formatDate(user.createdAt)}
+                                </td>
+                                <td className="py-3 px-3">
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                    PENDING_APPROVAL
+                                  </span>
+                                </td>
+                                <td className="py-3 px-4 text-right">
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => setViewDetailsUser(user)}
+                                      className="px-2.5 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 text-xs font-semibold flex items-center gap-1 transition-colors"
+                                      title="View Details"
+                                    >
+                                      <Eye className="w-3.5 h-3.5" />
+                                      <span>View Details</span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleUserStatusAction(user.id, "approve")}
+                                      className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1 transition-colors shadow-xs"
+                                      title="Approve Account"
+                                    >
+                                      <UserCheck className="w-3.5 h-3.5" />
+                                      <span>Approve</span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setRejectionModalUser(user);
+                                        setRejectionReasonText("");
+                                      }}
+                                      className="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold flex items-center gap-1 transition-colors shadow-xs"
+                                      title="Reject Account"
+                                    >
+                                      <UserX className="w-3.5 h-3.5" />
+                                      <span>Reject</span>
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* SECTION: ALL REGISTERED USERS */}
+              <div className="pt-2">
+                <h3 className="text-base font-bold text-[#0B2852] mb-1">All Registered Users &amp; Permissions</h3>
+                <p className="text-xs text-gray-500 mb-3">Manage user roles, search database accounts, and toggle active status.</p>
+              </div>
+
               {/* Filters */}
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
@@ -1831,7 +2126,12 @@ export default function AdminClient({
                           <tr key={user.id} className="hover:bg-gray-50">
                             <td className="py-3 px-4">
                               <span className="font-bold text-[#0B2852] block">{user.name}</span>
-                              <span className="text-[11px] text-gray-500">{user.email}</span>
+                              <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
+                                <span>{user.email}</span>
+                                {user.username && (
+                                  <span className="text-emerald-700 font-semibold font-mono">(@{user.username})</span>
+                                )}
+                              </div>
                             </td>
                             <td className="py-3 px-3">
                               <span
@@ -1864,6 +2164,15 @@ export default function AdminClient({
                             </td>
                             <td className="py-3 px-4 text-right">
                               <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => setViewDetailsUser(user)}
+                                  className="p-1 rounded-md border border-gray-200 text-gray-600 hover:bg-gray-100"
+                                  title="View User Details"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                </button>
+
                                 {isSuperAdmin && (
                                   <button
                                     onClick={() => {

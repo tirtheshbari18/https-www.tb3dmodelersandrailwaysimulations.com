@@ -41,8 +41,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    let user = await prisma.user.findUnique({
-      where: { email: normalizedEmail },
+    let user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: normalizedEmail },
+          { username: normalizedEmail }
+        ]
+      },
     });
 
     // Auto-provision standard accounts if not yet in database
@@ -52,6 +57,7 @@ export async function POST(req: NextRequest) {
         user = await prisma.user.create({
           data: {
             name: "Passenger Member",
+            username: "passenger",
             firstName: "Passenger",
             lastName: "Member",
             email: "passenger@vg3dmodelers.com",
@@ -73,6 +79,7 @@ export async function POST(req: NextRequest) {
         user = await prisma.user.create({
           data: {
             name: "Tirthesh Bari",
+            username: "tirthesh",
             firstName: "Tirthesh",
             lastName: "Bari",
             email: "demo@trainsim.com",
@@ -91,6 +98,7 @@ export async function POST(req: NextRequest) {
         user = await prisma.user.create({
           data: {
             name: "Varun Ganesh (Admin)",
+            username: "vgadmin",
             firstName: "Varun",
             lastName: "Ganesh",
             email: "admin@vg3dmodelers.com",
@@ -145,7 +153,7 @@ export async function POST(req: NextRequest) {
         {
           error: failInfo.locked
             ? "Too many failed attempts. Account temporarily locked for 15 minutes."
-            : `Invalid email or password. (${failInfo.attemptsRemaining} attempt(s) remaining before temporary lockout)`,
+            : `Invalid email/username or password. (${failInfo.attemptsRemaining} attempt(s) remaining before temporary lockout)`,
         },
         { status: 401 }
       );
@@ -158,7 +166,7 @@ export async function POST(req: NextRequest) {
         {
           error: failInfo.locked
             ? "Too many failed attempts. Account temporarily locked for 15 minutes."
-            : `Invalid email or password. (${failInfo.attemptsRemaining} attempt(s) remaining before temporary lockout)`,
+            : `Invalid email/username or password. (${failInfo.attemptsRemaining} attempt(s) remaining before temporary lockout)`,
         },
         { status: 401 }
       );
@@ -171,7 +179,7 @@ export async function POST(req: NextRequest) {
     if (user.status === "PENDING_APPROVAL") {
       return NextResponse.json(
         {
-          error: "Your account is pending administrator approval. You will receive an email once approved.",
+          error: "Please ask for approval from VG. Your account has not been approved yet.",
           accountStatus: "PENDING_APPROVAL",
         },
         { status: 403 }

@@ -160,28 +160,37 @@ export async function sendEmail({ to, subject, html, text }: SendEmailParams): P
 export async function sendAdminNewUserAlert(user: {
   id: string;
   name: string;
+  username?: string | null;
   email: string;
   phone?: string | null;
   city?: string | null;
   country?: string | null;
   createdAt: Date;
 }) {
-  const adminEmail = process.env.ADMIN_ALERT_EMAIL || "admin@vg3dmodelers.com";
+  const adminEmail = process.env.ADMIN_ALERT_EMAIL || "tirtheshbari18@gmail.com";
   const approveUrl = `${BASE_URL}/admin?tab=users`;
 
   const html = wrapEmailTemplate(
     `
-    <h2 style="color: #0B2852; margin-top: 0;">New User Registration Pending Approval</h2>
-    <p>A new customer has registered on the VG-3D Modelers portal and is awaiting your authorization before their account is activated.</p>
+    <h2 style="color: #0B2852; margin-top: 0;">New VG Website Account Approval Required</h2>
+    <p>A new user has registered on the VG-3D Modelers portal and requires administrator review and approval before access is granted.</p>
     
     <table class="data-table">
+      <tr>
+        <td class="label">Registration ID</td>
+        <td><strong style="font-family: monospace; color: #0B2852;">${user.id}</strong></td>
+      </tr>
       <tr>
         <td class="label">Full Name</td>
         <td><strong>${user.name}</strong></td>
       </tr>
       <tr>
+        <td class="label">Username</td>
+        <td><strong style="color: #166534;">${user.username || "Not specified"}</strong></td>
+      </tr>
+      <tr>
         <td class="label">Email Address</td>
-        <td>${user.email}</td>
+        <td><a href="mailto:${user.email}" style="color: #0B2852;">${user.email}</a></td>
       </tr>
       <tr>
         <td class="label">Phone</td>
@@ -192,26 +201,26 @@ export async function sendAdminNewUserAlert(user: {
         <td>${user.city || "N/A"}, ${user.country || "India"}</td>
       </tr>
       <tr>
-        <td class="label">Registered At</td>
-        <td>${new Date(user.createdAt).toLocaleString("en-IN")}</td>
+        <td class="label">Registration Date &amp; Time</td>
+        <td>${new Date(user.createdAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST</td>
       </tr>
       <tr>
-        <td class="label">Current Status</td>
-        <td><span style="display:inline-block; padding: 4px 8px; background: #fef3c7; color: #92400e; border-radius: 4px; font-weight: 700; font-size: 12px;">PENDING APPROVAL</span></td>
+        <td class="label">Account Status</td>
+        <td><span style="display:inline-block; padding: 4px 10px; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; border-radius: 4px; font-weight: 700; font-size: 12px;">PENDING_APPROVAL</span></td>
       </tr>
     </table>
 
-    <p style="margin-top: 24px;">Please review the account and take action through the administration panel:</p>
+    <p style="margin-top: 24px;">Click the button below to review user details, approve access, or reject this application in your Admin Dashboard:</p>
     <div style="text-align: center;">
       <a href="${approveUrl}" class="btn">Open Admin Approval Dashboard</a>
     </div>
     `,
-    "New User Registration Pending Approval"
+    "New VG Website Account Approval Required"
   );
 
   return sendEmail({
     to: adminEmail,
-    subject: `[ADMIN ALERT] New Registration Pending Approval: ${user.name}`,
+    subject: `New VG Website Account Approval Required: ${user.name} (${user.email})`,
     html,
   });
 }
