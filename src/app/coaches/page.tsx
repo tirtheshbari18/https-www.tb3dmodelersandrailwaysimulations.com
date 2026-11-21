@@ -32,9 +32,9 @@ export default async function CoachesPage() {
 
   const activeProducts = await applyProductOverrides(products);
 
-  // Filter products relevant to LHB coaching stock (excluding any archived/VG products)
+  // Filter products relevant to LHB coaching stock (excluding any archived/VG/WHR products)
   const coachProducts = activeProducts.filter((p) => {
-    if (p.status === "ARCHIVED" || p.name.includes("VG ") || p.name.includes("VG-")) return false;
+    if (p.status === "ARCHIVED" || p.name.includes("VG ") || p.name.includes("VG-") || p.name.includes("WHR") || p.id === "prod-whr") return false;
     const catSlug = p.category?.slug?.toLowerCase() || "";
     const prodName = p.name?.toLowerCase() || "";
     return (

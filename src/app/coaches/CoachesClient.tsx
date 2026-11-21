@@ -49,16 +49,16 @@ export default function CoachesClient({ initialCoaches, categories }: CoachesCli
       return name.includes("sleeper") || cat.includes("sleeper");
     }
     if (selectedCategory === "chaircar") {
-      return name.includes("chaircar") || name.includes("chair car") || name.includes("tricolour") || cat.includes("chair");
+      return name.includes("chaircar") || name.includes("chair car") || name.includes("executive") || cat.includes("chair");
     }
     if (selectedCategory === "3tier") {
-      return name.includes("humsafar") || name.includes("3tier") || name.includes("3-tier") || cat.includes("humsafar");
+      return name.includes("3tier") || name.includes("3-tier") || name.includes("3 tier") || cat.includes("3-tier");
     }
     if (selectedCategory === "vistadome") {
       return name.includes("vistadome") || cat.includes("vistadome");
     }
     if (selectedCategory === "general") {
-      return name.includes("amrit") || name.includes("bangladesh") || name.includes("general") || name.includes("maitree");
+      return name.includes("general") || name.includes("second") || name.includes("gs") || cat.includes("general");
     }
     return true;
   });

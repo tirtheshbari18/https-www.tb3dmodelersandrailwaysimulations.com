@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 export const revalidate = 0;
 
 export const metadata = {
-  title: "Privacy Policy | VG-3D Modelers & Railway Simulations",
+  title: "Privacy Policy | TB PRO • Indian Railways Simulation Platform",
 };
 
 export default async function PrivacyPage() {
@@ -18,13 +18,13 @@ export default async function PrivacyPage() {
             Privacy Policy
           </h1>
           <p className="font-futuraLight text-[14px] text-gray-500 mt-2">
-            VG-3D Modelers &amp; Railway Simulations • Privacy &amp; Data Protection
+            TB PRO Railway Simulations • Privacy &amp; Data Protection
           </p>
         </div>
 
         <div className="space-y-6 font-futuraLight text-[15px] sm:text-[16px] text-[#041229] leading-[28.125px]">
           <p>
-            At VG-3D Modelers &amp; Railway Simulations, we respect your privacy and are committed to
+            At TB PRO Railway Simulations, we respect your privacy and are committed to
             protecting the personal data you share with us. This Privacy Policy outlines our data
             practices when you browse our site, register an account, or download digital simulation
             assets.
@@ -82,7 +82,7 @@ export default async function PrivacyPage() {
             </h2>
             <p>
               For privacy inquiries, account deletion requests, or data access requests, please reach
-              out to Varun Ganesh at varunganesh221@gmail.com.
+              out to the TB PRO team via our official contact channels.
             </p>
           </div>
         </div>

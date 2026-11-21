@@ -73,13 +73,27 @@ export default async function HomePage() {
       p.status !== "ARCHIVED" &&
       !p.name.includes("VG ") &&
       !p.name.includes("VG-") &&
-      !p.slug.startsWith("vg-")
+      !p.slug.startsWith("vg-") &&
+      !p.name.includes("WHR") &&
+      !p.slug.includes("whr") &&
+      p.id !== "prod-whr"
+  );
+
+  const cleanNewArrivals = newArrivals.filter(
+    (p) =>
+      p.status !== "ARCHIVED" &&
+      !p.name.includes("VG ") &&
+      !p.name.includes("VG-") &&
+      !p.slug.startsWith("vg-") &&
+      !p.name.includes("WHR") &&
+      !p.slug.includes("whr") &&
+      p.id !== "prod-whr"
   );
 
   return (
     <HomeClient
       featuredProducts={cleanFeatured}
-      newArrivals={newArrivals.filter((p) => p.status !== "ARCHIVED")}
+      newArrivals={cleanNewArrivals}
       categories={categories}
       projects={projects}
       services={services}

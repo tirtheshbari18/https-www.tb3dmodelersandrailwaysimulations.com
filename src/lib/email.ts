@@ -1,5 +1,5 @@
 /**
- * Email Service for VG-3D Modelers & Railway Simulations
+ * Email Service for TB PRO Railway Simulations
  * Provides professional HTML templates and delivery handling for:
  * - Admin registration notifications (pending user approvals)
  * - User approval notifications
@@ -15,8 +15,8 @@ interface SendEmailParams {
   text?: string;
 }
 
-const SITE_NAME = "VG-3D Modelers & Railway Simulations";
-const SUPPORT_EMAIL = "varunganesh221@gmail.com";
+const SITE_NAME = "TB PRO Railway Simulations";
+const SUPPORT_EMAIL = "tirtheshbari18@gmail.com";
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 /**
@@ -122,14 +122,14 @@ function wrapEmailTemplate(content: string, title: string): string {
 <body>
   <div class="wrapper">
     <div class="header">
-      <h1>VG-3D Modelers &amp; Railway Simulations</h1>
+      <h1>TB PRO Railway Simulations</h1>
       <p>Official Notification Service</p>
     </div>
     <div class="content">
       ${content}
     </div>
     <div class="footer">
-      <p>&copy; ${new Date().getFullYear()} VG-3D Modelers &amp; Railway Simulations. Regd UDYAM-MH-18-0225661.</p>
+      <p>&copy; ${new Date().getFullYear()} TB PRO Railway Simulations. Regd UDYAM-MH-18-0225661.</p>
       <p>Need support? Contact us at <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a> or WhatsApp +91 7738980989.</p>
     </div>
   </div>
@@ -172,8 +172,8 @@ export async function sendAdminNewUserAlert(user: {
 
   const html = wrapEmailTemplate(
     `
-    <h2 style="color: #0B2852; margin-top: 0;">New VG Website Account Approval Required</h2>
-    <p>A new user has registered on the VG-3D Modelers portal and requires administrator review and approval before access is granted.</p>
+    <h2 style="color: #0B2852; margin-top: 0;">New TB PRO Website Account Approval Required</h2>
+    <p>A new user has registered on the TB PRO portal and requires administrator review and approval before access is granted.</p>
     
     <table class="data-table">
       <tr>
@@ -215,12 +215,12 @@ export async function sendAdminNewUserAlert(user: {
       <a href="${approveUrl}" class="btn">Open Admin Approval Dashboard</a>
     </div>
     `,
-    "New VG Website Account Approval Required"
+    "New TB PRO Website Account Approval Required"
   );
 
   return sendEmail({
     to: adminEmail,
-    subject: `New VG Website Account Approval Required: ${user.name} (${user.email})`,
+    subject: `New TB PRO Website Account Approval Required: ${user.name} (${user.email})`,
     html,
   });
 }
@@ -234,7 +234,7 @@ export async function sendUserApprovedEmail(user: { name: string; email: string 
   const html = wrapEmailTemplate(
     `
     <h2 style="color: #0B2852; margin-top: 0;">Congratulations, ${user.name}!</h2>
-    <p style="font-size: 16px; color: #166534; font-weight: 600;">Your account has been officially approved by the VG-3D Modelers team.</p>
+    <p style="font-size: 16px; color: #166534; font-weight: 600;">Your account has been officially approved by the TB PRO team.</p>
     <p>You now have full access to our complete collection of Open Rails &amp; MSTS Indian Railway simulation add-ons, add-on store, public train boards, and member downloads.</p>
     
     <div style="text-align: center; margin: 30px 0;">
@@ -243,12 +243,12 @@ export async function sendUserApprovedEmail(user: { name: string; email: string 
 
     <p>If you have any questions or require custom consist configurations, feel free to contact us anytime.</p>
     `,
-    "Account Approved - VG-3D Modelers"
+    "Account Approved - TB PRO"
   );
 
   return sendEmail({
     to: user.email,
-    subject: "Your Account Has Been Approved - VG-3D Modelers & Railway Simulations",
+    subject: "Your Account Has Been Approved - TB PRO Railway Simulations",
     html,
   });
 }
@@ -261,7 +261,7 @@ export async function sendUserRejectedEmail(user: { name: string; email: string 
     `
     <h2 style="color: #0B2852; margin-top: 0;">Account Application Update</h2>
     <p>Dear ${user.name},</p>
-    <p>Thank you for your interest in VG-3D Modelers &amp; Railway Simulations. We regret to inform you that your registration application could not be approved at this time.</p>
+    <p>Thank you for your interest in TB PRO Railway Simulations. We regret to inform you that your registration application could not be approved at this time.</p>
     
     ${
       reason
@@ -276,12 +276,12 @@ export async function sendUserRejectedEmail(user: { name: string; email: string 
 
     <p>If you believe this was an error or wish to provide additional verification details, please reply directly to <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>.</p>
     `,
-    "Account Application Status - VG-3D Modelers"
+    "Account Application Status - TB PRO"
   );
 
   return sendEmail({
     to: user.email,
-    subject: "Update Regarding Your Account - VG-3D Modelers & Railway Simulations",
+    subject: "Update Regarding Your Account - TB PRO Railway Simulations",
     html,
   });
 }
@@ -296,7 +296,7 @@ export async function sendPasswordResetEmail(user: { name: string; email: string
     `
     <h2 style="color: #0B2852; margin-top: 0;">Password Reset Request</h2>
     <p>Hello ${user.name},</p>
-    <p>We received a request to reset the password for your VG-3D Modelers account.</p>
+    <p>We received a request to reset the password for your TB PRO account.</p>
     
     <div style="text-align: center; margin: 30px 0;">
       <a href="${resetUrl}" class="btn">Reset My Password</a>
@@ -304,12 +304,12 @@ export async function sendPasswordResetEmail(user: { name: string; email: string
 
     <p style="color: #64748b; font-size: 13px;">This link will expire in <strong>30 minutes</strong> and can only be used once. If you did not make this request, you can safely ignore this email; your current password remains secure.</p>
     `,
-    "Reset Your Password - VG-3D Modelers"
+    "Reset Your Password - TB PRO"
   );
 
   return sendEmail({
     to: user.email,
-    subject: "Reset Your Password - VG-3D Modelers & Railway Simulations",
+    subject: "Reset Your Password - TB PRO Railway Simulations",
     html,
   });
 }

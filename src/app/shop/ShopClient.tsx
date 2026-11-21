@@ -515,12 +515,12 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
     { id: "lhb-coaches", name: "LHB Coaches", match: ["lhb", "coach", "sleeper", "chair", "pantry", "generator"] },
     { id: "locomotives", name: "Locomotives", match: ["loco", "wap", "wag", "engine"] },
     { id: "trainboards", name: "Train Boards", match: ["board", "nameplate"] },
-    { id: "routes-scenery", name: "Railway Routes", match: ["route", "scenery", "whr"] },
+    { id: "routes-scenery", name: "Railway Routes", match: ["route", "scenery"] },
     { id: "simulation-assets", name: "Simulation Assets", match: ["simulation", "sim", "asset", "physics", "sound"] },
   ];
 
   const filteredProducts = products
-    .filter((prod) => prod.status !== "ARCHIVED" && !prod.name.includes("VG ") && !prod.name.includes("VG-") && !prod.slug.startsWith("vg-"))
+    .filter((prod) => prod.status !== "ARCHIVED" && !prod.name.includes("VG ") && !prod.name.includes("VG-") && !prod.slug.startsWith("vg-") && !prod.name.includes("WHR") && !prod.slug.includes("whr") && prod.id !== "prod-whr")
     .filter((prod) => {
     let matchesCategory = true;
     if (selectedCategory && selectedCategory.toLowerCase() !== "all") {
@@ -1281,7 +1281,7 @@ function ProductFormDialog({
     { label: "LHB Vistadome", url: "/assets/tbpro/lhb_vistadome.png" },
     { label: "Amrit Bharat", url: "/assets/tbpro/lhb_amrit_bharat.png" },
     { label: "Bangladesh", url: "/assets/tbpro/lhb_bangladesh.png" },
-    { label: "WHR Route V2", url: "/assets/products/whr_route_v2.png" },
+    { label: "Route Bridge", url: "/assets/tbpro/railway_route_bridge.webp" },
   ];
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1609,7 +1609,7 @@ function ProductImageUploadModal({
     { label: "LHB Vistadome", url: "/assets/tbpro/lhb_vistadome.png" },
     { label: "Amrit Bharat", url: "/assets/tbpro/lhb_amrit_bharat.png" },
     { label: "Bangladesh", url: "/assets/tbpro/lhb_bangladesh.png" },
-    { label: "WHR Route V2", url: "/assets/products/whr_route_v2.png" },
+    { label: "Route Bridge", url: "/assets/tbpro/railway_route_bridge.webp" },
   ];
 
   const handleDiskUpload = async (file: File) => {

@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
             country: "India",
             state: "Maharashtra",
             city: "Mumbai",
-            address: "VG Railway Simulations Station Road",
+            address: "TB PRO Railway Simulations Station Road",
             postalCode: "400001",
             isVerified: true,
             approvedAt: new Date(),

@@ -5,14 +5,21 @@ import { applySingleProductOverride, applyProductOverrides } from "@/lib/cloudSt
 export const dynamic = "force-dynamic";
 
 const SLUG_ALIASES: Record<string, string> = {
-  "vg-lhb-chaircar-coaches": "vg-lhb-coaches",
-  "vg-lhb-chair-car": "vg-lhb-coaches",
-  "vg-lhb-vistadome-tourist-coach-pack": "vg-lhb-vistadome-coaches",
-  "vg-lhb-rajdhani-express-complete-rake-pack": "vg-lhb-sleeper-coaches-v2-update",
-  "vg-lhb-humsafar-express-special-livery-pack": "vg-lhb-humsafar-coaches-v2",
-  "vg-bangladesh-railway-lhb-rake-pack": "vg-lhb-bangladesh-coaches",
-  "vg-msts-to-open-rails-physics-and-consist-converter-tool": "whr-route-v2-ahmedabad-update",
-  "vg-indian-railways-route-builder-3d-asset-library-vol-1": "whr-route-v2-ahmedabad-update",
+  "vg-lhb-chaircar-coaches": "lhb-chair-car-coach",
+  "vg-lhb-chair-car": "lhb-chair-car-coach",
+  "vg-lhb-coaches": "lhb-chair-car-coach",
+  "vg-lhb-vistadome-tourist-coach-pack": "lhb-chair-car-coach",
+  "vg-lhb-vistadome-coaches": "lhb-chair-car-coach",
+  "vg-lhb-rajdhani-express-complete-rake-pack": "indian-railways-lhb-sleeper-coach",
+  "vg-lhb-sleeper-coaches-v2-update": "indian-railways-lhb-sleeper-coach",
+  "vg-lhb-humsafar-express-special-livery-pack": "lhb-ac-3-tier-coach",
+  "vg-lhb-humsafar-coaches-v2": "lhb-ac-3-tier-coach",
+  "vg-bangladesh-railway-lhb-rake-pack": "lhb-first-ac-coach",
+  "vg-lhb-bangladesh-coaches": "lhb-first-ac-coach",
+  "vg-msts-to-open-rails-physics-and-consist-converter-tool": "open-rails-indian-railways-simulation-assets",
+  "vg-indian-railways-route-builder-3d-asset-library-vol-1": "msts-indian-railways-route-assets",
+  "whr-route-v2-ahmedabad-update": "msts-indian-railways-route-assets",
+  "whr-route": "msts-indian-railways-route-assets",
 };
 
 export async function GET(

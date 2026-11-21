@@ -21,6 +21,8 @@ const SLUG_ALIASES: Record<string, string> = {
   "vg-lhb-bangladesh-coaches": "lhb-first-ac-coach",
   "vg-msts-to-open-rails-physics-and-consist-converter-tool": "open-rails-indian-railways-simulation-assets",
   "vg-indian-railways-route-builder-3d-asset-library-vol-1": "msts-indian-railways-route-assets",
+  "whr-route-v2-ahmedabad-update": "msts-indian-railways-route-assets",
+  "whr-route": "msts-indian-railways-route-assets",
 };
 
 async function resolveProduct(rawSlug: string) {

@@ -5,7 +5,7 @@ import { ShieldCheck, RotateCcw } from "lucide-react";
 export const revalidate = 0;
 
 export const metadata = {
-  title: "Digital Product Refund Policy | VG-3D Modelers",
+  title: "Digital Product Refund Policy | TB PRO",
 };
 
 export default async function RefundPolicyPage() {

@@ -96,12 +96,11 @@ export default function DownloadsClient({ freeFiles, categories }: DownloadsClie
           </a>
 
           <a
-            href="/downloads/files/VG_Route_Builder_Assets_v2.0.7z"
-            download
+            href="/downloads"
             className="group bg-[#00B8D9] hover:bg-white text-[#172033] p-5 rounded-2xl font-bold text-center flex flex-col items-center justify-center gap-2 shadow-lg transition-all duration-300 hover:scale-[1.02] border-2 border-[#00B8D9]"
           >
             <Download className="w-7 h-7 text-[#101D35]" />
-            <span className="text-sm tracking-wider uppercase font-black">VG TEST CONSISTS</span>
+            <span className="text-sm tracking-wider uppercase font-black">TB PRO CONSISTS</span>
             <span className="text-[11px] font-medium text-gray-700">Ready CON files for Open Rails</span>
           </a>
         </div>
@@ -153,33 +152,33 @@ export default function DownloadsClient({ freeFiles, categories }: DownloadsClie
                 </tr>
 
                 <tr className="hover:bg-white/5 transition-colors">
-                  <td className="py-3.5 px-3 font-semibold text-white">TB PRO LHB Sleeper Coaches (Standard &amp; Academy)</td>
+                  <td className="py-3.5 px-3 font-semibold text-white">TB PRO LHB Sleeper Coaches</td>
                   <td className="px-3 text-[#A0C4E8]">Payware</td>
                   <td className="px-3">
-                    <span className="px-2.5 py-0.5 rounded-full bg-amber-900/80 text-amber-300 border border-amber-500/50 text-[11px] font-bold">
-                      V2.0 Update required!!!!!
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-900/80 text-[#00B8D9] border border-emerald-500/50 text-[11px] font-bold">
+                      Available
                     </span>
                   </td>
-                  <td className="px-3 text-right text-gray-300">
-                    Upgrades in progress
+                  <td className="px-3 text-right">
+                    <Link href="/shop" className="text-[#00B8D9] hover:underline font-semibold">Available in Shop</Link>
                   </td>
                 </tr>
 
                 <tr className="hover:bg-white/5 transition-colors">
-                  <td className="py-3.5 px-3 font-semibold text-white">TB PRO LHB Humsafar Express 3-Tier</td>
+                  <td className="py-3.5 px-3 font-semibold text-white">TB PRO LHB AC 3-Tier Coaches</td>
                   <td className="px-3 text-[#A0C4E8]">Payware</td>
                   <td className="px-3">
-                    <span className="px-2.5 py-0.5 rounded-full bg-red-900/80 text-red-300 border border-red-500/50 text-[11px] font-bold">
-                      Under Maintenance!!!!!
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-900/80 text-[#00B8D9] border border-emerald-500/50 text-[11px] font-bold">
+                      Available
                     </span>
                   </td>
-                  <td className="px-3 text-right text-gray-300">
-                    Texture remastering
+                  <td className="px-3 text-right">
+                    <Link href="/shop" className="text-[#00B8D9] hover:underline font-semibold">Available in Shop</Link>
                   </td>
                 </tr>
 
                 <tr className="hover:bg-white/5 transition-colors">
-                  <td className="py-3.5 px-3 font-semibold text-white">VG Common Trainboards &amp; Sound Scripts</td>
+                  <td className="py-3.5 px-3 font-semibold text-white">TB PRO Trainboards &amp; Sound Scripts</td>
                   <td className="px-3 text-[#A0C4E8]">Common</td>
                   <td className="px-3">
                     <span className="px-2.5 py-0.5 rounded-full bg-blue-900/80 text-[#A0C4E8] border border-blue-500/50 text-[11px] font-bold">
@@ -287,7 +286,7 @@ export default function DownloadsClient({ freeFiles, categories }: DownloadsClie
             <span>WARNING &bull; INTELLECTUAL PROPERTY NOTICE</span>
           </div>
           <p className="leading-relaxed">
-            All files, textures, sound scripts, and 3D shapes downloaded from this website are proprietary works of <strong>Varun Ganesh / VG-3D Modelers &amp; Railway Simulations</strong>. Redistribution, leaking, re-uploading, or unauthorized modifications are strictly forbidden and subject to civil prosecution under Indian copyright legislation.
+            All files, textures, sound scripts, and 3D shapes downloaded from this website are proprietary works of <strong>TB PRO Railway Simulations</strong>. Redistribution, leaking, re-uploading, or unauthorized modifications are strictly forbidden and subject to civil prosecution under Indian copyright legislation.
           </p>
         </div>
       </div>

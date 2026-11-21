@@ -66,7 +66,10 @@ export async function GET(req: NextRequest) {
         p.status !== "ARCHIVED" &&
         !p.name.includes("VG ") &&
         !p.name.includes("VG-") &&
-        !p.slug.startsWith("vg-")
+        !p.slug.startsWith("vg-") &&
+        !p.name.includes("WHR") &&
+        !p.slug.includes("whr") &&
+        p.id !== "prod-whr"
     );
 
     return NextResponse.json({ products, categories });

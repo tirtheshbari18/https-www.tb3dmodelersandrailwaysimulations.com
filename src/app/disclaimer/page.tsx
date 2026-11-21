@@ -5,7 +5,7 @@ import { ShieldCheck, AlertTriangle } from "lucide-react";
 export const revalidate = 0;
 
 export const metadata = {
-  title: "Railway Simulation Disclaimer | VG-3D Modelers",
+  title: "Railway Simulation Disclaimer | TB PRO",
 };
 
 export default async function DisclaimerPage() {
@@ -29,7 +29,7 @@ export default async function DisclaimerPage() {
             <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
             <span>
               {setting?.disclaimerText ||
-                "VG-3D Modelers & Railway Simulations is an independent digital creator platform operated by Varun Ganesh. All simulation models, rolling stock add-ons, and visual assets are crafted for train simulation enthusiasts and personal virtual railway operations."}
+                "TB PRO Railway Simulations is an independent digital creator platform. All simulation models, rolling stock add-ons, and visual assets are crafted for train simulation enthusiasts and personal virtual railway operations."}
             </span>
           </div>
 
@@ -39,7 +39,7 @@ export default async function DisclaimerPage() {
               "Indian Railways", "IRCTC", "Rajdhani", "Shatabdi", "Humsafar", "Vistadome", "Vande Bharat", and associated zonal markings are registered trademarks and property of the Ministry of Railways, Government of India.
             </p>
             <p>
-              All visual representations, 3D meshes, and liveries hosted on this website are non-official, artistic 3D digital recreations produced independently by Varun Ganesh solely for entertainment, educational appreciation of railway engineering, and train simulation in Open Rails and Microsoft Train Simulator.
+              All visual representations, 3D meshes, and liveries hosted on this website are non-official, artistic 3D digital recreations produced independently by TB PRO solely for entertainment, educational appreciation of railway engineering, and train simulation in Open Rails and Microsoft Train Simulator.
             </p>
             <p>
               "Microsoft Train Simulator" is a trademark of Microsoft Corporation. "Open Rails" is an open-source train simulator project developed under GPL.

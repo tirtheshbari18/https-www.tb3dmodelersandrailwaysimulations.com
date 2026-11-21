@@ -30,13 +30,16 @@ export default async function ShopPage() {
   ]);
 
   const allProducts = await applyProductOverrides(rawProducts);
-  // Defense-in-depth: Ensure no archived or VG-branded products appear in the public Shop
+  // Defense-in-depth: Ensure no archived, VG-branded, or WHR products appear in the public Shop
   const products = allProducts.filter(
     (p) =>
       p.status !== "ARCHIVED" &&
       !p.name.includes("VG ") &&
       !p.name.includes("VG-") &&
-      !p.slug.startsWith("vg-")
+      !p.slug.startsWith("vg-") &&
+      !p.name.includes("WHR") &&
+      !p.slug.includes("whr") &&
+      p.id !== "prod-whr"
   );
 
   return (

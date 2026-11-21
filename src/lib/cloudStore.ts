@@ -1,5 +1,5 @@
 /**
- * Cloud Persistence Store for VG-3D Modelers & Railway Simulations
+ * Cloud Persistence Store for TB PRO Railway Simulations
  *
  * Ensures all product prices, offers, stock status, train boards, and home slides
  * permanently persist across all Vercel Serverless Lambdas, page refreshes,
@@ -18,6 +18,7 @@ interface CloudDatabaseState {
 // Built-in baseline snapshot to ensure resilience against cloud store cold resets
 const BASELINE_SNAPSHOT: CloudDatabaseState = {
   products: {
+    "prod-whr": { status: "ARCHIVED" },
     "prod-academy": { status: "ARCHIVED" },
     "prod-humsafar": { status: "ARCHIVED" },
     "prod-sleeper": { status: "ARCHIVED" },

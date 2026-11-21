@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 export const revalidate = 0;
 
 export const metadata = {
-  title: "End User License Agreement (EULA) | VG-3D Modelers & Railway Simulations",
+  title: "End User License Agreement (EULA) | TB PRO",
 };
 
 export default async function EulaPage() {
@@ -18,7 +18,7 @@ export default async function EulaPage() {
             End User License Agreement (EULA)
           </h1>
           <p className="font-futuraLight text-[14px] text-gray-500 mt-2">
-            Developer: VG-3D Modelers &amp; Railway Simulations • Lead Developer: Varun Ganesh &amp; Team
+            Developer: TB PRO Railway Simulations • Technical Development Team
           </p>
         </div>
 
@@ -28,7 +28,7 @@ export default async function EulaPage() {
               1.1 Grant of License
             </h2>
             <p>
-              By purchasing, downloading, or installing any content from VG-3D Modelers &amp; Railway
+              By purchasing, downloading, or installing any content from TB PRO Railway
               Simulations, you are granted a non-exclusive, non-transferable, revocable license to use
               the digital assets strictly for personal, non-commercial entertainment and simulation
               purposes on compatible simulators (including Open Rails and MSTS).
@@ -41,13 +41,13 @@ export default async function EulaPage() {
             </h2>
             <p>
               All rights, titles, and interests in and to the Product remain the exclusive intellectual
-              property of Varun Ganesh. This includes:
+              property of TB PRO Railway Simulations. This includes:
             </p>
             <ul className="list-disc pl-5 space-y-1 text-gray-700">
               <li>3D Geometry: All 3D meshes, polygons, and shape files (.s, .obj).</li>
               <li>Artistic Assets: All custom textures, bake maps, and material files (.ace, .dds, .png).</li>
               <li>Configuration &amp; Logic: Physics coding, wagon parameters, sound engineering, and scripting (.wag, .eng, .sms).</li>
-              <li>Branding: The VG-3D Modelers &amp; Railway Simulations name, insignias, and associated assets.</li>
+              <li>Branding: The TB PRO name, insignias, and associated assets.</li>
             </ul>
           </div>
 

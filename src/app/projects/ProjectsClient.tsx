@@ -16,80 +16,68 @@ export default function ProjectsClient({ projects, products }: ProjectsClientPro
     caption?: string;
   } | null>(null);
 
-  // Exact 7 project items with exact prompt descriptions and multi-image collages
+  // Exact 7 project items with authentic TB PRO assets and descriptions
   const projectItems = [
     {
       num: "01",
       title: "TB PRO LHB CHAIRCAR COACHES",
-      mainImage: "/assets/projects/01_vg_lhb_chaircar.png",
+      mainImage: "/assets/tbpro/lhb_chaircar.png",
       alt: "TB PRO LHB CHAIRCAR COACHES Showcase",
       extraImages: [
-        "/assets/coaches/chaircar_ad.png",
-        "/assets/products/chaircar_standard.png",
-        "/assets/products/pnb_livery.png",
-        "/assets/products/indian_tricolour.avif"
+        "/assets/tbpro/lhb_exec_chaircar.jpg"
       ],
       description:
-        "This pack features high-fidelity 3D models of TB PRO LHB Chair Car coaches for Open Rails and MSTS, meticulously crafted by Varun Ganesh (VG). Designed for daytime services like the Shatabdi, Jan Shatabdi, and Intercity Express, these models feature animated doors and highly detailed interiors with realistic night lighting. The coaches are fully customizable for specific zones and trainboards. This comprehensive pack also includes prestigious rakes inspired by the legendary Deccan Queen, the premium Anubhuti coach, and the Tricolour livery Shatabdi coaches.",
-      highlights: ["Animated Passenger Doors", "Night Lighting Cabin View", "Deccan Queen Rake", "Anubhuti Premium Class"],
-      link: "/shop/vg-lhb-coaches"
+        "This pack features high-fidelity 3D models of TB PRO LHB Chair Car coaches for Open Rails and MSTS. Designed for daytime services like the Shatabdi, Jan Shatabdi, and Intercity Express, these models feature animated doors and highly detailed interiors with realistic night lighting. The coaches are fully customizable for specific zones and trainboards. This comprehensive pack also includes prestigious rakes inspired by legendary Indian Railways express services.",
+      highlights: ["Animated Passenger Doors", "Night Lighting Cabin View", "Intercity Express Rakes", "Executive Class Seating"],
+      link: "/shop/lhb-chair-car-coach"
     },
     {
       num: "02",
       title: "TB PRO LHB VISTADOME COACHES",
-      mainImage: "/assets/projects/02_vg_lhb_vistadome.png",
+      mainImage: "/assets/tbpro/lhb_vistadome.png",
       alt: "TB PRO LHB VISTADOME COACHES Showcase",
-      extraImages: [
-        "/assets/coaches/vistadome_ad.png",
-        "/assets/products/vistadome_standard.png",
-        "/assets/products/vistadome_livery.png"
-      ],
+      extraImages: [],
       description:
-        "This pack features high-fidelity 3D models of TB PRO LHB Vistadome coaches, meticulously crafted by Varun Ganesh (VG) as a premium addition to the TB PRO LHB Chair Car collection. Specifically designed to replicate the unique, panoramic experience of daytime tourist travel, these models feature fully animated doors and highly detailed glass-roof interiors with realistic night lighting. The coaches offer high customizability for various regional zones and trainboards. This installment includes specialized variants inspired by the modern LHB Vistadome fleet and the iconic livery of the legendary Deccan Queen.",
+        "This pack features high-fidelity 3D models of TB PRO LHB Vistadome coaches as a premium addition to the TB PRO LHB coaching collection. Specifically designed to replicate the unique, panoramic experience of daytime tourist travel, these models feature fully animated doors and highly detailed glass-roof interiors with realistic night lighting. The coaches offer high customizability for various regional zones and trainboards.",
       highlights: ["Curved Glass Canopy Roof", "Rotating Pushback Seats", "Custom Regional Trainboards", "Scenic Route Shaders"],
-      link: "/shop/vg-lhb-vistadome-coaches"
+      link: "/shop"
     },
     {
       num: "03",
       title: "TB PRO LHB SLEEPER COACHES",
-      mainImage: "/assets/projects/03_vg_lhb_sleeper.avif",
+      mainImage: "/assets/tbpro/lhb_sleeper.png",
       alt: "TB PRO LHB SLEEPER COACHES Showcase",
       extraImages: [
-        "/assets/coaches/sleeper_render.png",
-        "/assets/products/sleeper_v2.avif",
-        "/assets/products/vg_academy_sleeper.avif"
+        "/assets/tbpro/lhb_sleeper.avif"
       ],
       description:
-        "This pack features high-fidelity 3D models of TB PRO LHB Sleeper coaches, meticulously crafted by Varun Ganesh (VG). Designed for long-distance day and night transit, these models are inspired by the versatile rolling stock used in premier services like the Rajdhani, Duronto as well as various Superfast Express trains. The coaches feature fully animated doors and highly detailed sleeper-class interiors complete with realistic night lighting effects. Fully customizable for specific regional zones and trainboards, this comprehensive pack is engineered to bring an authentic long-haul experience to the Open Rails and MSTS platforms.",
-      highlights: ["Day & Night Compartment Modes", "Rajdhani / Duronto Variants", "Accurate FIAT Bogies", "Berth Detailing"],
-      link: "/shop/vg-lhb-sleeper-coaches-v2-update"
+        "This pack features high-fidelity 3D models of TB PRO LHB Sleeper coaches. Designed for long-distance day and night transit, these models are inspired by the versatile rolling stock used in premier services across Indian Railways. The coaches feature fully animated doors and highly detailed sleeper-class interiors complete with realistic night lighting effects. Fully customizable for specific regional zones and trainboards, this comprehensive pack is engineered to bring an authentic long-haul experience to Open Rails and MSTS.",
+      highlights: ["Day & Night Compartment Modes", "Mail & Express Variants", "Accurate FIAT Bogies", "Berth Detailing"],
+      link: "/shop/indian-railways-lhb-sleeper-coach"
     },
     {
       num: "04",
       title: "TB PRO LHB HUMSAFAR COACHES",
-      mainImage: "/assets/projects/04_vg_lhb_humsafar.avif",
+      mainImage: "/assets/tbpro/lhb_humsafar.avif",
       alt: "TB PRO LHB HUMSAFAR COACHES Showcase",
       extraImages: [
-        "/assets/products/humsafar_v2.avif",
-        "/assets/products/amrit_bharat.png"
+        "/assets/tbpro/lhb_amrit_bharat.png"
       ],
       description:
-        "This pack features high-fidelity 3D models of TB PRO LHB Humsafar coaches, meticulously crafted by Varun Ganesh (VG). Designed for long-distance day and night transit, these models are inspired by the distinctive aesthetic of the Humsafar Express and are compatible with various premier services like the Rajdhani and Duronto. The coaches feature fully animated doors and highly detailed, modern sleeper interiors complete with realistic night lighting effects. Fully customizable for specific regional zones and trainboards, this comprehensive pack is engineered to deliver a premium, high-tech travel experience to the Open Rails and MSTS platforms.",
+        "This pack features high-fidelity 3D models of TB PRO LHB Humsafar coaches. Designed for long-distance transit, these models are inspired by the distinctive aesthetic of the Humsafar Express and are compatible with various premier services like the Rajdhani and Duronto. The coaches feature fully animated doors and highly detailed modern sleeper interiors complete with realistic night lighting effects.",
       highlights: ["Geometric Vinyl Livery", "Modern 3-Tier Interior", "Calibrated Deceleration Physics", "Open Rails & MSTS"],
-      link: "/shop/vg-lhb-humsafar-coaches-v2"
+      link: "/shop/lhb-ac-3-tier-coach"
     },
     {
       num: "05",
       title: "TB PRO LHB BANGLADESH COACHES",
-      mainImage: "/assets/projects/05_vg_lhb_bangladesh.png",
+      mainImage: "/assets/tbpro/lhb_bangladesh.png",
       alt: "TB PRO LHB BANGLADESH COACHES Showcase",
-      extraImages: [
-        "/assets/products/bangladesh_coaches.png"
-      ],
+      extraImages: [],
       description:
-        "This pack features high-fidelity 3D models of TB PRO LHB Bangladesh coaches, meticulously crafted by Varun Ganesh (VG). Designed for international transit, these models are inspired by the prestigious rakes used in services such as the Maitree Express, which connects Dhaka and Kolkata. The coaches feature fully animated doors and highly detailed interiors complete with realistic night lighting effects. Equipped with accurate trainboards and regional detailing, this comprehensive pack is engineered to bring an authentic cross-border rail experience to the Open Rails and MSTS platforms.",
-      highlights: ["International Maitree Express", "Bilingual Trainboards", "Export Broad-Gauge Bogie", "Dhaka-Kolkata Livery"],
-      link: "/shop/vg-lhb-bangladesh-coaches"
+        "This pack features high-fidelity 3D models of TB PRO LHB international transit coaches. Inspired by the prestigious rakes used in services such as the Maitree Express connecting Kolkata and Dhaka, these coaches feature fully animated doors and highly detailed interiors complete with realistic night lighting effects. Equipped with accurate trainboards and regional detailing, this comprehensive pack brings an authentic cross-border rail experience to Open Rails and MSTS.",
+      highlights: ["International Maitree Express", "Bilingual Trainboards", "Export Broad-Gauge Bogie", "Cross-Border Livery"],
+      link: "/shop/lhb-first-ac-coach"
     },
     {
       num: "06",
@@ -97,25 +85,25 @@ export default function ProjectsClient({ projects, products }: ProjectsClientPro
       isRouteSection: true,
       mainImage: "/assets/projects/06_route_naini_bridge.webp",
       alt: "Route 3D Models - Naini Bridges",
-      caption: "Old Naini and New Naini bridges modelled by VG for The Great Northern Corridor (Pic courtesy: https://hindustanrailways.site/)",
+      caption: "Old Naini and New Naini bridges modelled for Indian route simulation (Pic courtesy: https://hindustanrailways.site/)",
       extraImages: [
-        "/assets/products/whr_route_v2.png"
+        "/assets/tbpro/railway_route_bridge.webp"
       ],
       description:
-        "VG has contributed to many 3D models for the route The Great Northern Corridor created by Mudit Pranay. Various models ranging from small objects like signboards, signals, catenary masts to massive structures like platform shed, bridges, monuments, station building have been developed for this route.",
-      highlights: ["Old & New Naini River Bridges", "The Great Northern Corridor", "Catenary Masts & Signals", "Custom Station Sheds"],
-      link: "/shop/whr-route-v2-ahmedabad-update"
+        "TB PRO has contributed various 3D models for major Indian Railways route simulation projects. Various models ranging from small objects like signboards, signals, catenary masts to massive structures like platform sheds, bridges, monuments, and station buildings have been developed.",
+      highlights: ["Old & New Naini River Bridges", "Northern Corridor Assets", "Catenary Masts & Signals", "Custom Station Sheds"],
+      link: "/shop/msts-indian-railways-route-assets"
     },
     {
       num: "07",
       title: "WORK IN PROGRESS",
       isWipSection: true,
-      mainImage: "/assets/projects/07_wip_sleeper_render.png",
+      mainImage: "/assets/tbpro/coach_interior.jpg",
       wipIcon: "/assets/projects/07_wip_icon.png",
       alt: "Work In Progress Renders",
       extraImages: [],
       description:
-        "Active design, research, and development pipeline at VG-3D Modelers. Current roadmap includes realistic electric locomotive sound packs (WAP-7 / WAG-9), authentic Indian cab interior environments, advanced consist physics tuning, and next-generation push-pull trainsets.",
+        "Active design, research, and development pipeline at TB PRO. Current roadmap includes realistic electric locomotive sound packs (WAP-7 / WAG-9), authentic Indian cab interior environments, advanced consist physics tuning, and next-generation push-pull trainsets.",
       highlights: ["Locomotive Acoustic Soundpacks", "Physics Tuning Curves", "Cab Interior Models", "Next-Gen Push-Pull"],
       link: "/contact"
     }
@@ -194,14 +182,14 @@ export default function ProjectsClient({ projects, products }: ProjectsClientPro
               className="relative p-2 bg-white/10 rounded-2xl border-2 border-white/20 shadow-2xl flex-shrink-0 cursor-pointer group hover:scale-[1.02] transition-transform"
               onClick={() =>
                 setLightboxImage({
-                  url: "/assets/banners/projects_hero_coach.png",
+                  url: "/assets/tbpro/lhb_vistadome.png",
                   title: "TB PRO LHB Vistadome Coach 3D Render",
                   caption: "Authentic high-poly geometry and observation canopy roof."
                 })
               }
             >
               <img
-                src="/assets/banners/projects_hero_coach.png"
+                src="/assets/tbpro/lhb_vistadome.png"
                 alt="TB PRO LHB Vistadome Coach Render"
                 className="w-[280px] sm:w-[340px] md:w-[380px] h-auto object-contain rounded-xl"
               />

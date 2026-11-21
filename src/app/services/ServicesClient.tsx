@@ -109,8 +109,8 @@ export default function ServicesClient({ services }: ServicesClientProps) {
           <div className="flex justify-center">
             <div className="border-4 border-[#0B2852] p-1.5 bg-white shadow-2xl rounded-2xl max-w-[850px] w-full overflow-hidden hover:scale-[1.01] transition-transform">
               <img
-                src="/assets/banners/services_vistadome_banner.png"
-                alt="VG LHB VISTADOME COACHES modeled by Varun Ganesh"
+                src="/assets/tbpro/lhb_vistadome.png"
+                alt="TB PRO LHB Coaches modeled for Open Rails and MSTS"
                 className="w-full h-auto object-contain cursor-pointer rounded-xl"
                 onClick={() => handleOpenModal("3D Modelling & Visualization")}
               />

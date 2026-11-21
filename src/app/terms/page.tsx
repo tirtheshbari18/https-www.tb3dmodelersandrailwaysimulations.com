@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 export const revalidate = 0;
 
 export const metadata = {
-  title: "Terms and Conditions | VG-3D Modelers & Railway Simulations",
+  title: "Terms and Conditions | TB PRO • Indian Railways Simulation Platform",
 };
 
 export default async function TermsPage() {
@@ -18,13 +18,13 @@ export default async function TermsPage() {
             Terms and Conditions
           </h1>
           <p className="font-futuraLight text-[14px] text-gray-500 mt-2">
-            VG-3D Modelers &amp; Railway Simulations • Official Terms of Service
+            TB PRO Railway Simulations • Official Terms of Service
           </p>
         </div>
 
         <div className="space-y-6 font-futuraLight text-[15px] sm:text-[16px] text-[#041229] leading-[28.125px]">
           <p>
-            Welcome to VG-3D Modelers &amp; Railway Simulations. By accessing our platform, purchasing,
+            Welcome to TB PRO Railway Simulations. By accessing our platform, purchasing,
             or downloading our 3D railway simulation models and digital assets, you agree to comply with
             and be bound by these Terms and Conditions.
           </p>
@@ -35,7 +35,7 @@ export default async function TermsPage() {
             </h2>
             <p>
               All 3D meshes, rolling stock geometry, sound recordings, textures, and physics files are
-              the exclusive creative work of Varun Ganesh and the VG-3D development team. Purchases
+              the exclusive creative work of the TB PRO development team. Purchases
               grant an individual, personal, non-exclusive, non-transferable license to install and run
               the simulation models on your personal computer in compatible simulation platforms
               (including Open Rails and Microsoft Train Simulator).
@@ -72,7 +72,7 @@ export default async function TermsPage() {
             <p>
               Due to the immediate digital entitlement and download nature of computer software files,
               all sales are final upon fulfillment. If you experience technical defects or corrupt
-              downloads, contact Varun Ganesh directly via WhatsApp or email for prompt technical support.
+              downloads, contact TB PRO technical support directly via email or our contact page for prompt technical support.
             </p>
           </div>
 
@@ -82,7 +82,7 @@ export default async function TermsPage() {
             </h2>
             <p>
               This service operates under MSME Registration UDYAM-MH-18-0225661, located in Maharashtra,
-              India. Direct all official queries to varunganesh221@gmail.com.
+              India. Direct all official queries to the TB PRO support team.
             </p>
           </div>
         </div>

@@ -316,7 +316,7 @@ function LoginForm() {
             <div className="flex flex-col items-end text-[10px] text-gray-400">
               <div className="flex items-center gap-1 text-gray-500 font-semibold">
                 <ShieldCheck className="w-3.5 h-3.5 text-[#0B2852]" />
-                <span>VG Security</span>
+                <span>TB PRO Security</span>
               </div>
               <span>reCAPTCHA checkbox mode</span>
             </div>
