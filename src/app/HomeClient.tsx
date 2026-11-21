@@ -24,7 +24,17 @@ import {
   ShieldCheck,
   LayoutDashboard,
   ExternalLink,
+  ShoppingCart,
+  Gauge,
+  Zap,
+  Wrench,
+  Layers,
+  Monitor,
+  Download
 } from "lucide-react";
+import { useCart } from "@/lib/cartContext";
+import { formatCurrency } from "@/lib/utils";
+import QuickViewModal from "@/components/QuickViewModal";
 
 interface HomeSlideItem {
   id: string;
@@ -58,8 +68,10 @@ export default function HomeClient({
   homeSlides = [],
 }: HomeClientProps) {
   const router = useRouter();
+  const { addToCart, isInCart } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [quickViewProduct, setQuickViewProduct] = useState<any | null>(null);
 
   // Admin and Auth State
   const [currentUser, setCurrentUser] = useState<any | null>(null);
@@ -146,7 +158,7 @@ export default function HomeClient({
     } catch (e) {}
   };
 
-  // Filter slides: If not admin, show only active slides
+  // Filter slides
   const visibleSlides = currentUser && isAdminMode ? slides : slides.filter((s) => s.isActive);
   const activeSlidesCount = slides.filter((s) => s.isActive).length;
 
@@ -321,7 +333,7 @@ export default function HomeClient({
   const currentSlide = visibleSlides[currentIndex] || slides[0] || null;
 
   return (
-    <div className="w-full bg-white text-[#101C32] select-none font-josefin">
+    <div className="w-full bg-[#F4F7FB] text-[#172033] select-none font-josefin">
       {/* Toast Notification */}
       {toastMsg && (
         <div
@@ -331,61 +343,61 @@ export default function HomeClient({
               : "bg-emerald-50 text-emerald-800 border-emerald-300"
           }`}
         >
-          <Sparkles className="w-4 h-4 text-[#39FF00]" />
+          <Sparkles className="w-4 h-4 text-[#00B8D9]" />
           <span className="font-semibold">{toastMsg.text}</span>
         </div>
       )}
 
       {/* =========================================================================
-          PROMOTIONAL ANNOUNCEMENT BAR
+          1. PROMOTIONAL ANNOUNCEMENT BAR
           ========================================================================= */}
-      <div className="w-full bg-[#FF6600] text-white py-2 overflow-hidden select-none border-b border-[#E65C00] shadow-sm">
+      <div className="w-full bg-[#101D35] text-white py-2 overflow-hidden select-none border-b border-[#174EA6]/40 shadow-sm">
         <div className="flex whitespace-nowrap animate-marquee">
           {[...Array(6)].map((_, i) => (
             <div
               key={i}
-              className="flex items-center mx-4 font-josefin text-[14px] sm:text-[15px] font-semibold tracking-wide"
+              className="flex items-center mx-4 font-josefin text-[13px] sm:text-[14px] font-semibold tracking-wide"
             >
-              <span>Last Day! Festival offer ends tonight at 11:45 PM. (Please visit shop page for more details)</span>
-              <span className="text-[#39FF00] font-bold text-lg mx-3">»»</span>
+              <span className="text-[#FF6B00] font-bold mr-2">SPECIAL OFFER:</span>
+              <span>Exclusive 20% discount on Indian Railways LHB coach sets and train boards!</span>
+              <span className="text-[#00B8D9] font-bold text-base mx-3">»»</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* =========================================================================
-          ADMIN SLIDER MANAGEMENT TOOLBAR (VISIBLE FOR LOGGED IN ADMIN)
+          2. ADMIN SLIDER MANAGEMENT TOOLBAR (VISIBLE FOR LOGGED IN ADMIN)
           ========================================================================= */}
       {currentUser && (
-        <div className="bg-[#0B2852] text-white border-b-2 border-[#39FF00] py-3 px-4 shadow-md sticky top-[69px] z-30">
-          <div className="max-w-[1080px] mx-auto flex flex-wrap items-center justify-between gap-3">
+        <div className="bg-[#101D35] text-white border-b-2 border-[#00B8D9] py-3 px-4 shadow-md sticky top-[69px] z-30">
+          <div className="max-w-[1240px] mx-auto flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#39FF00] text-[#101C32] flex items-center justify-center font-bold">
-                <ShieldCheck className="w-4 h-4 text-[#0B2852]" />
+              <div className="w-8 h-8 rounded-lg bg-[#174EA6] text-[#00B8D9] flex items-center justify-center font-bold border border-[#00B8D9]/40">
+                <ShieldCheck className="w-4 h-4" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm tracking-wide text-[#39FF00]">
-                    HOME SLIDER MANAGEMENT
+                  <span className="font-bold text-sm tracking-wide text-[#00B8D9]">
+                    TB PRO SLIDER MANAGEMENT
                   </span>
                   <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full uppercase font-bold text-white">
                     {currentUser.role}
                   </span>
                 </div>
-                <p className="text-[11px] text-gray-300">
+                <p className="text-[11px] text-slate-300">
                   Total Slides: <strong>{slides.length}</strong> ({activeSlidesCount} Active)
                 </p>
               </div>
             </div>
 
             <div className="flex items-center flex-wrap gap-2">
-              {/* Admin Mode Toggle */}
               <button
                 type="button"
                 onClick={() => setIsAdminMode(!isAdminMode)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${
                   isAdminMode
-                    ? "bg-[#39FF00] text-[#101C32] hover:bg-white"
+                    ? "bg-[#00B8D9] text-[#101D35] hover:bg-white"
                     : "bg-white/20 text-white hover:bg-white/30"
                 }`}
               >
@@ -393,40 +405,37 @@ export default function HomeClient({
                 <span className="uppercase">{isAdminMode ? "ON" : "OFF"}</span>
               </button>
 
-              {/* Add New Slide Button */}
               {isAdminMode && (
                 <button
                   type="button"
                   onClick={() => setShowAddSlideModal(true)}
-                  className="px-4 py-1.5 rounded-full bg-white text-[#0B2852] hover:bg-[#39FF00] hover:text-[#101C32] text-xs font-bold flex items-center gap-1.5 transition-all shadow cursor-pointer"
+                  className="px-4 py-1.5 rounded-lg bg-white text-[#101D35] hover:bg-[#00B8D9] text-xs font-bold flex items-center gap-1.5 transition-all shadow cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5 stroke-[3]" />
                   <span>+ Add New Slide</span>
                 </button>
               )}
 
-              {/* Slide Timing Dropdown */}
-              <div className="flex items-center gap-1 bg-white/10 px-2.5 py-1 rounded-full text-xs text-white">
-                <Clock className="w-3 h-3 text-[#39FF00]" />
-                <span className="text-[11px] text-gray-300">Timer:</span>
+              <div className="flex items-center gap-1 bg-white/10 px-2.5 py-1 rounded-lg text-xs text-white">
+                <Clock className="w-3 h-3 text-[#00B8D9]" />
+                <span className="text-[11px] text-slate-300">Timer:</span>
                 <select
                   value={slideInterval}
                   onChange={(e) => handleSaveInterval(parseInt(e.target.value, 10))}
-                  className="bg-transparent text-[#39FF00] font-bold text-xs focus:outline-none cursor-pointer"
+                  className="bg-transparent text-[#00B8D9] font-bold text-xs focus:outline-none cursor-pointer"
                 >
-                  <option value={3000} className="text-[#101C32]">3 Seconds</option>
-                  <option value={5000} className="text-[#101C32]">5 Seconds (Default)</option>
-                  <option value={8000} className="text-[#101C32]">8 Seconds</option>
-                  <option value={10000} className="text-[#101C32]">10 Seconds</option>
+                  <option value={3000} className="text-[#101D35]">3 Seconds</option>
+                  <option value={5000} className="text-[#101D35]">5 Seconds (Default)</option>
+                  <option value={8000} className="text-[#101D35]">8 Seconds</option>
+                  <option value={10000} className="text-[#101D35]">10 Seconds</option>
                 </select>
               </div>
 
-              {/* Auto Play / Pause Toggle */}
               <button
                 type="button"
                 onClick={() => setIsAutoPlay(!isAutoPlay)}
-                className={`p-1.5 rounded-full text-xs transition-colors cursor-pointer ${
-                  isAutoPlay ? "bg-[#39FF00] text-[#101C32]" : "bg-white/20 text-white"
+                className={`p-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
+                  isAutoPlay ? "bg-[#00B8D9] text-[#101D35]" : "bg-white/20 text-white"
                 }`}
                 title={isAutoPlay ? "Pause Auto-Slide" : "Start Auto-Slide"}
               >
@@ -435,7 +444,7 @@ export default function HomeClient({
 
               <Link
                 href="/admin"
-                className="px-3 py-1.5 rounded-full bg-[#143B73] hover:bg-[#1b4d96] text-white text-xs font-semibold flex items-center gap-1 transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-[#174EA6] hover:bg-[#1b4d96] text-white text-xs font-semibold flex items-center gap-1 transition-colors"
               >
                 <LayoutDashboard className="w-3 h-3" />
                 <span>Dashboard</span>
@@ -446,53 +455,387 @@ export default function HomeClient({
       )}
 
       {/* =========================================================================
-          MAIN HOME CONTENT & SLIDER WINDOW
+          3. HERO SECTION (MASTER PROMPT SPECIFICATION)
           ========================================================================= */}
-      <div className="max-w-[1080px] mx-auto px-4 pt-10 pb-16">
-        {/* Top Header: "Home: Products - 11x" on Left, Notice Trigger & Search on Right */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-6">
-          <div>
-            <h1 className="font-josefin text-[36px] sm:text-[44px] font-extralight tracking-tight text-[#101C32] leading-tight">
-              Home:<br />
-              <span className="font-normal text-[#0B2852]">Products - 11x</span>
-            </h1>
-            <p className="font-josefin text-sm text-gray-500 mt-1">
-              Showing {visibleSlides.length} high-fidelity Indian Railway rolling stock and route add-ons
+      <section className="relative w-full bg-[#101D35] text-white py-16 sm:py-24 border-b border-[#174EA6]/30 overflow-hidden">
+        {/* Photorealistic Hero Background */}
+        <div className="absolute inset-0 opacity-30 pointer-events-none">
+          <img
+            src="/assets/tbpro/hero_lhb_train.jpg"
+            alt="Indian Railways LHB Train"
+            className="w-full h-full object-cover filter blur-[2px]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#101D35] via-[#101D35]/90 to-transparent"></div>
+        </div>
+
+        <div className="relative max-w-[1240px] mx-auto px-4 sm:px-6">
+          <div className="flex flex-col lg:flex-row items-center gap-12">
+            {/* Left Content */}
+            <div className="lg:w-7/12 space-y-6 text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#174EA6]/50 border border-[#00B8D9]/40 text-[#00B8D9] text-xs font-bold tracking-widest uppercase">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>PREMIER INDIAN RAILWAYS SIMULATION PLATFORM</span>
+              </div>
+
+              {/* Exact heading requested in Master Prompt */}
+              <h1 className="font-josefin text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight">
+                Experience Indian Railways <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00B8D9] via-blue-200 to-white">
+                  Like Never Before.
+                </span>
+              </h1>
+
+              {/* Supporting text about LHB coaches, railway assets, MSTS, and Open Rails */}
+              <p className="font-josefin text-base sm:text-lg text-slate-300 max-w-2xl leading-relaxed">
+                Step into true virtual railroading with high-precision Indian Railways LHB coaching stock, authentic soundscapes, realistic FIAT bogies, and engineered route assets built exclusively for <strong>Open Rails</strong> and <strong>Microsoft Train Simulator (MSTS)</strong>.
+              </p>
+
+              {/* Primary Call to Action Buttons */}
+              <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4">
+                <Link
+                  href="/coaches"
+                  className="px-6 sm:px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#174EA6] to-[#00B8D9] hover:from-[#101D35] hover:to-[#174EA6] text-white text-sm sm:text-base font-bold flex items-center gap-2 shadow-xl hover:scale-105 transition-all"
+                >
+                  <span>Explore LHB Coaches</span>
+                  <ArrowRight className="w-4 h-4 text-[#00B8D9]" />
+                </Link>
+
+                <Link
+                  href="/shop"
+                  className="px-6 sm:px-8 py-3.5 rounded-xl bg-white text-[#101D35] hover:bg-[#00B8D9] hover:text-[#101D35] text-sm sm:text-base font-bold shadow-md transition-all"
+                >
+                  Visit Simulator Shop
+                </Link>
+
+                <Link
+                  href="/msts-openrails"
+                  className="px-5 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-semibold border border-white/20 transition-all"
+                >
+                  MSTS &amp; Open Rails Hub
+                </Link>
+              </div>
+
+              {/* Quick Specs Badges */}
+              <div className="pt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl">
+                <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center sm:text-left">
+                  <span className="text-[10px] text-[#00B8D9] font-bold uppercase tracking-wider block">Speed Potential</span>
+                  <span className="text-white text-lg font-bold">160 – 200 km/h</span>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center sm:text-left">
+                  <span className="text-[10px] text-[#00B8D9] font-bold uppercase tracking-wider block">Bogie Mechanics</span>
+                  <span className="text-white text-lg font-bold">FIAT Air Spring</span>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center sm:text-left">
+                  <span className="text-[10px] text-[#00B8D9] font-bold uppercase tracking-wider block">Compatibility</span>
+                  <span className="text-white text-lg font-bold">Open Rails &bull; MSTS</span>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center sm:text-left">
+                  <span className="text-[10px] text-[#00B8D9] font-bold uppercase tracking-wider block">Framerate Target</span>
+                  <span className="text-white text-lg font-bold">60 FPS Smooth</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Featured Hero Visual Card */}
+            <div className="lg:w-5/12 w-full">
+              <div className="relative rounded-2xl overflow-hidden border-2 border-[#00B8D9]/40 shadow-2xl bg-[#0B1527] group">
+                <img
+                  src="/assets/tbpro/hero_lhb_train.jpg"
+                  alt="Indian Railways LHB Rake in Motion"
+                  className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-[#101D35] via-[#101D35]/85 to-transparent p-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-[11px] font-bold text-[#00B8D9] uppercase tracking-wider block">
+                        Official Simulation Fleet
+                      </span>
+                      <div className="text-white font-bold text-lg sm:text-xl">
+                        Indian Railways LHB Passenger Express
+                      </div>
+                    </div>
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#FF6B00] text-white shadow-sm">
+                      TB PRO
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          4. TRAIN SIMULATION HIGHLIGHTS (KEY PILLARS)
+          ========================================================================= */}
+      <section className="max-w-[1240px] mx-auto px-4 sm:px-6 py-16">
+        <div className="text-center max-w-3xl mx-auto space-y-3 mb-12">
+          <span className="text-xs font-bold uppercase tracking-widest text-[#174EA6] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+            Engineered For Train Enthusiasts
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#101D35]">
+            Why Choose TB PRO Add-ons?
+          </h2>
+          <p className="text-sm text-slate-600">
+            We bridge the gap between engineering specifications and interactive virtual railway simulation.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md hover:border-[#174EA6] transition-all space-y-3">
+            <div className="w-12 h-12 rounded-xl bg-blue-50 text-[#174EA6] flex items-center justify-center font-bold">
+              <Wrench className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold text-[#101D35]">Engineering Precision</h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Modeled to exact Research Designs and Standards Organisation (RDSO) blueprints with stainless steel body dimensions, CBC couplers, and roof profiles.
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            {/* Notice Recall Button */}
-            <button
-              onClick={() => {
-                if (typeof window !== "undefined") {
-                  window.dispatchEvent(new CustomEvent("open-anti-piracy-modal"));
-                }
-              }}
-              className="text-xs bg-[#ECE8F8] text-[#2A1E68] border border-[#D8CEF6] px-3.5 py-2 rounded-full font-semibold hover:bg-[#D8CEF6] transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
-            >
-              <span>⚠️ Official Notice</span>
-            </button>
+          <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md hover:border-[#174EA6] transition-all space-y-3">
+            <div className="w-12 h-12 rounded-xl bg-blue-50 text-[#174EA6] flex items-center justify-center font-bold">
+              <Zap className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold text-[#101D35]">FIAT Bogie Suspension</h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Custom .wag physics with authentic secondary air spring damping, twin-pipe air brake curves, and wheel-rail sound acoustic resonance.
+            </p>
+          </div>
 
-            {/* Clean Search Box */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md hover:border-[#174EA6] transition-all space-y-3">
+            <div className="w-12 h-12 rounded-xl bg-blue-50 text-[#174EA6] flex items-center justify-center font-bold">
+              <Monitor className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold text-[#101D35]">Open Rails &amp; MSTS</h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Tested on both modern 64-bit Open Rails v1.5+ multi-threading and classic MSTS Bin 1.8 engines without bounding box or polygon crashes.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md hover:border-[#174EA6] transition-all space-y-3">
+            <div className="w-12 h-12 rounded-xl bg-blue-50 text-[#174EA6] flex items-center justify-center font-bold">
+              <Download className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold text-[#101D35]">Instant Digital Delivery</h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Immediate access upon checkout with high-speed download links, clear install guides, and lifetime access from your personal account portal.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          5. FEATURED LHB COACHES SECTION (FROM DATABASE PRODUCTS)
+          ========================================================================= */}
+      <section className="bg-white py-16 border-y border-gray-200">
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-6">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
+            <div>
+              <span className="text-xs font-bold text-[#174EA6] uppercase tracking-wider bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+                Rolling Stock Catalog
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#101D35] mt-2">
+                Featured LHB Coaches &amp; Consists
+              </h2>
+              <p className="text-sm text-slate-600 mt-1">
+                Explore real, verified Indian Railways coaching stock available for instant simulation.
+              </p>
+            </div>
+
+            <Link
+              href="/coaches"
+              className="inline-flex items-center gap-2 text-sm font-bold text-[#174EA6] hover:text-[#00B8D9] transition-colors"
+            >
+              <span>View All LHB Coaches</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {featuredProducts.slice(0, 6).map((product) => {
+              const currentPrice = product.salePrice ?? product.regularPrice;
+              const hasDiscount = product.regularPrice > currentPrice;
+              const isOutOfStock = product.status === "OUT_OF_STOCK" || (product.stockQuantity !== undefined && product.stockQuantity <= 0);
+              const isComingSoon = product.status === "COMING_SOON";
+
+              const primaryImg =
+                product.images && product.images.length > 0
+                  ? (typeof product.images[0] === "string" ? product.images[0] : product.images[0].url)
+                  : (product.image || product.imageUrl || "/assets/tbpro/lhb_chaircar.png");
+
+              return (
+                <div
+                  key={product.id}
+                  className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-xl hover:border-[#174EA6]/40 transition-all duration-300 flex flex-col overflow-hidden group"
+                >
+                  <div className="relative aspect-[16/10] bg-[#F4F7FB] overflow-hidden flex items-center justify-center p-4">
+                    <img
+                      src={primaryImg}
+                      alt={product.name}
+                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                    />
+
+                    {/* Badge */}
+                    <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+                      {product.isSpecialOffer && (
+                        <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-[#FF6B00] text-white shadow-sm uppercase tracking-wider">
+                          {product.specialOfferText || "Special Offer"}
+                        </span>
+                      )}
+                      {isComingSoon && (
+                        <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-[#16A34A] text-white shadow-sm uppercase tracking-wider">
+                          Coming Soon
+                        </span>
+                      )}
+                      {isOutOfStock && (
+                        <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-[#DC2626] text-white shadow-sm uppercase tracking-wider">
+                          Out of Stock
+                        </span>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={() => setQuickViewProduct(product)}
+                      aria-label={`Quick view ${product.name}`}
+                      className="absolute bottom-3 right-3 p-2 bg-white/90 hover:bg-[#174EA6] hover:text-white text-[#172033] rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                    <div>
+                      <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+                        <span className="font-bold text-[#174EA6] uppercase tracking-wider">
+                          {product.category?.name || "LHB Coach"}
+                        </span>
+                        <span className="bg-[#F4F7FB] px-2 py-0.5 rounded text-[11px] font-medium border border-gray-200">
+                          {product.compatibility || "Open Rails / MSTS"}
+                        </span>
+                      </div>
+
+                      <Link
+                        href={`/shop/${product.slug || product.id}`}
+                        className="font-josefin font-bold text-lg text-[#101D35] group-hover:text-[#174EA6] transition-colors line-clamp-2 leading-snug"
+                      >
+                        {product.name}
+                      </Link>
+
+                      <p className="text-xs text-slate-600 line-clamp-2 mt-2 leading-relaxed">
+                        {product.shortDesc || product.description || "Authentic Indian Railways rolling stock designed for Open Rails & MSTS."}
+                      </p>
+                    </div>
+
+                    <div className="pt-3 border-t border-gray-100 space-y-3">
+                      <div className="flex items-baseline justify-between">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-xl font-extrabold text-[#101D35]">
+                            {formatCurrency(currentPrice)}
+                          </span>
+                          {hasDiscount && (
+                            <span className="text-sm text-slate-400 line-through">
+                              {formatCurrency(product.regularPrice)}
+                            </span>
+                          )}
+                        </div>
+
+                        {hasDiscount && (
+                          <span className="text-xs font-bold text-[#FF6B00] bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
+                            {Math.round(((product.regularPrice - currentPrice) / product.regularPrice) * 100)}% OFF
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => setQuickViewProduct(product)}
+                          className="py-2.5 px-3 rounded-xl bg-[#F4F7FB] hover:bg-[#174EA6] hover:text-white text-[#174EA6] text-xs font-bold transition-all border border-gray-200 flex items-center justify-center gap-1.5"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>View Contents</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            addToCart({
+                              id: product.id,
+                              productId: product.id,
+                              name: product.name,
+                              price: currentPrice,
+                              regularPrice: product.regularPrice,
+                              image: primaryImg,
+                              sku: product.sku || product.id,
+                              categoryName: product.category?.name,
+                              compatibility: product.compatibility,
+                              isFree: product.isFree || currentPrice === 0,
+                            });
+                          }}
+                          disabled={isOutOfStock || isComingSoon || isInCart(product.id)}
+                          className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm ${
+                            isInCart(product.id)
+                              ? "bg-slate-200 text-slate-600 cursor-not-allowed"
+                              : isOutOfStock || isComingSoon
+                              ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                              : "bg-[#101D35] hover:bg-[#174EA6] text-white"
+                          }`}
+                        >
+                          {isInCart(product.id) ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 text-[#16A34A]" />
+                              <span>In Cart</span>
+                            </>
+                          ) : (
+                            <>
+                              <ShoppingCart className="w-3.5 h-3.5 text-[#00B8D9]" />
+                              <span>Add To Cart</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          6. DYNAMIC SLIDESHOW SHOWCASE (PRESERVES EXISTING ADMIN SLIDER MANAGEMENT)
+          ========================================================================= */}
+      <section className="max-w-[1240px] mx-auto px-4 sm:px-6 py-16">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
+          <div>
+            <span className="text-xs font-bold uppercase tracking-widest text-[#174EA6] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+              Interactive Fleet Showcase
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#101D35] mt-2">
+              LHB Coach Lineup
+            </h2>
+            <p className="text-sm text-slate-500 mt-1">
+              Browsing {visibleSlides.length} verified coach liveries &amp; route simulation packs
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
             <form onSubmit={handleSearchSubmit} className="relative w-full sm:w-[260px]">
               <input
                 type="text"
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 border-2 border-gray-300 rounded-full bg-white font-josefin text-[13px] text-[#101C32] placeholder-gray-400 focus:outline-none focus:border-[#0B2852] transition-colors shadow-sm"
+                className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-xl bg-white font-josefin text-xs text-[#172033] placeholder-gray-400 focus:outline-none focus:border-[#174EA6] transition-colors shadow-sm"
               />
               <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5 pointer-events-none" />
             </form>
           </div>
         </div>
 
-        {/* Center Showcase Carousel Box */}
+        {/* Slide Showcase Box */}
         {currentSlide ? (
-          <div className="relative border-2 border-gray-200 rounded-2xl overflow-hidden bg-white shadow-xl transition-all">
-            {/* Main Showcase Image Area */}
-            <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full flex items-center justify-center bg-[#F5F6F8] overflow-hidden group">
+          <div className="relative border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-xl transition-all">
+            <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full flex items-center justify-center bg-[#F4F7FB] overflow-hidden group">
               <Link
                 href={currentSlide.buttonUrl || "/shop"}
                 className="w-full h-full flex items-center justify-center p-4 sm:p-8"
@@ -505,26 +848,25 @@ export default function HomeClient({
                 />
               </Link>
 
-              {/* Previous Button */}
+              {/* Prev & Next Navigation Buttons */}
               <button
                 onClick={handlePrev}
                 aria-label="Previous coach slide"
-                className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/90 hover:bg-white text-[#0B2852] border border-gray-200 shadow-lg flex items-center justify-center transition-all hover:scale-110 z-10 focus:outline-none cursor-pointer"
+                className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/90 hover:bg-white text-[#101D35] border border-gray-200 shadow-lg flex items-center justify-center transition-all hover:scale-110 z-10 focus:outline-none cursor-pointer"
               >
                 <ChevronLeft className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2.5]" />
               </button>
 
-              {/* Next Button */}
               <button
                 onClick={handleNext}
                 aria-label="Next coach slide"
-                className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/90 hover:bg-white text-[#0B2852] border border-gray-200 shadow-lg flex items-center justify-center transition-all hover:scale-110 z-10 focus:outline-none cursor-pointer"
+                className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/90 hover:bg-white text-[#101D35] border border-gray-200 shadow-lg flex items-center justify-center transition-all hover:scale-110 z-10 focus:outline-none cursor-pointer"
               >
                 <ChevronRight className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2.5]" />
               </button>
 
-              {/* Slide Counter Badge */}
-              <div className="absolute top-4 left-4 bg-[#0B2852]/85 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1 rounded-full shadow flex items-center gap-1.5">
+              {/* Counter Badge */}
+              <div className="absolute top-4 left-4 bg-[#101D35]/85 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1 rounded-full shadow flex items-center gap-1.5">
                 <span>Slide {currentIndex + 1} of {visibleSlides.length}</span>
                 {!currentSlide.isActive && (
                   <span className="bg-rose-500 text-white text-[10px] px-1.5 py-0.2 rounded font-bold">
@@ -533,13 +875,13 @@ export default function HomeClient({
                 )}
               </div>
 
-              {/* ON-SLIDE ADMIN MANAGEMENT CONTROLS */}
+              {/* On-Slide Admin Controls */}
               {currentUser && isAdminMode && (
                 <div className="absolute top-4 right-4 z-20 flex flex-wrap items-center gap-1.5 bg-black/75 backdrop-blur-md p-1.5 rounded-xl border border-white/20 shadow-xl">
                   <button
                     type="button"
                     onClick={() => setEditingSlide(currentSlide)}
-                    className="p-1.5 rounded-md bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                    className="p-1.5 rounded-md bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#101D35] text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
                     title="Edit Slide Details"
                   >
                     <Edit className="w-3.5 h-3.5" />
@@ -561,7 +903,7 @@ export default function HomeClient({
                       setImageUploadSlideModal(currentSlide);
                       setUploadPreview(currentSlide.image);
                     }}
-                    className="p-1.5 rounded-md bg-blue-600 text-white hover:bg-blue-700 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                    className="p-1.5 rounded-md bg-[#174EA6] text-white hover:bg-blue-700 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
                     title="Upload / Replace Image"
                   >
                     <Upload className="w-3.5 h-3.5" />
@@ -582,7 +924,6 @@ export default function HomeClient({
                     <span className="hidden sm:inline">{currentSlide.isActive ? "Active" : "Disabled"}</span>
                   </button>
 
-                  {/* Reorder Buttons */}
                   <button
                     type="button"
                     disabled={currentIndex === 0}
@@ -603,7 +944,6 @@ export default function HomeClient({
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
 
-                  {/* Delete Slide */}
                   <button
                     type="button"
                     onClick={() => setDeleteSlideModal({ id: currentSlide.id, title: currentSlide.title })}
@@ -616,36 +956,36 @@ export default function HomeClient({
               )}
             </div>
 
-            {/* Bottom Caption Overlay Bar */}
+            {/* Bottom Caption Bar */}
             <div className="p-5 sm:p-6 border-t border-gray-100 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-1">
                 <Link
                   href={currentSlide.buttonUrl || "/shop"}
-                  className="font-josefin text-[20px] sm:text-[24px] font-normal text-[#0B2852] hover:text-[#39FF00] hover:underline transition-colors block leading-tight"
+                  className="font-josefin text-xl sm:text-2xl font-bold text-[#101D35] hover:text-[#174EA6] transition-colors block leading-tight"
                 >
                   {currentSlide.title}
                 </Link>
                 {currentSlide.description && (
-                  <p className="font-josefin text-[13px] sm:text-[14px] text-gray-500">
+                  <p className="font-josefin text-xs sm:text-sm text-slate-500">
                     {currentSlide.description}
                   </p>
                 )}
                 {currentSlide.subtitle && (
-                  <p className="font-josefin text-[12px] sm:text-[13px] font-semibold text-[#FF6B00]">
+                  <p className="font-josefin text-xs sm:text-sm font-semibold text-[#FF6B00]">
                     {currentSlide.subtitle}
                   </p>
                 )}
               </div>
 
-              {/* Actions: View in Shop & Pagination */}
               <div className="flex items-center gap-3 sm:flex-col sm:items-end flex-shrink-0">
                 <Link
                   href={currentSlide.buttonUrl || "/shop"}
-                  className="bg-[#0B2852] hover:bg-[#39FF00] hover:text-[#101C32] text-white text-xs sm:text-sm font-semibold px-5 py-2.5 rounded-full shadow transition-all duration-200"
+                  className="bg-[#101D35] hover:bg-[#174EA6] text-white text-xs sm:text-sm font-semibold px-5 py-2.5 rounded-xl shadow transition-all duration-200 flex items-center gap-1.5"
                 >
-                  {currentSlide.buttonText || "View Product Details"}
+                  <span>{currentSlide.buttonText || "View Product Details"}</span>
+                  <ArrowRight className="w-4 h-4 text-[#00B8D9]" />
                 </Link>
-                <span className="font-josefin text-[14px] font-bold text-gray-400">
+                <span className="font-josefin text-xs font-bold text-slate-400">
                   {currentIndex + 1} of {visibleSlides.length}
                 </span>
               </div>
@@ -653,54 +993,82 @@ export default function HomeClient({
           </div>
         ) : (
           <div className="text-center py-16 border-2 border-dashed border-gray-300 rounded-2xl bg-gray-50 p-8">
-            <p className="text-lg font-semibold text-gray-600 mb-4">No slides currently available.</p>
+            <p className="text-base font-semibold text-gray-600 mb-4">No slides currently available.</p>
             {currentUser && (
               <button
                 type="button"
                 onClick={() => setShowAddSlideModal(true)}
-                className="px-6 py-2.5 rounded-full bg-[#0B2852] text-white font-bold text-sm hover:bg-[#39FF00] hover:text-[#101C32]"
+                className="px-6 py-2.5 rounded-xl bg-[#101D35] text-white font-bold text-sm hover:bg-[#00B8D9] hover:text-[#101D35]"
               >
                 + Add Your First Slide
               </button>
             )}
           </div>
         )}
-
-        {/* =========================================================================
-            WHATSAPP CONTACT SHORTCUT
-            ========================================================================= */}
-        <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-3 p-6 bg-[#F5F6F8] rounded-2xl border border-gray-200">
-          <span className="font-josefin font-bold text-[18px] sm:text-[22px] leading-tight text-[#0B2852]">
-            Contact Varun Ganesh for details
-          </span>
-          <a
-            href="https://wa.me/917738980989"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Contact Varun Ganesh on WhatsApp"
-            className="hover:scale-110 transition-transform flex items-center gap-2 bg-[#25D366] text-white px-5 py-2 rounded-full shadow font-semibold text-sm"
-          >
-            <img
-              src="/assets/icons/whatsapp.png"
-              alt="WhatsApp"
-              className="w-5 h-5 object-contain"
-            />
-            <span>Chat on WhatsApp</span>
-          </a>
-        </div>
-      </div>
+      </section>
 
       {/* =========================================================================
-          MODAL 1: ADD NEW SLIDE
+          7. TRAIN BOARDS & ROUTE TEASER SECTION
+          ========================================================================= */}
+      <section className="bg-[#101D35] text-white py-16 border-t border-[#174EA6]/30">
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div className="space-y-5">
+              <span className="text-xs font-bold text-[#00B8D9] uppercase tracking-wider bg-white/10 px-3 py-1 rounded-full border border-white/10">
+                Simulation Accessories
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
+                Authentic Indian Railways <br />
+                <span className="text-[#00B8D9]">Train Boards</span>
+              </h2>
+              <p className="text-sm text-slate-300 leading-relaxed">
+                Elevate your Open Rails and MSTS consists with high-resolution, zone-authentic destination boards for Western Railway (WR), Central Railway (CR), and East Coast Railway (ECoR). Features accurate Hindi/English typography, coach numbers, and bilingual destination plates.
+              </p>
+              <div className="pt-2">
+                <Link
+                  href="/trainboards"
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#174EA6] to-[#00B8D9] hover:from-[#101D35] hover:to-[#174EA6] text-white text-sm font-bold inline-flex items-center gap-2 shadow-lg transition-all"
+                >
+                  <span>Browse Train Boards Catalog</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+
+            <div className="bg-[#0B1527] p-6 rounded-2xl border border-white/10 shadow-xl space-y-4">
+              <div className="text-xs text-[#00B8D9] font-bold uppercase tracking-wider">
+                Popular Train Board Packs Available:
+              </div>
+              <ul className="space-y-3 text-xs sm:text-sm text-slate-300">
+                <li className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+                  <span>12010 Ahmedabad – Mumbai Central Shatabdi Express</span>
+                  <span className="text-[#00B8D9] font-bold">WR</span>
+                </li>
+                <li className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+                  <span>22221 CSMT – Hazrat Nizamuddin Rajdhani Express</span>
+                  <span className="text-[#00B8D9] font-bold">CR</span>
+                </li>
+                <li className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+                  <span>22823 Bhubaneswar – New Delhi Tejas Rajdhani</span>
+                  <span className="text-[#00B8D9] font-bold">ECoR</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          ADMIN MODALS (1: ADD, 2: EDIT, 3: RENAME, 4: UPLOAD, 5: DELETE)
           ========================================================================= */}
       {showAddSlideModal && (
         <SlideEditModal
           title="Add New Home Page Slide"
           initialValues={{
             title: "",
-            subtitle: "(Coming Soon) Please Sign Up to purchase and download these addons!!!!!",
+            subtitle: "TB PRO Indian Railways LHB Coaching Stock",
             description: "High-precision Indian Railway rolling stock model built for Open Rails and MSTS.",
-            image: "/assets/products/chaircar_standard.png",
+            image: "/assets/tbpro/lhb_chaircar.png",
             buttonText: "View Product Details",
             buttonUrl: "/shop",
             order: slides.length + 1,
@@ -714,9 +1082,6 @@ export default function HomeClient({
         />
       )}
 
-      {/* =========================================================================
-          MODAL 2: EDIT EXISTING SLIDE
-          ========================================================================= */}
       {editingSlide && (
         <SlideEditModal
           title={`Edit Slide: ${editingSlide.title}`}
@@ -729,13 +1094,10 @@ export default function HomeClient({
         />
       )}
 
-      {/* =========================================================================
-          MODAL 3: QUICK RENAME SLIDE
-          ========================================================================= */}
       {renameSlideModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200">
-            <h3 className="font-josefin text-xl font-bold text-[#0B2852] mb-3">Rename Slide Title</h3>
+            <h3 className="font-josefin text-xl font-bold text-[#101D35] mb-3">Rename Slide Title</h3>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -752,20 +1114,20 @@ export default function HomeClient({
                   name="title"
                   defaultValue={renameSlideModal.title}
                   required
-                  className="w-full px-3 py-2 border rounded-lg text-sm text-[#101C32] focus:ring-2 focus:ring-[#0B2852]"
+                  className="w-full px-3 py-2 border rounded-lg text-sm text-[#172033] focus:ring-2 focus:ring-[#174EA6]"
                 />
               </div>
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setRenameSlideModal(null)}
-                  className="px-4 py-2 rounded-full border text-xs font-semibold text-gray-700 hover:bg-gray-100"
+                  className="px-4 py-2 rounded-xl border text-xs font-semibold text-gray-700 hover:bg-gray-100"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-full bg-[#0B2852] text-white text-xs font-bold hover:bg-[#39FF00] hover:text-[#101C32]"
+                  className="px-5 py-2 rounded-xl bg-[#101D35] text-white text-xs font-bold hover:bg-[#174EA6]"
                 >
                   Save Rename
                 </button>
@@ -775,14 +1137,11 @@ export default function HomeClient({
         </div>
       )}
 
-      {/* =========================================================================
-          MODAL 4: UPLOAD / REPLACE IMAGE
-          ========================================================================= */}
       {imageUploadSlideModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-200 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b">
-              <h3 className="font-josefin text-xl font-bold text-[#0B2852]">Upload or Replace Image</h3>
+              <h3 className="font-josefin text-xl font-bold text-[#101D35]">Upload or Replace Image</h3>
               <button
                 type="button"
                 onClick={() => setImageUploadSlideModal(null)}
@@ -792,7 +1151,6 @@ export default function HomeClient({
               </button>
             </div>
 
-            {/* Live Preview */}
             <div className="aspect-[16/9] w-full bg-gray-100 rounded-xl overflow-hidden border flex items-center justify-center p-4">
               <img
                 src={uploadPreview || imageUploadSlideModal.image}
@@ -801,7 +1159,6 @@ export default function HomeClient({
               />
             </div>
 
-            {/* File Upload from Disk */}
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Upload from Local Computer (JPG, PNG, WEBP, AVIF)
@@ -818,11 +1175,10 @@ export default function HomeClient({
                     });
                   }
                 }}
-                className="w-full text-xs text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#0B2852] file:text-white hover:file:bg-[#39FF00] hover:file:text-[#101C32] cursor-pointer"
+                className="w-full text-xs text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#101D35] file:text-white hover:file:bg-[#174EA6] cursor-pointer"
               />
             </div>
 
-            {/* Image URL Direct Input */}
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">Or Image URL</label>
               <input
@@ -830,7 +1186,7 @@ export default function HomeClient({
                 value={uploadPreview}
                 onChange={(e) => setUploadPreview(e.target.value)}
                 placeholder="/assets/products/coach.png or https://..."
-                className="w-full px-3 py-2 border rounded-lg text-xs font-mono text-[#101C32]"
+                className="w-full px-3 py-2 border rounded-lg text-xs font-mono text-[#172033]"
               />
             </div>
 
@@ -838,7 +1194,7 @@ export default function HomeClient({
               <button
                 type="button"
                 onClick={() => setImageUploadSlideModal(null)}
-                className="px-4 py-2 rounded-full border text-xs font-semibold text-gray-700 hover:bg-gray-100"
+                className="px-4 py-2 rounded-xl border text-xs font-semibold text-gray-700 hover:bg-gray-100"
               >
                 Cancel
               </button>
@@ -852,7 +1208,7 @@ export default function HomeClient({
                     false
                   );
                 }}
-                className="px-5 py-2 rounded-full bg-[#0B2852] text-white text-xs font-bold hover:bg-[#39FF00] hover:text-[#101C32] disabled:opacity-50"
+                className="px-5 py-2 rounded-xl bg-[#101D35] text-white text-xs font-bold hover:bg-[#174EA6] disabled:opacity-50"
               >
                 {isUploading ? "Uploading..." : "Save Image"}
               </button>
@@ -861,9 +1217,6 @@ export default function HomeClient({
         </div>
       )}
 
-      {/* =========================================================================
-          MODAL 5: DELETE CONFIRMATION MODAL
-          ========================================================================= */}
       {deleteSlideModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-200 text-center space-y-4">
@@ -873,21 +1226,21 @@ export default function HomeClient({
             <div>
               <h3 className="font-josefin text-lg font-bold text-gray-900">Delete Slide Permanently?</h3>
               <p className="text-xs text-gray-500 mt-1">
-                Are you sure you want to delete <strong>"{deleteSlideModal.title}"</strong>? This will remove it from the Home page immediately.
+                Are you sure you want to delete <strong>"{deleteSlideModal.title}"</strong>?
               </p>
             </div>
             <div className="flex items-center justify-center gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setDeleteSlideModal(null)}
-                className="px-5 py-2 rounded-full border text-xs font-semibold text-gray-700 hover:bg-gray-100"
+                className="px-5 py-2 rounded-xl border text-xs font-semibold text-gray-700 hover:bg-gray-100"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleDeleteSlide}
-                className="px-5 py-2 rounded-full bg-rose-600 text-white text-xs font-bold hover:bg-rose-700"
+                className="px-5 py-2 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700"
               >
                 Confirm Delete
               </button>
@@ -895,11 +1248,20 @@ export default function HomeClient({
           </div>
         </div>
       )}
+
+      {/* Quick View Modal */}
+      {quickViewProduct && (
+        <QuickViewModal
+          product={quickViewProduct}
+          isOpen={Boolean(quickViewProduct)}
+          onClose={() => setQuickViewProduct(null)}
+        />
+      )}
     </div>
   );
 }
 
-// Subcomponent: Slide Edit / Create Modal with Image Upload & Live Preview
+// Subcomponent: Slide Edit / Create Modal
 function SlideEditModal({
   title,
   initialValues,
@@ -922,7 +1284,7 @@ function SlideEditModal({
     title: initialValues.title || "",
     subtitle: initialValues.subtitle || "",
     description: initialValues.description || "",
-    image: initialValues.image || "/assets/products/chaircar_standard.png",
+    image: initialValues.image || "/assets/tbpro/lhb_chaircar.png",
     buttonText: initialValues.buttonText || "View Product Details",
     buttonUrl: initialValues.buttonUrl || "/shop",
     order: initialValues.order || 1,
@@ -930,25 +1292,21 @@ function SlideEditModal({
   });
 
   const presetImages = [
-    { name: "Academy Sleeper", url: "/assets/products/vg_academy_sleeper.avif" },
-    { name: "Humsafar V2", url: "/assets/products/humsafar_v2.avif" },
-    { name: "Sleeper V2", url: "/assets/products/sleeper_v2.avif" },
-    { name: "Chair Car", url: "/assets/products/chaircar_standard.png" },
-    { name: "Vistadome", url: "/assets/products/vistadome_standard.png" },
-    { name: "Amrit Bharat", url: "/assets/products/amrit_bharat.png" },
-    { name: "Bangladesh", url: "/assets/products/bangladesh_coaches.png" },
-    { name: "PNB Livery", url: "/assets/products/pnb_livery.png" },
-    { name: "Tricolour", url: "/assets/products/indian_tricolour.avif" },
-    { name: "Vistadome Livery", url: "/assets/products/vistadome_livery.png" },
-    { name: "WHR Route V2", url: "/assets/products/whr_route_v2.png" },
-    { name: "Maitree Pack", url: "/assets/projects/05_vg_lhb_bangladesh.png" },
+    { name: "LHB Train (Hero)", url: "/assets/tbpro/hero_lhb_train.jpg" },
+    { name: "WAP-7 Loco", url: "/assets/tbpro/wap7_locomotive.jpg" },
+    { name: "LHB AC 1st", url: "/assets/tbpro/lhb_ac_first.jpg" },
+    { name: "LHB Sleeper", url: "/assets/tbpro/lhb_sleeper.png" },
+    { name: "LHB Chair Car", url: "/assets/tbpro/lhb_chaircar.png" },
+    { name: "LHB Vistadome", url: "/assets/tbpro/lhb_vistadome.png" },
+    { name: "Amrit Bharat", url: "/assets/tbpro/lhb_amrit_bharat.png" },
+    { name: "Bangladesh Maitree", url: "/assets/tbpro/lhb_bangladesh.png" },
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto font-josefin">
       <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-gray-200 my-8">
         <div className="flex items-center justify-between pb-3 border-b mb-4">
-          <h3 className="font-josefin text-xl font-bold text-[#0B2852]">{title}</h3>
+          <h3 className="font-josefin text-xl font-bold text-[#101D35]">{title}</h3>
           <button
             type="button"
             onClick={onClose}
@@ -965,7 +1323,6 @@ function SlideEditModal({
           }}
           className="space-y-4 font-josefin text-xs sm:text-sm"
         >
-          {/* Title */}
           <div>
             <label className="block font-semibold text-gray-700 mb-1">
               Slide Title / Heading <span className="text-red-500">*</span>
@@ -975,40 +1332,37 @@ function SlideEditModal({
               required
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="e.g. VG LHB ACADEMY LIVERY SLEEPER COACHES"
-              className="w-full px-3 py-2 border rounded-lg text-[#101C32]"
+              placeholder="e.g. TB PRO LHB SLEEPER COACHES"
+              className="w-full px-3 py-2 border rounded-lg text-[#172033]"
             />
           </div>
 
-          {/* Subtitle */}
           <div>
             <label className="block font-semibold text-gray-700 mb-1">
-              Subtitle (Orange Highlight Text)
+              Subtitle (Highlight Text)
             </label>
             <input
               type="text"
               value={formData.subtitle}
               onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-              placeholder="(Coming Soon) Please Sign Up to purchase and download these addons!!!!!"
-              className="w-full px-3 py-2 border rounded-lg text-[#101C32]"
+              placeholder="TB PRO Indian Railways Simulation Stock"
+              className="w-full px-3 py-2 border rounded-lg text-[#172033]"
             />
           </div>
 
-          {/* Description */}
           <div>
             <label className="block font-semibold text-gray-700 mb-1">Description</label>
             <textarea
               rows={2}
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Hyper-realistic LHB Sleeper coach with custom Academy livery..."
-              className="w-full px-3 py-2 border rounded-lg text-[#101C32]"
+              placeholder="Hyper-realistic LHB coach model crafted for Open Rails and MSTS..."
+              className="w-full px-3 py-2 border rounded-lg text-[#172033]"
             />
           </div>
 
-          {/* Image Upload & Live Preview */}
           <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
-            <label className="block font-semibold text-gray-700">Slide Image & Upload</label>
+            <label className="block font-semibold text-gray-700">Slide Image &amp; Upload</label>
             <div className="flex flex-col sm:flex-row gap-4 items-center">
               <div className="aspect-[16/9] w-36 bg-white rounded-lg border overflow-hidden flex items-center justify-center p-2 flex-shrink-0">
                 <img
@@ -1027,7 +1381,7 @@ function SlideEditModal({
                       onUpload(file, (url) => setFormData({ ...formData, image: url }));
                     }
                   }}
-                  className="w-full text-xs text-gray-600 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#0B2852] file:text-white hover:file:bg-[#39FF00] hover:file:text-[#101C32] cursor-pointer"
+                  className="w-full text-xs text-gray-600 file:mr-2 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#101D35] file:text-white hover:file:bg-[#174EA6] cursor-pointer"
                 />
                 <input
                   type="text"
@@ -1039,9 +1393,8 @@ function SlideEditModal({
               </div>
             </div>
 
-            {/* Quick Presets */}
             <div>
-              <span className="text-[11px] text-gray-500 block mb-1">Or choose an official preset:</span>
+              <span className="text-[11px] text-gray-500 block mb-1">Or choose a TB PRO preset:</span>
               <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto">
                 {presetImages.map((p) => (
                   <button
@@ -1050,7 +1403,7 @@ function SlideEditModal({
                     onClick={() => setFormData({ ...formData, image: p.url })}
                     className={`text-[10px] px-2 py-0.5 rounded border transition-colors ${
                       formData.image === p.url
-                        ? "bg-[#0B2852] text-white border-[#0B2852]"
+                        ? "bg-[#101D35] text-white border-[#101D35]"
                         : "bg-white text-gray-700 hover:bg-gray-100"
                     }`}
                   >
@@ -1061,7 +1414,6 @@ function SlideEditModal({
             </div>
           </div>
 
-          {/* Button Text & URL */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block font-semibold text-gray-700 mb-1">Button Text</label>
@@ -1070,7 +1422,7 @@ function SlideEditModal({
                 value={formData.buttonText}
                 onChange={(e) => setFormData({ ...formData, buttonText: e.target.value })}
                 placeholder="View Product Details"
-                className="w-full px-3 py-2 border rounded-lg text-[#101C32]"
+                className="w-full px-3 py-2 border rounded-lg text-[#172033]"
               />
             </div>
             <div>
@@ -1080,12 +1432,11 @@ function SlideEditModal({
                 value={formData.buttonUrl}
                 onChange={(e) => setFormData({ ...formData, buttonUrl: e.target.value })}
                 placeholder="/shop/product-slug"
-                className="w-full px-3 py-2 border rounded-lg text-[#101C32]"
+                className="w-full px-3 py-2 border rounded-lg text-[#172033]"
               />
             </div>
           </div>
 
-          {/* Display Order & Active Status */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             <div>
               <label className="block font-semibold text-gray-700 mb-1">Display Order Index</label>
@@ -1093,7 +1444,7 @@ function SlideEditModal({
                 type="number"
                 value={formData.order}
                 onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value, 10) || 0 })}
-                className="w-full px-3 py-2 border rounded-lg text-[#101C32]"
+                className="w-full px-3 py-2 border rounded-lg text-[#172033]"
               />
             </div>
             <div className="flex items-center gap-2 pt-6">
@@ -1102,27 +1453,26 @@ function SlideEditModal({
                 id="isActiveCheck"
                 checked={formData.isActive}
                 onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                className="w-4 h-4 text-[#0B2852] rounded focus:ring-[#0B2852]"
+                className="w-4 h-4 text-[#101D35] rounded focus:ring-[#101D35]"
               />
               <label htmlFor="isActiveCheck" className="font-semibold text-gray-700 cursor-pointer">
-                Active & Published on Home Slider
+                Active &amp; Published on Home Slider
               </label>
             </div>
           </div>
 
-          {/* Footer Actions */}
           <div className="flex justify-end gap-2 pt-4 border-t">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2 rounded-full border text-xs font-semibold text-gray-700 hover:bg-gray-100"
+              className="px-5 py-2 rounded-xl border text-xs font-semibold text-gray-700 hover:bg-gray-100"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isUploading}
-              className="px-6 py-2 rounded-full bg-[#0B2852] text-white text-xs font-bold hover:bg-[#39FF00] hover:text-[#101C32] shadow-md transition-all disabled:opacity-50"
+              className="px-6 py-2 rounded-xl bg-[#101D35] text-white text-xs font-bold hover:bg-[#174EA6] shadow-md transition-all disabled:opacity-50"
             >
               {isUploading ? "Uploading..." : isNew ? "Create Slide" : "Save Changes"}
             </button>

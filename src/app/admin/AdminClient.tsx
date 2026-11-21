@@ -564,20 +564,20 @@ export default function AdminClient({
   const isSuperAdmin = currentAdmin.role === "SUPER_ADMIN";
 
   return (
-    <div className="min-h-screen bg-[#F5F6F8] text-[#101C32] font-josefin flex flex-col">
+    <div className="min-h-screen bg-[#F5F6F8] text-[#172033] font-josefin flex flex-col">
       {/* Toast Notification */}
       {toastMsg && (
         <div
           className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl shadow-2xl text-xs font-semibold flex items-center gap-2 border transition-all ${
             toastMsg.isError
               ? "bg-rose-900 text-white border-rose-700"
-              : "bg-[#0B2852] text-white border-[#39FF00]"
+              : "bg-[#101D35] text-white border-[#00B8D9]"
           }`}
         >
           {toastMsg.isError ? (
             <AlertCircle className="w-4 h-4 text-rose-300" />
           ) : (
-            <CheckCircle2 className="w-4 h-4 text-[#39FF00]" />
+            <CheckCircle2 className="w-4 h-4 text-[#00B8D9]" />
           )}
           <span>{toastMsg.text}</span>
         </div>
@@ -591,7 +591,7 @@ export default function AdminClient({
               <AlertTriangle className="w-6 h-6" />
             </div>
             <div className="text-center space-y-2">
-              <h3 className="text-lg font-bold text-[#0B2852]">Confirm Permanent Deletion</h3>
+              <h3 className="text-lg font-bold text-[#101D35]">Confirm Permanent Deletion</h3>
               <p className="text-xs text-gray-500 leading-relaxed">
                 Are you sure you want to permanently delete <strong>&quot;{deleteModal.name}&quot;</strong>?
                 This action cannot be undone and will immediately remove the item from the live website.
@@ -622,7 +622,7 @@ export default function AdminClient({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200 space-y-4">
             <div className="flex items-center justify-between border-b pb-3">
-              <h3 className="text-base font-bold text-[#0B2852]">Change User Role</h3>
+              <h3 className="text-base font-bold text-[#101D35]">Change User Role</h3>
               <button onClick={() => setRoleChangeUser(null)} className="text-gray-400 hover:text-gray-600">
                 <X className="w-5 h-5" />
               </button>
@@ -636,7 +636,7 @@ export default function AdminClient({
                   key={r}
                   className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
                     selectedNewRole === r
-                      ? "border-[#0B2852] bg-blue-50/50 shadow-sm"
+                      ? "border-[#174EA6] bg-blue-50/50 shadow-sm"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
@@ -647,10 +647,10 @@ export default function AdminClient({
                       value={r}
                       checked={selectedNewRole === r}
                       onChange={(e) => setSelectedNewRole(e.target.value)}
-                      className="text-[#0B2852]"
+                      className="text-[#101D35]"
                     />
                     <div>
-                      <span className="text-xs font-bold text-[#0B2852] block">
+                      <span className="text-xs font-bold text-[#101D35] block">
                         {r === "SUPER_ADMIN"
                           ? "Super Administrator"
                           : r === "ADMIN"
@@ -680,7 +680,7 @@ export default function AdminClient({
               <button
                 type="button"
                 onClick={() => handleAssignUserRole(roleChangeUser.id, selectedNewRole)}
-                className="flex-1 py-2.5 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] text-xs font-bold transition-all"
+                className="flex-1 py-2.5 rounded-full bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] text-xs font-bold transition-all"
               >
                 Save Role
               </button>
@@ -695,11 +695,11 @@ export default function AdminClient({
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-200 space-y-4 font-josefin text-xs">
             <div className="flex items-center justify-between border-b border-gray-200 pb-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-100 text-[#0B2852] flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-blue-100 text-[#101D35] flex items-center justify-center">
                   <Eye className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-[#0B2852]">User Account Details</h3>
+                  <h3 className="text-base font-bold text-[#101D35]">User Account Details</h3>
                   <p className="text-[11px] text-gray-500 font-mono">ID: {viewDetailsUser.id}</p>
                 </div>
               </div>
@@ -755,7 +755,7 @@ export default function AdminClient({
               </div>
               <div>
                 <span className="text-[10px] uppercase font-bold text-gray-500 block">Assigned Role</span>
-                <span className="font-bold text-[#0B2852]">{viewDetailsUser.role}</span>
+                <span className="font-bold text-[#101D35]">{viewDetailsUser.role}</span>
               </div>
             </div>
 
@@ -815,7 +815,7 @@ export default function AdminClient({
                 <div className="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center">
                   <UserX className="w-4 h-4" />
                 </div>
-                <h3 className="text-base font-bold text-[#0B2852]">Reject Account Application</h3>
+                <h3 className="text-base font-bold text-[#101D35]">Reject Account Application</h3>
               </div>
               <button
                 type="button"
@@ -828,7 +828,7 @@ export default function AdminClient({
 
             <p className="text-gray-600">
               You are about to reject the registration application for:
-              <strong className="block text-[#0B2852] mt-1 text-sm">{rejectionModalUser.name} ({rejectionModalUser.email})</strong>
+              <strong className="block text-[#101D35] mt-1 text-sm">{rejectionModalUser.name} ({rejectionModalUser.email})</strong>
             </p>
 
             <div>
@@ -840,7 +840,7 @@ export default function AdminClient({
                 value={rejectionReasonText}
                 onChange={(e) => setRejectionReasonText(e.target.value)}
                 placeholder="e.g. Incomplete registration details or invalid credentials."
-                className="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0B2852]"
+                className="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#174EA6]"
               />
             </div>
 
@@ -868,7 +868,7 @@ export default function AdminClient({
       )}
 
       {/* Top Bar */}
-      <header className="bg-[#0B2852] text-white border-b border-[#0B2852]/80 sticky top-0 z-30 shadow-md">
+      <header className="bg-[#101D35] text-white border-b border-[#174EA6]/80 sticky top-0 z-30 shadow-md">
         <div className="px-4 sm:px-8 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
@@ -879,11 +879,11 @@ export default function AdminClient({
               <Menu className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2">
-              <Train className="w-6 h-6 text-[#39FF00]" />
+              <Train className="w-6 h-6 text-[#00B8D9]" />
               <span className="font-bold text-base sm:text-lg tracking-wide uppercase">
-                VG Control Center
+                TB PRO Control Center
               </span>
-              <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full bg-[#39FF00]/20 text-[#39FF00] border border-[#39FF00]/40 text-[10px] font-bold uppercase tracking-wider">
+              <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full bg-[#00B8D9]/20 text-[#00B8D9] border border-[#00B8D9]/40 text-[10px] font-bold uppercase tracking-wider">
                 {isSuperAdmin ? "Super Admin" : "Admin"}
               </span>
             </div>
@@ -899,7 +899,7 @@ export default function AdminClient({
               Public Website
             </Link>
             <div className="flex items-center gap-2 pl-2 border-l border-white/20">
-              <div className="w-7 h-7 rounded-full bg-[#39FF00] text-[#0B2852] font-bold flex items-center justify-center text-xs">
+              <div className="w-7 h-7 rounded-full bg-[#00B8D9] text-[#101D35] font-bold flex items-center justify-center text-xs">
                 {currentAdmin.name ? currentAdmin.name[0].toUpperCase() : "A"}
               </div>
               <span className="hidden md:inline font-semibold">{currentAdmin.name}</span>
@@ -919,7 +919,7 @@ export default function AdminClient({
       <div className="flex-1 flex max-w-full overflow-hidden">
         {/* Sidebar */}
         <aside
-          className={`fixed inset-y-0 left-0 z-40 w-64 bg-[#0B2852] text-white flex flex-col transition-transform duration-300 lg:static lg:translate-x-0 ${
+          className={`fixed inset-y-0 left-0 z-40 w-64 bg-[#101D35] text-white flex flex-col transition-transform duration-300 lg:static lg:translate-x-0 ${
             isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -959,19 +959,19 @@ export default function AdminClient({
                   }}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                     isActive
-                      ? "bg-[#39FF00] text-[#101C32] font-bold shadow-md"
+                      ? "bg-[#00B8D9] text-[#172033] font-bold shadow-md"
                       : "text-gray-300 hover:text-white hover:bg-white/10"
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <Icon className={`w-4 h-4 ${isActive ? "text-[#101C32]" : "text-gray-400"}`} />
+                    <Icon className={`w-4 h-4 ${isActive ? "text-[#172033]" : "text-gray-400"}`} />
                     <span>{item.label}</span>
                   </div>
                   {item.badge !== undefined && (
                     <span
                       className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                         isActive
-                          ? "bg-[#0B2852] text-[#39FF00]"
+                          ? "bg-[#101D35] text-[#00B8D9]"
                           : "bg-white/10 text-gray-300"
                       }`}
                     >
@@ -1000,7 +1000,7 @@ export default function AdminClient({
           {activeTab === "dashboard" && (
             <div className="space-y-8 max-w-6xl">
               <div>
-                <h2 className="text-2xl font-light text-[#0B2852]">Dashboard Overview</h2>
+                <h2 className="text-2xl font-light text-[#101D35]">Dashboard Overview</h2>
                 <p className="text-xs text-gray-500 mt-0.5">
                   Real-time website inventory, products, and administrative audit operations.
                 </p>
@@ -1011,27 +1011,27 @@ export default function AdminClient({
                 <div className="p-3.5 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
                   <div className="flex items-center justify-between text-gray-400">
                     <span className="text-[10px] font-bold uppercase tracking-wider">Total Products</span>
-                    <Package className="w-3.5 h-3.5 text-[#0B2852]" />
+                    <Package className="w-3.5 h-3.5 text-[#101D35]" />
                   </div>
-                  <p className="text-xl font-bold text-[#0B2852]">{totalProductsCount}</p>
+                  <p className="text-xl font-bold text-[#101D35]">{totalProductsCount}</p>
                   <span className="text-[9px] text-gray-500">Catalog Items</span>
                 </div>
 
                 <div className="p-3.5 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
                   <div className="flex items-center justify-between text-gray-400">
                     <span className="text-[10px] font-bold uppercase tracking-wider">Total Coaches</span>
-                    <Train className="w-3.5 h-3.5 text-[#0B2852]" />
+                    <Train className="w-3.5 h-3.5 text-[#101D35]" />
                   </div>
-                  <p className="text-xl font-bold text-[#0B2852]">{totalCoachesCount}</p>
-                  <span className="text-[9px] text-gray-500">Official VG Fleet</span>
+                  <p className="text-xl font-bold text-[#101D35]">{totalCoachesCount}</p>
+                  <span className="text-[9px] text-gray-500">Official TB PRO Fleet</span>
                 </div>
 
                 <div className="p-3.5 bg-white border border-gray-200 rounded-xl shadow-xs space-y-1">
                   <div className="flex items-center justify-between text-gray-400">
                     <span className="text-[10px] font-bold uppercase tracking-wider">Total T-Boards</span>
-                    <Layers className="w-3.5 h-3.5 text-[#0B2852]" />
+                    <Layers className="w-3.5 h-3.5 text-[#101D35]" />
                   </div>
-                  <p className="text-xl font-bold text-[#0B2852]">{totalTrainboardsCount}</p>
+                  <p className="text-xl font-bold text-[#101D35]">{totalTrainboardsCount}</p>
                   <span className="text-[9px] text-gray-500">Trainboard Packs</span>
                 </div>
 
@@ -1088,7 +1088,7 @@ export default function AdminClient({
                     setEditingProduct(null);
                     setIsAddProductOpen(true);
                   }}
-                  className="px-4 py-2 bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] rounded-full text-xs font-bold flex items-center gap-2 transition-all shadow-sm"
+                  className="px-4 py-2 bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] rounded-full text-xs font-bold flex items-center gap-2 transition-all shadow-sm"
                 >
                   <Plus className="w-4 h-4" />
                   Add New Coach / Product
@@ -1098,7 +1098,7 @@ export default function AdminClient({
                     setEditingTrainboard(null);
                     setIsAddTrainboardOpen(true);
                   }}
-                  className="px-4 py-2 bg-white border border-gray-300 text-gray-800 hover:border-[#0B2852] rounded-full text-xs font-bold flex items-center gap-2 transition-all"
+                  className="px-4 py-2 bg-white border border-gray-300 text-gray-800 hover:border-[#174EA6] rounded-full text-xs font-bold flex items-center gap-2 transition-all"
                 >
                   <Plus className="w-4 h-4" />
                   Add Trainboard
@@ -1108,7 +1108,7 @@ export default function AdminClient({
                     setEditingOffer(null);
                     setIsAddOfferOpen(true);
                   }}
-                  className="px-4 py-2 bg-white border border-gray-300 text-gray-800 hover:border-[#0B2852] rounded-full text-xs font-bold flex items-center gap-2 transition-all"
+                  className="px-4 py-2 bg-white border border-gray-300 text-gray-800 hover:border-[#174EA6] rounded-full text-xs font-bold flex items-center gap-2 transition-all"
                 >
                   <Plus className="w-4 h-4" />
                   Create Promotional Offer
@@ -1119,7 +1119,7 @@ export default function AdminClient({
               <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-base font-bold text-[#0B2852]">Recent Admin Activities</h3>
+                    <h3 className="text-base font-bold text-[#101D35]">Recent Admin Activities</h3>
                     <p className="text-xs text-gray-500">Live immutable audit log of administrative actions</p>
                   </div>
                   <span className="text-xs text-gray-400 font-semibold">{auditLogs.length} Records</span>
@@ -1142,7 +1142,7 @@ export default function AdminClient({
                             {formatDate(log.createdAt)}
                           </td>
                           <td className="py-2.5 px-3">
-                            <span className="px-2 py-0.5 rounded bg-blue-50 text-[#0B2852] font-bold text-[10px] border border-blue-200">
+                            <span className="px-2 py-0.5 rounded bg-blue-50 text-[#101D35] font-bold text-[10px] border border-blue-200">
                               {log.action}
                             </span>
                           </td>
@@ -1171,7 +1171,7 @@ export default function AdminClient({
             <div className="space-y-6 max-w-6xl">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200 pb-4">
                 <div>
-                  <h2 className="text-2xl font-light text-[#0B2852]">Home Page Slider Management</h2>
+                  <h2 className="text-2xl font-light text-[#101D35]">Home Page Slider Management</h2>
                   <p className="text-xs text-gray-500 mt-0.5">
                     Add, edit, rename, upload images, reorder, and configure automatic slide transitions on the public Home page.
                   </p>
@@ -1182,7 +1182,7 @@ export default function AdminClient({
                       setEditingSlide(null);
                       setIsAddSlideOpen(true);
                     }}
-                    className="px-4 py-2 bg-[#0B2852] hover:bg-[#39FF00] hover:text-[#101C32] text-white rounded-full text-xs font-bold flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
+                    className="px-4 py-2 bg-[#101D35] hover:bg-[#00B8D9] hover:text-[#172033] text-white rounded-full text-xs font-bold flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
                   >
                     <Plus className="w-4 h-4" />
                     + Add New Slide
@@ -1190,7 +1190,7 @@ export default function AdminClient({
                   <Link
                     href="/"
                     target="_blank"
-                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-[#0B2852] rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all"
+                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-[#101D35] rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     View Live Home Page
@@ -1201,8 +1201,8 @@ export default function AdminClient({
               {/* Slider Settings Bar */}
               <div className="p-4 bg-white border border-gray-200 rounded-2xl flex flex-wrap items-center justify-between gap-4 shadow-xs">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-blue-50 text-[#0B2852] flex items-center justify-center">
-                    <Clock className="w-4 h-4 text-[#0B2852]" />
+                  <div className="w-9 h-9 rounded-full bg-blue-50 text-[#101D35] flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-[#101D35]" />
                   </div>
                   <div>
                     <span className="text-xs font-bold text-gray-800 block">Automatic Slide Transition Timing</span>
@@ -1227,7 +1227,7 @@ export default function AdminClient({
                         showToast(`Slide timing set to ${newInterval / 1000} seconds!`);
                       } catch (err) {}
                     }}
-                    className="px-3 py-1.5 border rounded-lg text-xs font-semibold text-[#0B2852] bg-white focus:outline-none"
+                    className="px-3 py-1.5 border rounded-lg text-xs font-semibold text-[#101D35] bg-white focus:outline-none"
                   >
                     <option value={3000}>3 Seconds (Fast)</option>
                     <option value={5000}>5 Seconds (Recommended)</option>
@@ -1259,7 +1259,7 @@ export default function AdminClient({
                         </div>
                         <div className="space-y-0.5 flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-bold text-sm text-[#0B2852] truncate block">
+                            <span className="font-bold text-sm text-[#101D35] truncate block">
                               {s.title}
                             </span>
                             <span
@@ -1293,7 +1293,7 @@ export default function AdminClient({
                         <button
                           type="button"
                           onClick={() => setEditingSlide(s)}
-                          className="px-3 py-1.5 rounded-lg bg-[#0B2852] text-white hover:bg-black text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                          className="px-3 py-1.5 rounded-lg bg-[#101D35] text-white hover:bg-black text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
                         >
                           <Edit className="w-3.5 h-3.5" />
                           Edit
@@ -1326,7 +1326,7 @@ export default function AdminClient({
             <div className="space-y-6 max-w-6xl">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200 pb-4">
                 <div>
-                  <h2 className="text-2xl font-light text-[#0B2852]">Coach Management</h2>
+                  <h2 className="text-2xl font-light text-[#101D35]">Coach Management</h2>
                   <p className="text-xs text-gray-500 mt-0.5">
                     Add, edit, rename, upload images, specifications, and delete official VG coaches.
                   </p>
@@ -1336,7 +1336,7 @@ export default function AdminClient({
                     setEditingProduct(null);
                     setIsAddProductOpen(true);
                   }}
-                  className="px-4 py-2 bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] rounded-full text-xs font-bold flex items-center gap-2 transition-all shadow-sm"
+                  className="px-4 py-2 bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] rounded-full text-xs font-bold flex items-center gap-2 transition-all shadow-sm"
                 >
                   <Plus className="w-4 h-4" />
                   Add New Coach
@@ -1351,14 +1351,14 @@ export default function AdminClient({
                     placeholder="Search coaches by name, SKU or livery..."
                     value={coachSearch}
                     onChange={(e) => setCoachSearch(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#0B2852]"
+                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#174EA6]"
                   />
                   <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
                 </div>
                 <select
                   value={coachCategoryFilter}
                   onChange={(e) => setCoachCategoryFilter(e.target.value)}
-                  className="border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#0B2852]"
+                  className="border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#174EA6]"
                 >
                   <option value="ALL">All Categories</option>
                   {categories.map((c) => (
@@ -1410,7 +1410,7 @@ export default function AdminClient({
                                     />
                                   </div>
                                   <div>
-                                    <span className="font-bold text-[#0B2852] block line-clamp-1">
+                                    <span className="font-bold text-[#101D35] block line-clamp-1">
                                       {coach.name}
                                     </span>
                                     <span className="text-[10px] text-gray-400">
@@ -1461,7 +1461,7 @@ export default function AdminClient({
                                       setEditingProduct(coach);
                                       setIsAddProductOpen(false);
                                     }}
-                                    className="p-1.5 rounded-lg border border-gray-200 text-[#0B2852] hover:bg-blue-50"
+                                    className="p-1.5 rounded-lg border border-gray-200 text-[#101D35] hover:bg-blue-50"
                                     title="Edit / Rename Coach"
                                   >
                                     <Edit className="w-3.5 h-3.5" />
@@ -1497,7 +1497,7 @@ export default function AdminClient({
             <div className="space-y-6 max-w-6xl">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200 pb-4">
                 <div>
-                  <h2 className="text-2xl font-light text-[#0B2852]">T-Board Management</h2>
+                  <h2 className="text-2xl font-light text-[#101D35]">T-Board Management</h2>
                   <p className="text-xs text-gray-500 mt-0.5">
                     Full CRUD for trainboards: Add, rename, edit railway zone, file size, download link, and delete.
                   </p>
@@ -1507,7 +1507,7 @@ export default function AdminClient({
                     setEditingTrainboard(null);
                     setIsAddTrainboardOpen(true);
                   }}
-                  className="px-4 py-2 bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] rounded-full text-xs font-bold flex items-center gap-2 transition-all shadow-sm"
+                  className="px-4 py-2 bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] rounded-full text-xs font-bold flex items-center gap-2 transition-all shadow-sm"
                 >
                   <Plus className="w-4 h-4" />
                   Add Trainboard
@@ -1522,14 +1522,14 @@ export default function AdminClient({
                     placeholder="Search trainboards by name or zone..."
                     value={trainboardSearch}
                     onChange={(e) => setTrainboardSearch(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#0B2852]"
+                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#174EA6]"
                   />
                   <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
                 </div>
                 <select
                   value={trainboardZoneFilter}
                   onChange={(e) => setTrainboardZoneFilter(e.target.value)}
-                  className="border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#0B2852]"
+                  className="border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#174EA6]"
                 >
                   <option value="ALL">All Zones</option>
                   <option value="WR">WR - Western Railway</option>
@@ -1567,14 +1567,14 @@ export default function AdminClient({
                         })
                         .map((tb) => (
                           <tr key={tb.id} className="hover:bg-gray-50">
-                            <td className="py-3 px-4 font-bold text-[#0B2852]">
+                            <td className="py-3 px-4 font-bold text-[#101D35]">
                               <div className="flex items-center gap-2">
                                 <Layers className="w-4 h-4 text-gray-400 flex-shrink-0" />
                                 <span>{tb.name}</span>
                               </div>
                             </td>
                             <td className="py-3 px-3">
-                              <span className="px-2 py-0.5 rounded-full bg-[#0B2852] text-white text-[10px] font-bold">
+                              <span className="px-2 py-0.5 rounded-full bg-[#101D35] text-white text-[10px] font-bold">
                                 {tb.zone}
                               </span>
                             </td>
@@ -1590,7 +1590,7 @@ export default function AdminClient({
                                     setEditingTrainboard(tb);
                                     setIsAddTrainboardOpen(false);
                                   }}
-                                  className="p-1.5 rounded-lg border border-gray-200 text-[#0B2852] hover:bg-blue-50"
+                                  className="p-1.5 rounded-lg border border-gray-200 text-[#101D35] hover:bg-blue-50"
                                   title="Rename / Edit Trainboard"
                                 >
                                   <Edit className="w-3.5 h-3.5" />
@@ -1625,7 +1625,7 @@ export default function AdminClient({
             <div className="space-y-6 max-w-6xl">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200 pb-4">
                 <div>
-                  <h2 className="text-2xl font-light text-[#0B2852]">Product Management</h2>
+                  <h2 className="text-2xl font-light text-[#101D35]">Product Management</h2>
                   <p className="text-xs text-gray-500 mt-0.5">
                     Full catalog items, route add-ons, and simulator models.
                   </p>
@@ -1635,7 +1635,7 @@ export default function AdminClient({
                     setEditingProduct(null);
                     setIsAddProductOpen(true);
                   }}
-                  className="px-4 py-2 bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] rounded-full text-xs font-bold flex items-center gap-2 transition-all shadow-sm"
+                  className="px-4 py-2 bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] rounded-full text-xs font-bold flex items-center gap-2 transition-all shadow-sm"
                 >
                   <Plus className="w-4 h-4" />
                   Add New Product
@@ -1671,7 +1671,7 @@ export default function AdminClient({
                           {prod.status === "OUT_OF_STOCK" ? "Out of Stock" : "In Stock"}
                         </span>
                       </div>
-                      <h4 className="font-bold text-sm text-[#0B2852] line-clamp-1">{prod.name}</h4>
+                      <h4 className="font-bold text-sm text-[#101D35] line-clamp-1">{prod.name}</h4>
                     </div>
 
                     <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
@@ -1691,7 +1691,7 @@ export default function AdminClient({
                             setEditingProduct(prod);
                             setIsAddProductOpen(false);
                           }}
-                          className="p-1.5 rounded-lg border border-gray-200 text-[#0B2852] hover:bg-blue-50"
+                          className="p-1.5 rounded-lg border border-gray-200 text-[#101D35] hover:bg-blue-50"
                         >
                           <Edit className="w-3.5 h-3.5" />
                         </button>
@@ -1720,7 +1720,7 @@ export default function AdminClient({
           {activeTab === "prices" && (
             <div className="space-y-6 max-w-6xl">
               <div className="border-b border-gray-200 pb-4">
-                <h2 className="text-2xl font-light text-[#0B2852]">Price Management</h2>
+                <h2 className="text-2xl font-light text-[#101D35]">Price Management</h2>
                 <p className="text-xs text-gray-500 mt-0.5">
                   Change regular prices, set discounted offer prices, apply quick percentage discounts, and save immediately.
                 </p>
@@ -1733,7 +1733,7 @@ export default function AdminClient({
                   placeholder="Search products to adjust pricing..."
                   value={priceSearch}
                   onChange={(e) => setPriceSearch(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#0B2852]"
+                  className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#174EA6]"
                 />
                 <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
               </div>
@@ -1773,7 +1773,7 @@ export default function AdminClient({
             <div className="space-y-6 max-w-6xl">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200 pb-4">
                 <div>
-                  <h2 className="text-2xl font-light text-[#0B2852]">Offers & Discounts Management</h2>
+                  <h2 className="text-2xl font-light text-[#101D35]">Offers & Discounts Management</h2>
                   <p className="text-xs text-gray-500 mt-0.5">
                     Create promotional offers, set discount percentages, active date ranges, and badges.
                   </p>
@@ -1783,7 +1783,7 @@ export default function AdminClient({
                     setEditingOffer(null);
                     setIsAddOfferOpen(true);
                   }}
-                  className="px-4 py-2 bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] rounded-full text-xs font-bold flex items-center gap-2 transition-all shadow-sm"
+                  className="px-4 py-2 bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] rounded-full text-xs font-bold flex items-center gap-2 transition-all shadow-sm"
                 >
                   <Plus className="w-4 h-4" />
                   Create New Offer
@@ -1796,7 +1796,7 @@ export default function AdminClient({
                   <div
                     key={offer.id}
                     className={`p-5 rounded-2xl border transition-all space-y-4 bg-white ${
-                      offer.isActive ? "border-[#0B2852] shadow-md" : "border-gray-200 opacity-70"
+                      offer.isActive ? "border-[#174EA6] shadow-md" : "border-gray-200 opacity-70"
                     }`}
                   >
                     <div className="flex items-start justify-between">
@@ -1820,14 +1820,14 @@ export default function AdminClient({
                     </div>
 
                     <div className="space-y-1">
-                      <h3 className="font-bold text-base text-[#0B2852]">{offer.title}</h3>
+                      <h3 className="font-bold text-base text-[#101D35]">{offer.title}</h3>
                       <p className="text-xs text-gray-600 line-clamp-2">{offer.description || "Site-wide promotional discount."}</p>
                     </div>
 
                     <div className="p-3 bg-[#F5F6F8] rounded-xl flex items-center justify-between">
                       <div>
                         <span className="text-[10px] uppercase font-bold text-gray-400 block">Discount</span>
-                        <span className="text-xl font-black text-[#0B2852]">{offer.discountPercent}% OFF</span>
+                        <span className="text-xl font-black text-[#101D35]">{offer.discountPercent}% OFF</span>
                       </div>
                       <div className="text-right">
                         <span className="text-[10px] uppercase font-bold text-gray-400 block">Scope</span>
@@ -1848,7 +1848,7 @@ export default function AdminClient({
                           setEditingOffer(offer);
                           setIsAddOfferOpen(false);
                         }}
-                        className="flex-1 py-1.5 rounded-lg border border-gray-200 text-xs font-bold text-[#0B2852] hover:bg-blue-50"
+                        className="flex-1 py-1.5 rounded-lg border border-gray-200 text-xs font-bold text-[#101D35] hover:bg-blue-50"
                       >
                         Edit Offer
                       </button>
@@ -1883,7 +1883,7 @@ export default function AdminClient({
           {activeTab === "stock" && (
             <div className="space-y-6 max-w-6xl">
               <div className="border-b border-gray-200 pb-4">
-                <h2 className="text-2xl font-light text-[#0B2852]">Stock & Availability Management</h2>
+                <h2 className="text-2xl font-light text-[#101D35]">Stock & Availability Management</h2>
                 <p className="text-xs text-gray-500 mt-0.5">
                   1-Click toggle between Available, Out of Stock, and Coming Soon. Quantity reaches 0 automatically marks item Out of Stock.
                 </p>
@@ -1897,14 +1897,14 @@ export default function AdminClient({
                     placeholder="Search product inventory..."
                     value={stockSearch}
                     onChange={(e) => setStockSearch(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#0B2852]"
+                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#174EA6]"
                   />
                   <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
                 </div>
                 <select
                   value={stockFilter}
                   onChange={(e) => setStockFilter(e.target.value)}
-                  className="border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#0B2852]"
+                  className="border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#174EA6]"
                 >
                   <option value="ALL">All Stock Statuses</option>
                   <option value="AVAILABLE">Available / In Stock</option>
@@ -1952,7 +1952,7 @@ export default function AdminClient({
           {activeTab === "users" && (
             <div className="space-y-6 max-w-6xl">
               <div className="border-b border-gray-200 pb-4">
-                <h2 className="text-2xl font-light text-[#0B2852]">User Management & Permissions</h2>
+                <h2 className="text-2xl font-light text-[#101D35]">User Management & Permissions</h2>
                 <p className="text-xs text-gray-500 mt-0.5">
                   Role-based access control (Super Admin, Admin, Normal User) and registration approval workflows.
                 </p>
@@ -1966,7 +1966,7 @@ export default function AdminClient({
                       <Clock className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-[#0B2852]">Pending Account Approvals</h3>
+                      <h3 className="text-base font-bold text-[#101D35]">Pending Account Approvals</h3>
                       <p className="text-xs text-amber-900/80">
                         Review customer registration requests and grant or reject platform access.
                       </p>
@@ -2008,7 +2008,7 @@ export default function AdminClient({
                                 <td className="py-3 px-4 font-mono text-[11px] text-gray-600 font-bold">
                                   {user.id}
                                 </td>
-                                <td className="py-3 px-3 font-bold text-[#0B2852]">
+                                <td className="py-3 px-3 font-bold text-[#101D35]">
                                   {user.name}
                                 </td>
                                 <td className="py-3 px-3 font-semibold text-emerald-800">
@@ -2070,7 +2070,7 @@ export default function AdminClient({
 
               {/* SECTION: ALL REGISTERED USERS */}
               <div className="pt-2">
-                <h3 className="text-base font-bold text-[#0B2852] mb-1">All Registered Users &amp; Permissions</h3>
+                <h3 className="text-base font-bold text-[#101D35] mb-1">All Registered Users &amp; Permissions</h3>
                 <p className="text-xs text-gray-500 mb-3">Manage user roles, search database accounts, and toggle active status.</p>
               </div>
 
@@ -2082,14 +2082,14 @@ export default function AdminClient({
                     placeholder="Search users by name, email, city..."
                     value={userSearch}
                     onChange={(e) => setUserSearch(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#0B2852]"
+                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#174EA6]"
                   />
                   <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
                 </div>
                 <select
                   value={userStatusFilter}
                   onChange={(e) => setUserStatusFilter(e.target.value)}
-                  className="border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#0B2852]"
+                  className="border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#174EA6]"
                 >
                   <option value="ALL">All Statuses</option>
                   <option value="PENDING_APPROVAL">Pending Review</option>
@@ -2125,7 +2125,7 @@ export default function AdminClient({
                         .map((user) => (
                           <tr key={user.id} className="hover:bg-gray-50">
                             <td className="py-3 px-4">
-                              <span className="font-bold text-[#0B2852] block">{user.name}</span>
+                              <span className="font-bold text-[#101D35] block">{user.name}</span>
                               <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
                                 <span>{user.email}</span>
                                 {user.username && (
@@ -2139,7 +2139,7 @@ export default function AdminClient({
                                   user.role === "SUPER_ADMIN"
                                     ? "bg-purple-100 text-purple-800 border border-purple-200"
                                     : user.role === "ADMIN"
-                                    ? "bg-[#0B2852] text-white"
+                                    ? "bg-[#101D35] text-white"
                                     : "bg-gray-100 text-gray-600"
                                 }`}
                               >
@@ -2179,7 +2179,7 @@ export default function AdminClient({
                                       setRoleChangeUser(user);
                                       setSelectedNewRole(user.role);
                                     }}
-                                    className="px-2 py-1 rounded-md border border-gray-200 text-xs font-semibold text-[#0B2852] hover:bg-blue-50"
+                                    className="px-2 py-1 rounded-md border border-gray-200 text-xs font-semibold text-[#101D35] hover:bg-blue-50"
                                   >
                                     Assign Role
                                   </button>
@@ -2258,7 +2258,7 @@ export default function AdminClient({
           {activeTab === "orders" && (
             <div className="space-y-6 max-w-6xl">
               <div className="border-b border-gray-200 pb-4">
-                <h2 className="text-2xl font-light text-[#0B2852]">Orders & Entitlements</h2>
+                <h2 className="text-2xl font-light text-[#101D35]">Orders & Entitlements</h2>
                 <p className="text-xs text-gray-500 mt-0.5">
                   Customer digital purchases and download entitlements.
                 </p>
@@ -2279,7 +2279,7 @@ export default function AdminClient({
                     <tbody className="divide-y divide-gray-100">
                       {orders.map((o) => (
                         <tr key={o.id} className="hover:bg-gray-50">
-                          <td className="py-3 px-4 font-mono font-bold text-[#0B2852]">
+                          <td className="py-3 px-4 font-mono font-bold text-[#101D35]">
                             {o.orderNumber}
                           </td>
                           <td className="py-3 px-3">
@@ -2321,7 +2321,7 @@ export default function AdminClient({
           {activeTab === "enquiries" && (
             <div className="space-y-6 max-w-6xl">
               <div className="border-b border-gray-200 pb-4">
-                <h2 className="text-2xl font-light text-[#0B2852]">Contact Inquiries</h2>
+                <h2 className="text-2xl font-light text-[#101D35]">Contact Inquiries</h2>
                 <p className="text-xs text-gray-500 mt-0.5">
                   Direct customer messages and custom model requests.
                 </p>
@@ -2334,7 +2334,7 @@ export default function AdminClient({
                     className="p-5 bg-white border border-gray-200 rounded-2xl shadow-xs space-y-2"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-base text-[#0B2852]">{enq.subject}</span>
+                      <span className="font-bold text-base text-[#101D35]">{enq.subject}</span>
                       <span className="text-[11px] text-gray-400">{formatDate(enq.createdAt)}</span>
                     </div>
                     <div className="text-xs text-gray-500">
@@ -2356,7 +2356,7 @@ export default function AdminClient({
           {activeTab === "settings" && (
             <div className="space-y-6 max-w-3xl">
               <div className="border-b border-gray-200 pb-4">
-                <h2 className="text-2xl font-light text-[#0B2852]">Website Settings</h2>
+                <h2 className="text-2xl font-light text-[#101D35]">Website Settings</h2>
                 <p className="text-xs text-gray-500 mt-0.5">
                   General platform configuration, legal text, and contact details.
                 </p>
@@ -2369,7 +2369,7 @@ export default function AdminClient({
                     type="text"
                     value={settings.siteName || ""}
                     onChange={(e) => setSettings({ ...settings, siteName: e.target.value })}
-                    className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                    className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
                   />
                 </div>
 
@@ -2379,7 +2379,7 @@ export default function AdminClient({
                     type="text"
                     value={settings.founderName || ""}
                     onChange={(e) => setSettings({ ...settings, founderName: e.target.value })}
-                    className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                    className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
                   />
                 </div>
 
@@ -2390,7 +2390,7 @@ export default function AdminClient({
                       type="email"
                       value={settings.contactEmail || ""}
                       onChange={(e) => setSettings({ ...settings, contactEmail: e.target.value })}
-                      className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                      className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
                     />
                   </div>
                   <div>
@@ -2399,7 +2399,7 @@ export default function AdminClient({
                       type="text"
                       value={settings.contactPhone || ""}
                       onChange={(e) => setSettings({ ...settings, contactPhone: e.target.value })}
-                      className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                      className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
                     />
                   </div>
                 </div>
@@ -2410,7 +2410,7 @@ export default function AdminClient({
                     type="text"
                     value={settings.heroTitle || ""}
                     onChange={(e) => setSettings({ ...settings, heroTitle: e.target.value })}
-                    className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                    className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
                   />
                 </div>
 
@@ -2420,13 +2420,13 @@ export default function AdminClient({
                     rows={3}
                     value={settings.disclaimerText || ""}
                     onChange={(e) => setSettings({ ...settings, disclaimerText: e.target.value })}
-                    className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                    className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] rounded-full font-bold uppercase transition-all shadow-md"
+                  className="px-6 py-2.5 bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] rounded-full font-bold uppercase transition-all shadow-md"
                 >
                   Save Website Settings
                 </button>
@@ -2560,7 +2560,7 @@ function PriceRowItem({
             />
           </div>
           <div>
-            <span className="font-bold text-[#0B2852] block line-clamp-1">{product.name}</span>
+            <span className="font-bold text-[#101D35] block line-clamp-1">{product.name}</span>
             <span className="text-[10px] text-gray-400 font-mono">{product.sku}</span>
           </div>
         </div>
@@ -2607,7 +2607,7 @@ function PriceRowItem({
               key={pct}
               type="button"
               onClick={() => applyDiscountPercent(pct)}
-              className="px-2 py-0.5 rounded border border-gray-200 text-[10px] font-bold text-gray-600 hover:border-[#0B2852] hover:bg-blue-50"
+              className="px-2 py-0.5 rounded border border-gray-200 text-[10px] font-bold text-gray-600 hover:border-[#174EA6] hover:bg-blue-50"
             >
               -{pct}%
             </button>
@@ -2633,7 +2633,7 @@ function PriceRowItem({
           disabled={!isChanged}
           className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
             isChanged
-              ? "bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] shadow-sm cursor-pointer"
+              ? "bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] shadow-sm cursor-pointer"
               : "bg-gray-100 text-gray-400 cursor-not-allowed"
           }`}
         >
@@ -2668,7 +2668,7 @@ function StockRowItem({
             />
           </div>
           <div>
-            <span className="font-bold text-[#0B2852] block line-clamp-1">{product.name}</span>
+            <span className="font-bold text-[#101D35] block line-clamp-1">{product.name}</span>
             <span className="text-[10px] text-gray-400">{product.category?.name || "Rolling Stock"}</span>
           </div>
         </div>
@@ -2686,7 +2686,7 @@ function StockRowItem({
           <button
             type="button"
             onClick={() => onUpdateQuantity(product, qty.toString())}
-            className="px-2.5 py-1 rounded-md border border-gray-300 hover:border-[#0B2852] text-[10px] font-bold"
+            className="px-2.5 py-1 rounded-md border border-gray-300 hover:border-[#174EA6] text-[10px] font-bold"
           >
             Update Qty
           </button>
@@ -2845,7 +2845,7 @@ function ProductFormModal({
       <div className="bg-white rounded-2xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-gray-200 my-8 space-y-5">
         <div className="flex items-center justify-between border-b border-gray-200 pb-4">
           <div>
-            <h3 className="text-xl font-bold text-[#0B2852]">
+            <h3 className="text-xl font-bold text-[#101D35]">
               {product ? `Edit Coach / Product: ${product.name}` : "Add New Coach or Add-on"}
             </h3>
             <p className="text-xs text-gray-500">Configure specifications, pricing, and media.</p>
@@ -2865,7 +2865,7 @@ function ProductFormModal({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. VG LHB ACADEMY LIVERY SLEEPER"
-                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
               />
             </div>
             <div>
@@ -2875,7 +2875,7 @@ function ProductFormModal({
                 value={sku}
                 onChange={(e) => setSku(e.target.value)}
                 placeholder="e.g. VG-LHB-ACADEMY-01"
-                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
               />
             </div>
           </div>
@@ -2889,7 +2889,7 @@ function ProductFormModal({
                 value={regularPrice}
                 onChange={(e) => setRegularPrice(e.target.value)}
                 placeholder="1000"
-                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
               />
             </div>
             <div>
@@ -2899,7 +2899,7 @@ function ProductFormModal({
                 value={salePrice}
                 onChange={(e) => setSalePrice(e.target.value)}
                 placeholder="Leave blank for regular"
-                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
               />
             </div>
             <div>
@@ -2907,7 +2907,7 @@ function ProductFormModal({
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
               >
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -2924,7 +2924,7 @@ function ProductFormModal({
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
               >
                 <option value="AVAILABLE">Available / In Stock</option>
                 <option value="OUT_OF_STOCK">Out of Stock</option>
@@ -2938,7 +2938,7 @@ function ProductFormModal({
                 min="0"
                 value={stockQuantity}
                 onChange={(e) => setStockQuantity(parseInt(e.target.value, 10) || 0)}
-                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
               />
             </div>
             <div>
@@ -2947,7 +2947,7 @@ function ProductFormModal({
                 type="text"
                 value={compatibility}
                 onChange={(e) => setCompatibility(e.target.value)}
-                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
               />
             </div>
           </div>
@@ -2972,7 +2972,7 @@ function ProductFormModal({
                   className="w-full p-2 border rounded-lg text-xs"
                 />
                 <div className="flex items-center gap-2">
-                  <label className="px-3 py-1.5 bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] rounded-lg text-[11px] font-bold cursor-pointer transition-colors flex items-center gap-1.5">
+                  <label className="px-3 py-1.5 bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] rounded-lg text-[11px] font-bold cursor-pointer transition-colors flex items-center gap-1.5">
                     <Upload className="w-3.5 h-3.5" />
                     {isUploading ? "Uploading..." : "Upload from Disk"}
                     <input
@@ -3001,7 +3001,7 @@ function ProductFormModal({
                     onClick={() => setImageUrl(p.url)}
                     className={`px-2 py-0.5 rounded text-[10px] font-semibold border transition-all ${
                       imageUrl === p.url
-                        ? "bg-[#0B2852] text-white border-[#0B2852]"
+                        ? "bg-[#101D35] text-white border-[#174EA6]"
                         : "bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-400"
                     }`}
                   >
@@ -3021,7 +3021,7 @@ function ProductFormModal({
               value={specifications}
               onChange={(e) => setSpecifications(e.target.value)}
               placeholder="e.g. Bogie: FIAT-SIG 160km/h, Tare Weight: 40.5 tonnes, Sound: 3D High-Fidelity Physics"
-              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
             />
           </div>
 
@@ -3031,7 +3031,7 @@ function ProductFormModal({
               id="isFeatured"
               checked={isFeatured}
               onChange={(e) => setIsFeatured(e.target.checked)}
-              className="rounded text-[#0B2852]"
+              className="rounded text-[#101D35]"
             />
             <label htmlFor="isFeatured" className="text-xs font-semibold text-gray-700 cursor-pointer">
               Showcase in Home Sliding Window Carousel
@@ -3048,7 +3048,7 @@ function ProductFormModal({
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] font-bold uppercase transition-all shadow-md"
+              className="flex-1 py-2.5 rounded-full bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] font-bold uppercase transition-all shadow-md"
             >
               {product ? "Save Changes" : "Create Coach"}
             </button>
@@ -3118,7 +3118,7 @@ function TrainboardFormModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
       <div className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-gray-200 space-y-4">
         <div className="flex items-center justify-between border-b pb-3">
-          <h3 className="text-xl font-bold text-[#0B2852]">
+          <h3 className="text-xl font-bold text-[#101D35]">
             {trainboard ? `Edit Trainboard: ${trainboard.name}` : "Add New Trainboard Package"}
           </h3>
           <button onClick={onClose} className="p-1 rounded text-gray-400 hover:text-gray-700">
@@ -3137,7 +3137,7 @@ function TrainboardFormModal({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. WR-Trainboard-Set-01.zip"
-              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
             />
           </div>
 
@@ -3147,7 +3147,7 @@ function TrainboardFormModal({
               <select
                 value={zone}
                 onChange={(e) => handleZoneSelect(e.target.value)}
-                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
               >
                 {Object.keys(zonePresets).map((z) => (
                   <option key={z} value={z}>
@@ -3163,7 +3163,7 @@ function TrainboardFormModal({
                 value={size}
                 onChange={(e) => setSize(e.target.value)}
                 placeholder="2.5 MB"
-                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
               />
             </div>
           </div>
@@ -3175,7 +3175,7 @@ function TrainboardFormModal({
               value={zoneName}
               onChange={(e) => setZoneName(e.target.value)}
               placeholder="Western Railway"
-              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
             />
           </div>
 
@@ -3186,7 +3186,7 @@ function TrainboardFormModal({
               value={downloadUrl}
               onChange={(e) => setDownloadUrl(e.target.value)}
               placeholder="/downloads/trainboards/WR/filename.zip"
-              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
             />
           </div>
 
@@ -3200,7 +3200,7 @@ function TrainboardFormModal({
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] font-bold uppercase transition-all shadow-md"
+              className="flex-1 py-2.5 rounded-full bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] font-bold uppercase transition-all shadow-md"
             >
               {trainboard ? "Save Trainboard" : "Add Trainboard"}
             </button>
@@ -3251,7 +3251,7 @@ function OfferFormModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
       <div className="bg-white rounded-2xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-gray-200 space-y-4">
         <div className="flex items-center justify-between border-b pb-3">
-          <h3 className="text-xl font-bold text-[#0B2852]">
+          <h3 className="text-xl font-bold text-[#101D35]">
             {offer ? "Edit Promotional Offer" : "Create New Promotional Offer"}
           </h3>
           <button onClick={onClose} className="p-1 rounded text-gray-400 hover:text-gray-700">
@@ -3268,7 +3268,7 @@ function OfferFormModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Festival Offer"
-              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
             />
           </div>
 
@@ -3282,7 +3282,7 @@ function OfferFormModal({
                 required
                 value={discountPercent}
                 onChange={(e) => setDiscountPercent(parseFloat(e.target.value) || 0)}
-                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
               />
             </div>
             <div>
@@ -3292,7 +3292,7 @@ function OfferFormModal({
                 value={badgeText}
                 onChange={(e) => setBadgeText(e.target.value)}
                 placeholder="SPECIAL OFFER"
-                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
               />
             </div>
           </div>
@@ -3303,7 +3303,7 @@ function OfferFormModal({
               <select
                 value={targetType}
                 onChange={(e) => setTargetType(e.target.value)}
-                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
               >
                 <option value="ALL">All Items</option>
                 <option value="COACHES">Coaches Only</option>
@@ -3316,7 +3316,7 @@ function OfferFormModal({
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
               />
             </div>
           </div>
@@ -3328,7 +3328,7 @@ function OfferFormModal({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="e.g. Festival offer ends tonight at 11:45 PM. Please visit shop page."
-              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
             />
           </div>
 
@@ -3338,7 +3338,7 @@ function OfferFormModal({
               id="isActiveOffer"
               checked={isActive}
               onChange={(e) => setIsActive(e.target.checked)}
-              className="rounded text-[#0B2852]"
+              className="rounded text-[#101D35]"
             />
             <label htmlFor="isActiveOffer" className="text-xs font-semibold text-gray-700 cursor-pointer">
               Enable offer immediately on public website
@@ -3355,7 +3355,7 @@ function OfferFormModal({
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] font-bold uppercase transition-all shadow-md"
+              className="flex-1 py-2.5 rounded-full bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] font-bold uppercase transition-all shadow-md"
             >
               {offer ? "Save Offer" : "Create Offer"}
             </button>
@@ -3456,7 +3456,7 @@ function SlideAdminModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-gray-200 my-8 space-y-4 font-josefin text-xs">
         <div className="flex items-center justify-between border-b pb-3">
-          <h3 className="text-lg font-bold text-[#0B2852]">
+          <h3 className="text-lg font-bold text-[#101D35]">
             {slide ? `Edit Slide: ${slide.title}` : "Add New Home Page Slide"}
           </h3>
           <button onClick={onClose} className="p-1 rounded text-gray-400 hover:text-gray-700">
@@ -3473,7 +3473,7 @@ function SlideAdminModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. VG LHB ACADEMY LIVERY SLEEPER COACHES"
-              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
             />
           </div>
 
@@ -3484,7 +3484,7 @@ function SlideAdminModal({
               value={subtitle}
               onChange={(e) => setSubtitle(e.target.value)}
               placeholder="(Coming Soon) Please Sign Up..."
-              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
             />
           </div>
 
@@ -3495,7 +3495,7 @@ function SlideAdminModal({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Hyper-realistic LHB coach model..."
-              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
             />
           </div>
 
@@ -3507,7 +3507,7 @@ function SlideAdminModal({
                 <img src={image} alt="Preview" className="w-full h-full object-contain" />
               </div>
               <div className="flex-1 space-y-2">
-                <label className="px-3 py-1.5 bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] rounded-lg font-bold cursor-pointer transition-colors inline-flex items-center gap-1.5 text-xs">
+                <label className="px-3 py-1.5 bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] rounded-lg font-bold cursor-pointer transition-colors inline-flex items-center gap-1.5 text-xs">
                   <Upload className="w-3.5 h-3.5" />
                   {isUploading ? "Uploading..." : "Upload from Computer"}
                   <input
@@ -3538,7 +3538,7 @@ function SlideAdminModal({
                     onClick={() => setImage(p.url)}
                     className={`text-[10px] px-2 py-0.5 rounded border transition-colors ${
                       image === p.url
-                        ? "bg-[#0B2852] text-white border-[#0B2852]"
+                        ? "bg-[#101D35] text-white border-[#174EA6]"
                         : "bg-white text-gray-700 hover:bg-gray-100"
                     }`}
                   >
@@ -3558,7 +3558,7 @@ function SlideAdminModal({
                 value={buttonText}
                 onChange={(e) => setButtonText(e.target.value)}
                 placeholder="View Product Details"
-                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
               />
             </div>
             <div>
@@ -3568,7 +3568,7 @@ function SlideAdminModal({
                 value={buttonUrl}
                 onChange={(e) => setButtonUrl(e.target.value)}
                 placeholder="/shop/product-slug"
-                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
               />
             </div>
           </div>
@@ -3580,7 +3580,7 @@ function SlideAdminModal({
                 type="number"
                 value={order}
                 onChange={(e) => setOrder(parseInt(e.target.value, 10) || 1)}
-                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
               />
             </div>
             <div className="flex items-center gap-2 pt-6">
@@ -3589,7 +3589,7 @@ function SlideAdminModal({
                 id="isSlideActiveCheck"
                 checked={isActive}
                 onChange={(e) => setIsActive(e.target.checked)}
-                className="rounded text-[#0B2852]"
+                className="rounded text-[#101D35]"
               />
               <label htmlFor="isSlideActiveCheck" className="font-semibold text-gray-700 cursor-pointer">
                 Active & Published on Home Slider
@@ -3607,7 +3607,7 @@ function SlideAdminModal({
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] font-bold uppercase transition-all shadow-md"
+              className="flex-1 py-2.5 rounded-full bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] font-bold uppercase transition-all shadow-md"
             >
               {slide ? "Save Changes" : "Create Slide"}
             </button>

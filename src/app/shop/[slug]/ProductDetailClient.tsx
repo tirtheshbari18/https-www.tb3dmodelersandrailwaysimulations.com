@@ -20,7 +20,8 @@ import {
   Ban,
   Clock,
   Eye,
-  CheckCircle2
+  CheckCircle2,
+  Sparkles
 } from "lucide-react";
 import { useCart } from "@/lib/cartContext";
 import { formatCurrency } from "@/lib/utils";
@@ -40,7 +41,6 @@ export default function ProductDetailClient({
   const [currentProduct, setCurrentProduct] = useState(product);
 
   useEffect(() => {
-    // Multi-tab synchronization on focus & visibilitychange
     const fetchLatest = () => {
       fetch(`/api/products/${encodeURIComponent(product.slug || product.id)}?nocache=${Date.now()}`, { cache: "no-store" })
         .then((res) => res.json())
@@ -76,7 +76,7 @@ export default function ProductDetailClient({
     currentProduct.images && currentProduct.images.length > 0
       ? currentProduct.images.map((i: any) => (typeof i === "string" ? i : i.url)).filter(Boolean)
       : [];
-  const images = rawImgList.length > 0 ? rawImgList : [currentProduct.image || "/assets/products/chaircar_standard.png"];
+  const images = rawImgList.length > 0 ? rawImgList : [currentProduct.image || "/assets/tbpro/lhb_chaircar.png"];
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<"desc" | "specs" | "install" | "files">("desc");
@@ -90,8 +90,6 @@ export default function ProductDetailClient({
   const isFree = currentProduct.isFree || currentPrice === 0;
   const inCart = isInCart(currentProduct.id);
 
-  // Status Badge with exact colors:
-  // Special Offer: #FF6B00 | Out of Stock: #DC2626 | Coming Soon: #16A34A | Available: #2563EB
   const statusBadge = isOutOfStock ? (
     <span className="px-3 py-1 rounded-full bg-[#DC2626] text-white text-xs font-bold uppercase shadow-sm">
       Out of Stock
@@ -105,7 +103,7 @@ export default function ProductDetailClient({
       {currentProduct.specialOfferText || "Special Offer"}
     </span>
   ) : (
-    <span className="px-3 py-1 rounded-full bg-[#2563EB] text-white text-xs font-bold uppercase shadow-sm">
+    <span className="px-3 py-1 rounded-full bg-[#174EA6] text-white text-xs font-bold uppercase shadow-sm">
       Available
     </span>
   );
@@ -114,9 +112,7 @@ export default function ProductDetailClient({
   if (currentProduct.fullSpecs || currentProduct.specifications) {
     try {
       parsedSpecs = JSON.parse(currentProduct.fullSpecs || currentProduct.specifications);
-    } catch (e) {
-      // plain text fallback
-    }
+    } catch (e) {}
   }
 
   const handleAddToCart = () => {
@@ -150,30 +146,30 @@ export default function ProductDetailClient({
   };
 
   return (
-    <div className="min-h-screen bg-white text-[#101C32] pb-20 font-josefin">
+    <div className="min-h-screen bg-[#F4F7FB] text-[#172033] pb-20 font-josefin">
       {/* Breadcrumb Navigation */}
-      <div className="bg-[#F5F6F8] border-b border-gray-200 py-3">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-xs text-gray-500 font-josefin flex items-center gap-2 flex-wrap">
-          <Link href="/" className="hover:text-[#0B2852] transition-colors">
+      <div className="bg-white border-b border-gray-200 py-3.5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-xs text-slate-500 font-josefin flex items-center gap-2 flex-wrap">
+          <Link href="/" className="hover:text-[#174EA6] transition-colors">
             Home
           </Link>
-          <ChevronRight className="w-3 h-3 text-gray-400" />
-          <Link href="/shop" className="hover:text-[#0B2852] transition-colors">
+          <ChevronRight className="w-3 h-3 text-slate-400" />
+          <Link href="/shop" className="hover:text-[#174EA6] transition-colors">
             Shop
           </Link>
-          <ChevronRight className="w-3 h-3 text-gray-400" />
+          <ChevronRight className="w-3 h-3 text-slate-400" />
           {currentProduct.category && (
             <>
               <Link
                 href={`/shop?category=${currentProduct.category.slug}`}
-                className="hover:text-[#0B2852] transition-colors"
+                className="hover:text-[#174EA6] transition-colors"
               >
                 {currentProduct.category.name}
               </Link>
-              <ChevronRight className="w-3 h-3 text-gray-400" />
+              <ChevronRight className="w-3 h-3 text-slate-400" />
             </>
           )}
-          <span className="text-[#0B2852] font-semibold truncate max-w-[220px] sm:max-w-none">
+          <span className="text-[#101D35] font-bold truncate max-w-[220px] sm:max-w-none">
             {currentProduct.name}
           </span>
         </div>
@@ -183,30 +179,28 @@ export default function ProductDetailClient({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
           {/* Left: Product Images & Gallery */}
           <div className="space-y-4">
-            {/* Main Stage Image */}
             <div
               onClick={() => setIsZoomOpen(true)}
-              className="group relative aspect-[16/10] rounded-xl overflow-hidden bg-[#F8FAFC] border border-gray-200 shadow-sm cursor-pointer"
+              className="group relative aspect-[16/10] rounded-2xl overflow-hidden bg-white border border-gray-200 shadow-sm cursor-pointer"
             >
               <img
                 src={images[activeImageIndex] || images[0]}
                 alt={currentProduct.name}
-                className="w-full h-full object-contain p-3 transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-105"
               />
               <div className="absolute top-3 left-3 z-10">
                 {statusBadge}
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-between p-4">
                 <span className="text-xs text-white flex items-center gap-1.5 font-bold">
-                  <ZoomIn className="w-4 h-4 text-[#39FF00]" /> Click to zoom render
+                  <ZoomIn className="w-4 h-4 text-[#00B8D9]" /> Click to zoom render
                 </span>
-                <span className="text-xs text-gray-300">
+                <span className="text-xs text-slate-300">
                   {activeImageIndex + 1} of {images.length}
                 </span>
               </div>
             </div>
 
-            {/* Thumbnails Row */}
             {images.length > 1 && (
               <div className="flex gap-2.5 overflow-x-auto pb-1.5">
                 {images.map((img: string, idx: number) => (
@@ -214,9 +208,9 @@ export default function ProductDetailClient({
                     key={idx}
                     type="button"
                     onClick={() => setActiveImageIndex(idx)}
-                    className={`relative w-20 h-14 rounded-lg overflow-hidden border-2 flex-shrink-0 transition-all bg-[#F8FAFC] p-1 ${
+                    className={`relative w-20 h-14 rounded-xl overflow-hidden border-2 flex-shrink-0 transition-all bg-white p-1 ${
                       activeImageIndex === idx
-                        ? "border-[#0B2852] shadow-md scale-105"
+                        ? "border-[#174EA6] shadow-md scale-105"
                         : "border-gray-200 opacity-60 hover:opacity-100"
                     }`}
                   >
@@ -228,18 +222,18 @@ export default function ProductDetailClient({
           </div>
 
           {/* Right: Pricing, Specs & Purchase */}
-          <div className="space-y-6">
+          <div className="space-y-6 bg-white p-6 sm:p-8 rounded-2xl border border-gray-200 shadow-sm">
             <div>
-              <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-                <span className="text-[#0B2852] font-bold uppercase tracking-wider">
+              <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
+                <span className="text-[#174EA6] font-bold uppercase tracking-wider">
                   {currentProduct.category?.name || "LHB Coach Pack"}
                 </span>
                 <div className="flex items-center gap-3">
-                  <span className="font-mono text-gray-500 text-[11px]">SKU: {currentProduct.sku}</span>
+                  <span className="font-mono text-slate-500 text-[11px]">SKU: {currentProduct.sku}</span>
                   <button
                     type="button"
                     onClick={handleShare}
-                    className="flex items-center gap-1 text-gray-600 hover:text-[#0B2852] transition-colors"
+                    className="flex items-center gap-1 text-slate-600 hover:text-[#174EA6] transition-colors"
                   >
                     <Share2 className="w-3.5 h-3.5" />
                     <span>{copySuccess ? "Copied!" : "Share"}</span>
@@ -247,21 +241,21 @@ export default function ProductDetailClient({
                 </div>
               </div>
 
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-normal text-[#0B2852] leading-tight">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#101D35] leading-tight">
                 {currentProduct.name}
               </h1>
 
-              {/* Price display with status badge */}
-              <div className="mt-4 flex flex-wrap items-baseline gap-3 pb-4 border-b border-gray-200">
+              {/* Price display */}
+              <div className="mt-4 flex flex-wrap items-baseline gap-3 pb-4 border-b border-gray-100">
                 {isFree ? (
                   <span className="text-3xl font-bold text-[#16A34A]">FREE DOWNLOAD</span>
                 ) : (
                   <>
-                    <span className="text-3xl sm:text-4xl font-bold text-[#0B2852]">
+                    <span className="text-3xl sm:text-4xl font-extrabold text-[#101D35]">
                       {formatCurrency(currentPrice)}
                     </span>
                     {currentProduct.regularPrice > currentPrice && (
-                      <span className="text-lg text-gray-400 line-through">
+                      <span className="text-lg text-slate-400 line-through">
                         {formatCurrency(currentProduct.regularPrice)}
                       </span>
                     )}
@@ -277,23 +271,23 @@ export default function ProductDetailClient({
             </div>
 
             {/* Quick Meta Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-[#F8FAFC] p-4 rounded-xl border border-gray-200">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-[#F4F7FB] p-4 rounded-xl border border-gray-200">
               <div>
-                <span className="text-gray-500 block text-[10px] uppercase font-bold">Simulator</span>
-                <span className="text-[#0B2852] font-semibold">{currentProduct.compatibility || "Open Rails / MSTS"}</span>
+                <span className="text-slate-500 block text-[10px] uppercase font-bold">Simulator</span>
+                <span className="text-[#101D35] font-semibold">{currentProduct.compatibility || "Open Rails / MSTS"}</span>
               </div>
               <div>
-                <span className="text-gray-500 block text-[10px] uppercase font-bold">File Size</span>
-                <span className="text-[#0B2852] font-semibold">{currentProduct.fileSize || "140 MB"}</span>
+                <span className="text-slate-500 block text-[10px] uppercase font-bold">File Size</span>
+                <span className="text-[#101D35] font-semibold">{currentProduct.fileSize || "140 MB"}</span>
               </div>
               <div>
-                <span className="text-gray-500 block text-[10px] uppercase font-bold">Version</span>
-                <span className="text-[#0B2852] font-semibold">{currentProduct.version || "v2.0"}</span>
+                <span className="text-slate-500 block text-[10px] uppercase font-bold">Version</span>
+                <span className="text-[#101D35] font-semibold">{currentProduct.version || "v2.0"}</span>
               </div>
               <div>
-                <span className="text-gray-500 block text-[10px] uppercase font-bold">Delivery</span>
-                <span className="text-emerald-700 font-semibold flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="text-slate-500 block text-[10px] uppercase font-bold">Delivery</span>
+                <span className="text-[#16A34A] font-semibold flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
                   Instant Digital
                 </span>
               </div>
@@ -302,23 +296,23 @@ export default function ProductDetailClient({
             {/* Actions: Add to Cart and Buy Now */}
             <div className="space-y-3 pt-2">
               {isOutOfStock ? (
-                <div className="p-4 bg-red-50 border-2 border-red-200 rounded-xl text-center space-y-1.5">
+                <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-center space-y-1">
                   <div className="flex items-center justify-center gap-1.5 text-red-700 font-bold text-sm">
                     <Ban className="w-4 h-4 text-red-600" />
                     <span>Currently Out of Stock</span>
                   </div>
-                  <p className="text-xs text-red-800">
-                    This simulation pack is undergoing maintenance or stock refresh. Please check back shortly.
+                  <p className="text-xs text-red-700">
+                    This simulation pack is undergoing maintenance or stock refresh.
                   </p>
                 </div>
               ) : isComingSoon ? (
-                <div className="p-4 bg-green-50 border-2 border-green-200 rounded-xl text-center space-y-1.5">
+                <div className="p-4 bg-green-50 border border-green-200 rounded-xl text-center space-y-1">
                   <div className="flex items-center justify-center gap-1.5 text-green-700 font-bold text-sm">
                     <Clock className="w-4 h-4 text-green-600" />
                     <span>Coming Soon</span>
                   </div>
-                  <p className="text-xs text-green-800">
-                    This official release is in final testing and will be unlocked for download very soon.
+                  <p className="text-xs text-green-700">
+                    This release is in final testing and will be unlocked for download shortly.
                   </p>
                 </div>
               ) : (
@@ -327,20 +321,20 @@ export default function ProductDetailClient({
                     type="button"
                     onClick={handleAddToCart}
                     disabled={inCart}
-                    className={`py-3.5 px-6 rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md ${
+                    className={`py-3.5 px-6 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md ${
                       inCart
-                        ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                        : "bg-[#0B2852] hover:bg-[#39FF00] text-white hover:text-[#101C32]"
+                        ? "bg-slate-200 text-slate-500 cursor-not-allowed"
+                        : "bg-[#101D35] hover:bg-[#174EA6] text-white"
                     }`}
                   >
                     {inCart ? (
                       <>
-                        <Check className="w-4 h-4 text-emerald-800" />
+                        <Check className="w-4 h-4 text-[#16A34A]" />
                         In Your Cart
                       </>
                     ) : (
                       <>
-                        <ShoppingCart className="w-4 h-4" />
+                        <ShoppingCart className="w-4 h-4 text-[#00B8D9]" />
                         Add To Cart
                       </>
                     )}
@@ -349,7 +343,7 @@ export default function ProductDetailClient({
                   <button
                     type="button"
                     onClick={handleBuyNow}
-                    className="py-3.5 px-6 rounded-full bg-[#39FF00] hover:bg-[#0B2852] text-[#101C32] hover:text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all"
+                    className="py-3.5 px-6 rounded-xl bg-gradient-to-r from-[#174EA6] to-[#00B8D9] hover:from-[#101D35] hover:to-[#174EA6] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all"
                   >
                     {isFree ? "Download Now" : "Buy Now"}
                     <ArrowRight className="w-4 h-4" />
@@ -357,9 +351,9 @@ export default function ProductDetailClient({
                 </div>
               )}
 
-              <div className="flex items-center justify-between text-[11px] text-gray-500 pt-2 px-1">
+              <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 px-1">
                 <span className="flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <ShieldCheck className="w-4 h-4 text-[#16A34A]" />
                   Verified for Open Rails &amp; MSTS
                 </span>
                 <span>Permanent Re-download Entitlement</span>
@@ -369,16 +363,15 @@ export default function ProductDetailClient({
         </div>
 
         {/* Detailed Tabs: Description, Technical Specs, Installation, Files */}
-        <div className="mt-14 bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-xs">
-          {/* Tab Navigation */}
-          <div className="flex border-b border-gray-200 overflow-x-auto bg-[#F8FAFC]">
+        <div className="mt-12 bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+          <div className="flex border-b border-gray-200 overflow-x-auto bg-[#F4F7FB]">
             <button
               type="button"
               onClick={() => setActiveTab("desc")}
               className={`px-6 py-3.5 text-xs font-bold uppercase tracking-wider flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === "desc"
-                  ? "border-[#0B2852] text-[#0B2852] bg-white"
-                  : "border-transparent text-gray-500 hover:text-[#0B2852]"
+                  ? "border-[#174EA6] text-[#174EA6] bg-white font-extrabold"
+                  : "border-transparent text-slate-500 hover:text-[#101D35]"
               }`}
             >
               <FileText className="w-4 h-4" />
@@ -389,8 +382,8 @@ export default function ProductDetailClient({
               onClick={() => setActiveTab("specs")}
               className={`px-6 py-3.5 text-xs font-bold uppercase tracking-wider flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === "specs"
-                  ? "border-[#0B2852] text-[#0B2852] bg-white"
-                  : "border-transparent text-gray-500 hover:text-[#0B2852]"
+                  ? "border-[#174EA6] text-[#174EA6] bg-white font-extrabold"
+                  : "border-transparent text-slate-500 hover:text-[#101D35]"
               }`}
             >
               <Cpu className="w-4 h-4" />
@@ -401,8 +394,8 @@ export default function ProductDetailClient({
               onClick={() => setActiveTab("install")}
               className={`px-6 py-3.5 text-xs font-bold uppercase tracking-wider flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === "install"
-                  ? "border-[#0B2852] text-[#0B2852] bg-white"
-                  : "border-transparent text-gray-500 hover:text-[#0B2852]"
+                  ? "border-[#174EA6] text-[#174EA6] bg-white font-extrabold"
+                  : "border-transparent text-slate-500 hover:text-[#101D35]"
               }`}
             >
               <Layers className="w-4 h-4" />
@@ -413,8 +406,8 @@ export default function ProductDetailClient({
               onClick={() => setActiveTab("files")}
               className={`px-6 py-3.5 text-xs font-bold uppercase tracking-wider flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === "files"
-                  ? "border-[#0B2852] text-[#0B2852] bg-white"
-                  : "border-transparent text-gray-500 hover:text-[#0B2852]"
+                  ? "border-[#174EA6] text-[#174EA6] bg-white font-extrabold"
+                  : "border-transparent text-slate-500 hover:text-[#101D35]"
               }`}
             >
               <Download className="w-4 h-4" />
@@ -422,15 +415,14 @@ export default function ProductDetailClient({
             </button>
           </div>
 
-          {/* Tab Content */}
-          <div className="p-6 sm:p-8 text-sm text-[#101C32] leading-relaxed">
+          <div className="p-6 sm:p-8 text-sm text-[#172033] leading-relaxed">
             {activeTab === "desc" && (
               <div className="space-y-4 whitespace-pre-line">
-                <p className="text-base text-gray-700 leading-relaxed">
-                  {currentProduct.description || "High-precision 3D rolling stock model crafted for Open Rails and MSTS with authentic bogie geometry, night lighting cabins, and animated doors."}
+                <p className="text-base text-slate-700 leading-relaxed">
+                  {currentProduct.description || "High-precision 3D rolling stock model crafted for Open Rails and MSTS with authentic FIAT bogie geometry, night lighting cabins, and animated doors."}
                 </p>
                 {currentProduct.shortDesc && currentProduct.shortDesc !== currentProduct.description && (
-                  <p className="text-sm text-gray-600 bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                  <p className="text-sm text-slate-600 bg-blue-50/50 p-4 rounded-xl border border-blue-100">
                     {currentProduct.shortDesc}
                   </p>
                 )}
@@ -444,10 +436,10 @@ export default function ProductDetailClient({
                     {Object.entries(parsedSpecs).map(([key, val]) => (
                       <div
                         key={key}
-                        className="p-3.5 rounded-xl bg-[#F8FAFC] border border-gray-200 flex justify-between items-center"
+                        className="p-3.5 rounded-xl bg-[#F4F7FB] border border-gray-200 flex justify-between items-center"
                       >
-                        <span className="text-xs text-gray-500 font-semibold">{key}</span>
-                        <span className="text-xs font-bold text-[#0B2852] text-right ml-4">
+                        <span className="text-xs text-slate-500 font-semibold">{key}</span>
+                        <span className="text-xs font-bold text-[#101D35] text-right ml-4">
                           {val}
                         </span>
                       </div>
@@ -455,21 +447,21 @@ export default function ProductDetailClient({
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-gray-200 flex justify-between items-center">
-                      <span className="text-xs text-gray-500 font-semibold">Simulator Compatibility</span>
-                      <span className="text-xs font-bold text-[#0B2852]">{currentProduct.compatibility || "Open Rails / MSTS"}</span>
+                    <div className="p-3.5 rounded-xl bg-[#F4F7FB] border border-gray-200 flex justify-between items-center">
+                      <span className="text-xs text-slate-500 font-semibold">Simulator Compatibility</span>
+                      <span className="text-xs font-bold text-[#101D35]">{currentProduct.compatibility || "Open Rails / MSTS"}</span>
                     </div>
-                    <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-gray-200 flex justify-between items-center">
-                      <span className="text-xs text-gray-500 font-semibold">Model Version</span>
-                      <span className="text-xs font-bold text-[#0B2852]">{currentProduct.version || "v2.0"}</span>
+                    <div className="p-3.5 rounded-xl bg-[#F4F7FB] border border-gray-200 flex justify-between items-center">
+                      <span className="text-xs text-slate-500 font-semibold">Bogie Type</span>
+                      <span className="text-xs font-bold text-[#101D35]">FIAT Air Suspension</span>
                     </div>
-                    <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-gray-200 flex justify-between items-center">
-                      <span className="text-xs text-gray-500 font-semibold">Archive Size</span>
-                      <span className="text-xs font-bold text-[#0B2852]">{currentProduct.fileSize || "140 MB"}</span>
+                    <div className="p-3.5 rounded-xl bg-[#F4F7FB] border border-gray-200 flex justify-between items-center">
+                      <span className="text-xs text-slate-500 font-semibold">Model Version</span>
+                      <span className="text-xs font-bold text-[#101D35]">{currentProduct.version || "v2.0"}</span>
                     </div>
-                    <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-gray-200 flex justify-between items-center">
-                      <span className="text-xs text-gray-500 font-semibold">Physics Calibration</span>
-                      <span className="text-xs font-bold text-[#0B2852]">Realistic Davis .wag Parameters</span>
+                    <div className="p-3.5 rounded-xl bg-[#F4F7FB] border border-gray-200 flex justify-between items-center">
+                      <span className="text-xs text-slate-500 font-semibold">Archive Size</span>
+                      <span className="text-xs font-bold text-[#101D35]">{currentProduct.fileSize || "140 MB"}</span>
                     </div>
                   </div>
                 )}
@@ -478,10 +470,10 @@ export default function ProductDetailClient({
 
             {activeTab === "install" && (
               <div className="space-y-4">
-                <h4 className="text-base font-bold text-[#0B2852]">
+                <h4 className="text-base font-bold text-[#101D35]">
                   Step-by-Step Installation Instructions
                 </h4>
-                <div className="p-5 rounded-xl bg-[#F8FAFC] border border-gray-200 font-mono text-xs text-gray-800 whitespace-pre-line leading-relaxed">
+                <div className="p-5 rounded-xl bg-[#F4F7FB] border border-gray-200 font-mono text-xs text-slate-800 whitespace-pre-line leading-relaxed">
                   {currentProduct.installGuide ||
                     `1. Extract the downloaded ZIP or RAR archive using 7-Zip or WinRAR.
 2. Copy the resulting folder into: [Simulator Root]/TRAINS/TRAINSET/
@@ -493,18 +485,18 @@ export default function ProductDetailClient({
 
             {activeTab === "files" && (
               <div className="space-y-3">
-                <h4 className="text-base font-bold text-[#0B2852] mb-2">Package Contents &amp; Digital Files</h4>
+                <h4 className="text-base font-bold text-[#101D35] mb-2">Package Contents &amp; Digital Files</h4>
                 {currentProduct.files && currentProduct.files.length > 0 ? (
                   currentProduct.files.map((file: any) => (
                     <div
                       key={file.id}
-                      className="p-4 rounded-xl bg-[#F8FAFC] border border-gray-200 flex items-center justify-between"
+                      className="p-4 rounded-xl bg-[#F4F7FB] border border-gray-200 flex items-center justify-between"
                     >
                       <div className="flex items-center gap-3">
-                        <HardDrive className="w-5 h-5 text-[#0B2852]" />
+                        <HardDrive className="w-5 h-5 text-[#174EA6]" />
                         <div>
-                          <p className="font-bold text-[#0B2852] text-xs">{file.name}</p>
-                          <p className="text-[11px] text-gray-500">
+                          <p className="font-bold text-[#101D35] text-xs">{file.name}</p>
+                          <p className="text-[11px] text-slate-500">
                             Format: {file.fileFormat || "ZIP"} • Size: {file.fileSize || currentProduct.fileSize || "140 MB"} • Version: {file.version || currentProduct.version || "v2.0"}
                           </p>
                         </div>
@@ -515,12 +507,12 @@ export default function ProductDetailClient({
                     </div>
                   ))
                 ) : (
-                  <div className="p-4 rounded-xl bg-[#F8FAFC] border border-gray-200 flex items-center justify-between">
+                  <div className="p-4 rounded-xl bg-[#F4F7FB] border border-gray-200 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <HardDrive className="w-5 h-5 text-[#0B2852]" />
+                      <HardDrive className="w-5 h-5 text-[#174EA6]" />
                       <div>
-                        <p className="font-bold text-[#0B2852] text-xs">{currentProduct.name} (Full Package)</p>
-                        <p className="text-[11px] text-gray-500">
+                        <p className="font-bold text-[#101D35] text-xs">{currentProduct.name} (Full Package)</p>
+                        <p className="text-[11px] text-slate-500">
                           Format: ZIP Archive • Size: {currentProduct.fileSize || "140 MB"} • Version: {currentProduct.version || "v2.0"}
                         </p>
                       </div>
@@ -538,7 +530,7 @@ export default function ProductDetailClient({
         {/* Related Products */}
         {relatedProducts.length > 0 && (
           <div className="mt-16">
-            <h3 className="text-xl sm:text-2xl font-light text-[#0B2852] mb-6 border-b border-gray-200 pb-3">
+            <h3 className="text-xl sm:text-2xl font-bold text-[#101D35] mb-6 border-b border-gray-200 pb-3">
               Related Rolling Stock Add-ons
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -546,33 +538,33 @@ export default function ProductDetailClient({
                 const img =
                   rel.images?.[0]?.url ||
                   rel.image ||
-                  "/assets/products/chaircar_standard.png";
+                  "/assets/tbpro/lhb_chaircar.png";
                 const price = rel.salePrice ?? rel.regularPrice;
                 return (
                   <Link
                     key={rel.id}
                     href={`/shop/${rel.slug || rel.id}`}
-                    className="group rounded-xl bg-white border border-gray-200 overflow-hidden hover:border-[#0B2852] hover:shadow-lg transition-all flex flex-col justify-between p-3"
+                    className="group rounded-2xl bg-white border border-gray-200 overflow-hidden hover:border-[#174EA6] hover:shadow-lg transition-all flex flex-col justify-between p-4 shadow-sm"
                   >
-                    <div className="relative aspect-[16/10] overflow-hidden bg-[#F8FAFC] rounded-lg">
+                    <div className="relative aspect-[16/10] overflow-hidden bg-[#F4F7FB] rounded-xl p-2">
                       <img
                         src={img}
                         alt={rel.name}
-                        className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                       />
                     </div>
                     <div className="pt-3 flex-1 flex flex-col justify-between">
                       <div>
-                        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
+                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
                           {rel.category?.name || "LHB Coaches"}
                         </span>
-                        <h4 className="font-bold text-[#0B2852] text-sm group-hover:text-blue-700 transition-colors line-clamp-1 mt-0.5">
+                        <h4 className="font-bold text-[#101D35] text-sm group-hover:text-[#174EA6] transition-colors line-clamp-1 mt-0.5">
                           {rel.name}
                         </h4>
                       </div>
                       <div className="mt-3 flex items-center justify-between text-xs font-bold pt-2 border-t border-gray-100">
-                        <span className="text-[#0B2852]">{price === 0 ? "FREE" : formatCurrency(price)}</span>
-                        <span className="text-[#0B2852] group-hover:text-blue-700 flex items-center gap-1 font-bold">
+                        <span className="text-[#101D35]">{price === 0 ? "FREE" : formatCurrency(price)}</span>
+                        <span className="text-[#174EA6] flex items-center gap-1 font-bold">
                           <Eye className="w-3.5 h-3.5" />
                           <span>View Contents</span>
                         </span>

@@ -13,10 +13,11 @@ import {
   Download, 
   Package,
   Bell,
-  CheckCircle2,
-  Sparkles
+  Sparkles,
+  ShoppingBag
 } from "lucide-react";
 import { useCart } from "@/lib/cartContext";
+import TBProLogo from "./TBProLogo";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -54,7 +55,6 @@ export default function Navbar() {
           localStorage.setItem("vg_user", JSON.stringify(data.user));
         }
       } else {
-        // Fallback to localStorage user if valid
         const localUser = typeof window !== "undefined" ? localStorage.getItem("vg_user") : null;
         if (localUser) {
           try {
@@ -73,6 +73,9 @@ export default function Navbar() {
 
   useEffect(() => {
     checkUser();
+    const handleAuthEvent = () => checkUser();
+    window.addEventListener("vg-auth-changed", handleAuthEvent);
+    return () => window.removeEventListener("vg-auth-changed", handleAuthEvent);
   }, [pathname]);
 
   // Handle outside click to close dropdowns
@@ -106,75 +109,90 @@ export default function Navbar() {
     }
   };
 
+  // Nav links strictly following prompt:
+  // Home, Shop, LHB Coaches, Train Boards, MSTS & Open Rails, About, Contact
   const navLinks = [
     { name: "Home", href: "/" },
-    { name: "About", href: "/about" },
-    { name: "Projects", href: "/projects" },
     { name: "Shop", href: "/shop" },
-    { name: "Downloads", href: "/downloads" },
+    { name: "LHB Coaches", href: "/coaches" },
     { name: "Train Boards", href: "/trainboards" },
-    { name: "Services", href: "/services" },
+    { name: "MSTS & Open Rails", href: "/msts-openrails" },
+    { name: "About", href: "/about" },
     { name: "Contact", href: "/contact" },
   ];
 
   const notifications = [
     {
       id: "notif-1",
-      title: "Festival Offer Ending Tonight!",
-      desc: "Special discount on all LHB coach sets ends tonight at 11:45 PM.",
+      title: "TB PRO Simulation Platform Live",
+      desc: "Welcome to the upgraded TB PRO Indian Railways simulation platform.",
       time: "Just now",
       isNew: true,
-      link: "/shop"
+      link: "/coaches"
     },
     {
       id: "notif-2",
-      title: "Official Verification Notice",
-      desc: "VG-3D Modelers is the sole authorized publisher. Beware of counterfeit resellers.",
-      time: "2 hours ago",
+      title: "New LHB Coach Updates Available",
+      desc: "Explore high-precision LHB coaching stock with FIAT bogies and authentic sounds.",
+      time: "1 hour ago",
       isNew: true,
-      link: "/"
+      link: "/shop"
     },
     {
       id: "notif-3",
-      title: "WHR Route V2 Ahmedabad Update",
-      desc: "New route upgrade compatible with Open Rails now in shop.",
+      title: "Open Rails & MSTS Compatibility",
+      desc: "All coaches tested and certified for smooth 60 FPS in Open Rails.",
       time: "1 day ago",
       isNew: false,
-      link: "/shop"
+      link: "/msts-openrails"
     }
   ];
 
   return (
-    <header className="w-full bg-[#0B2852] text-white select-none border-b border-[#143B73] shadow-lg sticky top-0 z-40 transition-colors">
-      <div className="max-w-[1080px] mx-auto px-4 pt-4 pb-3 sm:pb-4">
-        {/* Tier 1: Logo, Centered Main Brand Title, Right Actions */}
-        <div className="flex items-center justify-between gap-3 sm:gap-6">
-          {/* Left: Coach Render Logo + VG */}
-          <Link href="/" className="flex flex-col items-center flex-shrink-0 group">
-            <img
-              src="/assets/logo/vg_header_coach.png"
-              alt="VG Coach Render Logo"
-              className="w-[100px] sm:w-[125px] h-auto object-contain transition-transform group-hover:scale-105"
-            />
-            <span className="font-josefin text-[17px] font-light tracking-widest text-white leading-tight">
-              VG
-            </span>
-            <span className="font-josefin text-[9px] font-light text-white/80 tracking-wide text-center">
-              -3D Modelers & Railway Simulations
-            </span>
+    <header className="w-full bg-[#101D35] text-white select-none border-b border-[#174EA6]/40 shadow-xl sticky top-0 z-40 transition-colors">
+      {/* Top micro announcement bar */}
+      <div className="w-full bg-gradient-to-r from-[#101D35] via-[#174EA6] to-[#101D35] py-1 px-4 text-center text-[11px] sm:text-xs font-medium text-slate-200 border-b border-white/10 hidden sm:block">
+        <span className="text-[#00B8D9] font-bold">TB PRO SIMULATION</span>
+        <span className="mx-2">•</span>
+        <span>High-Precision Indian Railways Rolling Stock for Open Rails & MSTS</span>
+        <span className="mx-2">•</span>
+        <span className="text-[#FF6B00] font-semibold">Instant Digital Download</span>
+      </div>
+
+      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 py-3">
+        {/* Main Tier: Logo, Navigation, Actions */}
+        <div className="flex items-center justify-between gap-4">
+          {/* Brand Logo */}
+          <Link href="/" className="flex items-center group flex-shrink-0">
+            <TBProLogo size="md" />
           </Link>
 
-          {/* Center: Large Website Title */}
-          <div className="hidden md:flex flex-1 justify-center px-2">
-            <Link href="/" className="text-center group">
-              <h1 className="font-josefin text-[28px] lg:text-[36px] xl:text-[40px] font-extralight tracking-wide text-white leading-tight transition-colors group-hover:text-[#A7D2F7]">
-                VG-3D Modelers & Railway Simulations
-              </h1>
-            </Link>
-          </div>
+          {/* Desktop Navigation Links */}
+          <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
+            {navLinks.map((link) => {
+              const isActive =
+                link.href === "/"
+                  ? pathname === "/"
+                  : pathname === link.href || pathname.startsWith(`${link.href}/`);
 
-          {/* Right: Notifications, User Profile / Account Dropdown, Shopping Bag */}
-          <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+              return (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className={`font-josefin text-[13.5px] xl:text-[14.5px] font-medium px-3.5 py-1.5 rounded-lg transition-all duration-200 ${
+                    isActive
+                      ? "bg-[#174EA6] text-white font-semibold shadow-md border border-[#00B8D9]/40 text-[#00B8D9]"
+                      : "text-slate-200 hover:text-white hover:bg-white/10"
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Right Action Icons: Notifications, User, Cart, Mobile Toggle */}
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             {/* Notification Bell */}
             <div className="relative" ref={notifDropdownRef}>
               <button
@@ -183,23 +201,23 @@ export default function Navbar() {
                   setHasUnreadNotifications(false);
                 }}
                 aria-label="View notifications"
-                className="relative p-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-colors focus:outline-none"
+                className="relative p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors focus:outline-none"
               >
-                <Bell className="w-5 h-5 sm:w-6 sm:h-6" />
+                <Bell className="w-5 h-5" />
                 {hasUnreadNotifications && (
-                  <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-[#39FF00] rounded-full ring-2 ring-[#0B2852] animate-pulse"></span>
+                  <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-[#00B8D9] rounded-full ring-2 ring-[#101D35] animate-pulse"></span>
                 )}
               </button>
 
               {/* Notification Popover */}
               {isNotificationsOpen && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white text-[#101C32] rounded-xl shadow-2xl border border-gray-200 py-3 z-50 animate-in fade-in slide-in-from-top-2">
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white text-[#172033] rounded-xl shadow-2xl border border-gray-200 py-3 z-50 animate-in fade-in slide-in-from-top-2">
                   <div className="flex items-center justify-between px-4 pb-2 border-b border-gray-100">
                     <div className="flex items-center gap-2">
-                      <Bell className="w-4 h-4 text-[#0B2852]" />
-                      <span className="font-josefin font-semibold text-[15px]">Announcements & Updates</span>
+                      <Bell className="w-4 h-4 text-[#174EA6]" />
+                      <span className="font-josefin font-semibold text-[15px]">TB PRO Announcements</span>
                     </div>
-                    <span className="text-[11px] bg-[#A7D2F7]/40 text-[#0B2852] px-2 py-0.5 rounded-full font-medium">
+                    <span className="text-[11px] bg-[#00B8D9]/15 text-[#174EA6] px-2 py-0.5 rounded-full font-bold">
                       Official
                     </span>
                   </div>
@@ -210,16 +228,16 @@ export default function Navbar() {
                         key={n.id}
                         href={n.link}
                         onClick={() => setIsNotificationsOpen(false)}
-                        className="block px-4 py-2.5 hover:bg-[#F5F6F8] transition-colors"
+                        className="block px-4 py-2.5 hover:bg-[#F4F7FB] transition-colors"
                       >
                         <div className="flex items-center justify-between">
-                          <p className="font-josefin text-[13px] font-semibold text-[#101C32] flex items-center gap-1.5">
-                            {n.isNew && <Sparkles className="w-3.5 h-3.5 text-[#39FF00]" />}
+                          <p className="font-josefin text-[13px] font-semibold text-[#172033] flex items-center gap-1.5">
+                            {n.isNew && <Sparkles className="w-3.5 h-3.5 text-[#00B8D9]" />}
                             {n.title}
                           </p>
-                          <span className="text-[10px] text-gray-600">{n.time}</span>
+                          <span className="text-[10px] text-gray-500">{n.time}</span>
                         </div>
-                        <p className="font-josefin text-[12px] text-gray-700 mt-0.5 line-clamp-2">
+                        <p className="font-josefin text-[12px] text-gray-600 mt-0.5 line-clamp-2">
                           {n.desc}
                         </p>
                       </Link>
@@ -230,9 +248,9 @@ export default function Navbar() {
                     <Link
                       href="/shop"
                       onClick={() => setIsNotificationsOpen(false)}
-                      className="text-[12px] text-[#0B2852] font-semibold hover:underline"
+                      className="text-[12px] text-[#174EA6] font-semibold hover:underline"
                     >
-                      Browse All Simulation Add-ons →
+                      Browse All Simulation Assets →
                     </Link>
                   </div>
                 </div>
@@ -244,21 +262,21 @@ export default function Navbar() {
               <div className="relative" ref={userDropdownRef}>
                 <button
                   onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                  className="flex items-center gap-2 text-white hover:text-[#39FF00] font-josefin text-[15px] sm:text-[16px] font-medium transition-colors focus:outline-none bg-white/10 px-3 py-1.5 rounded-full"
+                  className="flex items-center gap-2 text-white hover:text-[#00B8D9] font-josefin text-[14px] sm:text-[15px] font-medium transition-colors focus:outline-none bg-white/10 hover:bg-white/15 px-3 py-1.5 rounded-lg border border-white/10"
                 >
-                  <div className="w-6 h-6 rounded-full bg-[#39FF00] text-[#101C32] flex items-center justify-center font-bold text-xs">
+                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#00B8D9] to-[#174EA6] text-white flex items-center justify-center font-bold text-xs shadow-sm">
                     {currentUser.name.charAt(0).toUpperCase()}
                   </div>
-                  <span className="hidden md:inline max-w-[120px] truncate">{currentUser.name}</span>
-                  <ChevronDown className="w-3.5 h-3.5 text-gray-300" />
+                  <span className="hidden md:inline max-w-[110px] truncate">{currentUser.name}</span>
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-300" />
                 </button>
 
                 {isUserDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white text-[#101C32] rounded-xl shadow-2xl border border-gray-200 py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                  <div className="absolute right-0 mt-2 w-56 bg-white text-[#172033] rounded-xl shadow-2xl border border-gray-200 py-2 z-50 animate-in fade-in slide-in-from-top-2">
                     <div className="px-4 py-2 border-b border-gray-100">
-                      <p className="text-xs text-gray-700 font-josefin">Signed in as</p>
-                      <p className="text-sm font-semibold truncate font-josefin text-[#0B2852]">{currentUser.name}</p>
-                      <span className="text-[10px] bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-bold">
+                      <p className="text-xs text-gray-500 font-josefin">Signed in as</p>
+                      <p className="text-sm font-semibold truncate font-josefin text-[#101D35]">{currentUser.name}</p>
+                      <span className="text-[10px] bg-blue-100 text-[#174EA6] px-2 py-0.5 rounded-full font-bold">
                         {currentUser.role}
                       </span>
                     </div>
@@ -267,9 +285,9 @@ export default function Navbar() {
                       <Link
                         href="/admin"
                         onClick={() => setIsUserDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-4 py-2 text-sm text-[#0B2852] hover:bg-gray-100 font-josefin font-semibold"
+                        className="flex items-center gap-2.5 px-4 py-2 text-sm text-[#101D35] hover:bg-gray-100 font-josefin font-semibold"
                       >
-                        <LayoutDashboard className="w-4 h-4 text-red-600" />
+                        <LayoutDashboard className="w-4 h-4 text-[#FF6B00]" />
                         Admin Dashboard
                       </Link>
                     )}
@@ -305,79 +323,42 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="flex items-center gap-2 text-white hover:text-[#39FF00] font-josefin text-[15px] sm:text-[16px] font-medium bg-white/10 hover:bg-white/20 px-3.5 py-1.5 rounded-full transition-all"
+                className="flex items-center gap-1.5 text-white hover:text-[#00B8D9] font-josefin text-[13.5px] sm:text-[14.5px] font-semibold bg-white/10 hover:bg-white/20 px-3.5 py-1.5 rounded-lg border border-white/15 transition-all"
               >
-                <div className="w-5 h-5 rounded-full border border-white flex items-center justify-center">
-                  <User className="w-3 h-3 text-white" />
-                </div>
-                <span>Log In</span>
+                <User className="w-4 h-4 text-[#00B8D9]" />
+                <span>Login</span>
               </Link>
             )}
 
-            {/* Custom Green Shopping Bag with Item Counter */}
+            {/* Shopping Cart Button */}
             <button
               onClick={() => setIsCartDrawerOpen(true)}
               aria-label="View shopping cart"
-              className="relative flex items-center justify-center transition-transform hover:scale-105 ml-1"
+              className="relative flex items-center justify-center p-2 rounded-lg bg-gradient-to-r from-[#174EA6] to-[#101D35] hover:from-[#00B8D9] hover:to-[#174EA6] text-white border border-[#00B8D9]/40 shadow-sm transition-all"
             >
-              <div className="w-[36px] h-[40px] bg-[#39FF00] rounded-b-md rounded-t-sm flex items-center justify-center relative shadow-md">
-                {/* Bag Handle */}
-                <div className="absolute -top-2.5 w-4 h-3.5 border-2 border-[#39FF00] rounded-t-full bg-transparent"></div>
-                {/* Item Count */}
-                <span className="font-josefin font-bold text-[#101C32] text-[15px] pt-1">
+              <ShoppingBag className="w-5 h-5 text-white" />
+              {itemCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-[20px] px-1 bg-[#FF6B00] text-white rounded-full font-josefin font-bold text-[11px] flex items-center justify-center shadow-md animate-scale">
                   {itemCount}
                 </span>
-              </div>
+              )}
             </button>
 
             {/* Mobile Hamburger Menu Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               aria-label="Toggle mobile navigation menu"
-              className="lg:hidden text-white p-1 hover:text-[#39FF00] focus:outline-none ml-1"
+              className="lg:hidden text-slate-200 hover:text-white p-2 rounded-lg hover:bg-white/10 focus:outline-none"
             >
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
-
-        {/* Mobile Title */}
-        <div className="md:hidden text-center mt-2.5 pt-2 border-t border-white/10">
-          <Link href="/">
-            <h1 className="font-josefin text-[20px] sm:text-[24px] font-extralight tracking-wide text-white">
-              VG-3D Modelers & Railway Simulations
-            </h1>
-          </Link>
-        </div>
-
-        {/* Tier 2: Navigation Buttons (White Rounded Buttons with Bright Green Active State) */}
-        <nav className="hidden lg:flex items-center justify-center gap-2 xl:gap-3 mt-4 pt-3 border-t border-white/15">
-          {navLinks.map((link) => {
-            const isActive =
-              link.href === "/"
-                ? pathname === "/"
-                : pathname === link.href || pathname.startsWith(`${link.href}/`);
-
-            return (
-              <Link
-                key={link.name}
-                href={link.href}
-                className={`font-josefin font-medium text-[14px] px-5 py-1.5 rounded-full shadow-sm transition-all duration-200 ${
-                  isActive
-                    ? "bg-[#39FF00] text-[#101C32] font-semibold shadow-md scale-105"
-                    : "bg-white text-[#101C32] hover:bg-[#39FF00] hover:text-[#101C32] hover:shadow"
-                }`}
-              >
-                {link.name}
-              </Link>
-            );
-          })}
-        </nav>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* Mobile Navigation Drawer */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden bg-[#081d3d] border-t border-white/15 px-4 py-4 space-y-2 animate-in slide-in-from-top-2">
+        <div className="lg:hidden bg-[#0B1527] border-t border-white/15 px-4 py-4 space-y-1.5 animate-in slide-in-from-top-2">
           {navLinks.map((link) => {
             const isActive =
               link.href === "/"
@@ -389,10 +370,10 @@ export default function Navbar() {
                 key={link.name}
                 href={link.href}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className={`block font-josefin text-[15px] px-5 py-2.5 rounded-full transition-all text-center ${
+                className={`block font-josefin text-[15px] px-4 py-2.5 rounded-lg transition-all ${
                   isActive
-                    ? "bg-[#39FF00] text-[#101C32] font-semibold shadow-md"
-                    : "bg-white text-[#101C32] hover:bg-[#39FF00]"
+                    ? "bg-[#174EA6] text-[#00B8D9] font-bold border-l-4 border-[#00B8D9]"
+                    : "text-slate-200 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 {link.name}

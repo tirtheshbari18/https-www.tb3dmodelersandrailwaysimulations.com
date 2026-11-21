@@ -400,20 +400,20 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
   });
 
   return (
-    <div className="w-full bg-[#F5F6F8] min-h-[90vh] py-10 px-4 sm:px-6 lg:px-8 font-josefin text-[#101C32]">
+    <div className="w-full bg-[#F4F7FB] min-h-[90vh] py-10 px-4 sm:px-6 lg:px-8 font-josefin text-[#172033]">
       {/* Toast */}
       {toastMsg && (
         <div
           className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl shadow-2xl text-xs font-semibold flex items-center gap-2 border transition-all ${
             toastMsg.isError
               ? "bg-rose-900 text-white border-rose-700"
-              : "bg-[#0B2852] text-white border-[#39FF00]"
+              : "bg-[#101D35] text-white border-[#00B8D9]"
           }`}
         >
           {toastMsg.isError ? (
             <AlertCircle className="w-4 h-4 text-rose-300" />
           ) : (
-            <CheckCircle2 className="w-4 h-4 text-[#39FF00]" />
+            <CheckCircle2 className="w-4 h-4 text-[#00B8D9]" />
           )}
           <span>{toastMsg.text}</span>
         </div>
@@ -423,7 +423,7 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
       {deleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200 space-y-4">
-            <h3 className="text-lg font-bold text-[#0B2852]">Confirm Permanent Deletion</h3>
+            <h3 className="text-lg font-bold text-[#101D35]">Confirm Permanent Deletion</h3>
             <p className="text-xs text-gray-600 leading-relaxed">
               Are you sure you want to permanently delete <strong>&quot;{deleteModal.name}&quot;</strong>?
               This will remove the trainboard package from the library immediately.
@@ -493,60 +493,60 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Breadcrumb Navigation */}
         <nav className="flex items-center gap-2 text-xs text-gray-500">
-          <Link href="/" className="hover:text-[#0B2852] flex items-center gap-1 font-medium">
+          <Link href="/" className="hover:text-[#101D35] flex items-center gap-1 font-medium">
             <Home className="w-3.5 h-3.5" />
             <span>Home</span>
           </Link>
           <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
-          <Link href="/downloads" className="hover:text-[#0B2852] font-medium">
+          <Link href="/downloads" className="hover:text-[#101D35] font-medium">
             Downloads
           </Link>
           <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
-          <span className="font-semibold text-[#0B2852]">Train Boards</span>
+          <span className="font-semibold text-[#101D35]">Train Boards</span>
           {selectedZone !== "ALL" && (
             <>
               <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
-              <span className="font-bold text-[#0B2852]">{selectedZone}</span>
+              <span className="font-bold text-[#101D35]">{selectedZone}</span>
             </>
           )}
         </nav>
 
         {/* Header Banner */}
-        <div className="bg-[#0B2852] text-white p-7 sm:p-9 rounded-2xl shadow-xl space-y-3">
+        <div className="bg-[#101D35] text-white p-7 sm:p-9 rounded-2xl shadow-xl space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#39FF00] bg-white/10 px-3 py-1 rounded-full">
-                Public Trainboard Library
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#00B8D9] bg-white/10 px-3 py-1 rounded-full">
+                Official Simulation Trainboard Library
               </span>
               <h1 className="text-3xl sm:text-4xl font-light tracking-wide text-white mt-2">
-                VG LHB Train Boards
+                TB PRO Indian Railways Train Boards
               </h1>
             </div>
             <Link
               href="/downloads"
-              className="inline-flex items-center gap-2 text-xs font-bold text-white hover:text-[#39FF00] transition-colors self-start sm:self-auto bg-white/10 px-4 py-2 rounded-full border border-white/20"
+              className="inline-flex items-center gap-2 text-xs font-bold text-white hover:text-[#00B8D9] transition-colors self-start sm:self-auto bg-white/10 px-4 py-2 rounded-full border border-white/20"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to Downloads Center</span>
             </Link>
           </div>
 
-          <p className="text-sm sm:text-base text-[#A7D2F7] leading-relaxed max-w-3xl">
-            This page contains train boards for VG LHB Coaches. Download and extract them to your Open Rails / MSTS trainset folder.
+          <p className="text-sm sm:text-base text-[#A0C4E8] leading-relaxed max-w-3xl">
+            Official collection of high-resolution bilingual train boards, destination boards, and coach nameplates for TB PRO LHB coaches. Fully compatible with Open Rails & MSTS trainsets.
           </p>
         </div>
 
         {/* Visible Admin Management Toolbar for Train Boards */}
         {currentUser && (
-          <div className="bg-[#0B2852] text-white p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 shadow-xl border-2 border-[#39FF00]">
+          <div className="bg-[#101D35] text-white p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 shadow-xl border-2 border-[#00B8D9]">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#39FF00]/20 text-[#39FF00] flex items-center justify-center font-bold">
+              <div className="w-10 h-10 rounded-full bg-[#00B8D9]/20 text-[#00B8D9] flex items-center justify-center font-bold">
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="font-bold text-sm tracking-wide uppercase">Train Boards Admin Mode</h3>
-                  <span className="px-2 py-0.5 rounded-full bg-[#39FF00] text-[#101C32] text-[10px] font-bold uppercase">
+                  <span className="px-2 py-0.5 rounded-full bg-[#00B8D9] text-[#172033] text-[10px] font-bold uppercase">
                     Live
                   </span>
                 </div>
@@ -563,7 +563,7 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
                   type="button"
                   onClick={() => setIsAdminMode(!isAdminMode)}
                   className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                    isAdminMode ? "bg-[#39FF00] text-[#101C32]" : "bg-gray-400 text-white"
+                    isAdminMode ? "bg-[#00B8D9] text-[#172033]" : "bg-gray-400 text-white"
                   }`}
                 >
                   {isAdminMode ? "ON" : "OFF (Visitor View)"}
@@ -577,7 +577,7 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
                     setEditingTrainboard(null);
                     setIsAddTrainboardOpen(true);
                   }}
-                  className="px-4 py-2 bg-[#39FF00] text-[#101C32] hover:bg-white rounded-full font-bold text-xs flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
+                  className="px-4 py-2 bg-[#00B8D9] text-[#172033] hover:bg-white rounded-full font-bold text-xs flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
                 >
                   <Plus className="w-4 h-4 stroke-[3]" />
                   Add Train Board (+)
@@ -597,7 +597,7 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search trainboards by train number, name or zone (e.g. 12010, Shatabdi, WR)..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#0B2852]"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#174EA6]"
               />
               <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
             </div>
@@ -617,19 +617,19 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
                 onClick={() => setSelectedZone(z.code)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                   selectedZone === z.code
-                    ? "bg-[#0B2852] text-white shadow-md"
+                    ? "bg-[#101D35] text-white shadow-md"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
                 {selectedZone === z.code ? (
-                  <FolderOpen className="w-4 h-4 text-[#39FF00]" />
+                  <FolderOpen className="w-4 h-4 text-[#00B8D9]" />
                 ) : (
                   <Folder className="w-4 h-4 text-gray-500" />
                 )}
                 <span>{z.name}</span>
                 <span
                   className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                    selectedZone === z.code ? "bg-[#39FF00] text-[#0B2852]" : "bg-gray-200 text-gray-700"
+                    selectedZone === z.code ? "bg-[#00B8D9] text-[#101D35]" : "bg-gray-200 text-gray-700"
                   }`}
                 >
                   {z.count}
@@ -643,7 +643,7 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="p-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
             <span className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
-              <HardDrive className="w-4 h-4 text-[#0B2852]" />
+              <HardDrive className="w-4 h-4 text-[#101D35]" />
               Directory Contents &bull; {selectedZone === "ALL" ? "All Zones" : selectedZone}
             </span>
             <span className="text-xs text-gray-500 font-mono">Format: .ZIP</span>
@@ -657,7 +657,7 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
                   setSelectedZone("ALL");
                   setSearchQuery("");
                 }}
-                className="text-xs font-bold text-[#0B2852] underline"
+                className="text-xs font-bold text-[#101D35] underline"
               >
                 Reset filters
               </button>
@@ -674,7 +674,7 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
                     className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-blue-50/50 transition-colors"
                   >
                     <div className="flex items-start sm:items-center gap-3.5 flex-1">
-                      <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#0B2852] flex items-center justify-center flex-shrink-0 border border-blue-100 shadow-sm">
+                      <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#101D35] flex items-center justify-center flex-shrink-0 border border-blue-100 shadow-sm">
                         {file.image ? (
                           <img src={file.image} alt={file.name} className="w-full h-full object-cover rounded-xl" />
                         ) : (
@@ -683,7 +683,7 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
                       </div>
                       <div className="space-y-1 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-bold text-sm sm:text-base text-[#0B2852] hover:text-blue-700 transition-colors">
+                          <span className="font-bold text-sm sm:text-base text-[#101D35] hover:text-blue-700 transition-colors">
                             {file.name}
                           </span>
                           {isOutOfStock && (
@@ -732,7 +732,7 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
                         <a
                           href={file.downloadUrl}
                           download
-                          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] font-bold text-xs uppercase tracking-wider transition-all duration-200 shadow-md flex-shrink-0"
+                          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] font-bold text-xs uppercase tracking-wider transition-all duration-200 shadow-md flex-shrink-0"
                         >
                           <Download className="w-4 h-4" />
                           <span>Download ZIP</span>
@@ -742,9 +742,9 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
                       {/* Admin Controls on Item */}
                       {currentUser && isAdminMode && (
                         <div className="flex flex-col gap-1.5 p-2 bg-blue-50/80 rounded-xl border border-blue-200 mt-2 sm:mt-0 shadow-xs">
-                          <div className="flex items-center justify-between gap-2 text-[10px] font-bold text-[#0B2852] pb-1 border-b border-blue-200">
+                          <div className="flex items-center justify-between gap-2 text-[10px] font-bold text-[#101D35] pb-1 border-b border-blue-200">
                             <span className="flex items-center gap-1">
-                              <ShieldCheck className="w-3 h-3 text-[#0B2852]" />
+                              <ShieldCheck className="w-3 h-3 text-[#101D35]" />
                               Admin Controls
                             </span>
                             <span className="font-mono text-gray-500 text-[9px]">Order: {file.displayOrder || 0}</span>
@@ -755,7 +755,7 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
                             <button
                               type="button"
                               onClick={() => setEditingTrainboard(file)}
-                              className="px-2 py-1 rounded bg-[#0B2852] text-white hover:bg-black font-bold text-[10px] flex items-center gap-1 transition-colors cursor-pointer shadow-xs"
+                              className="px-2 py-1 rounded bg-[#101D35] text-white hover:bg-black font-bold text-[10px] flex items-center gap-1 transition-colors cursor-pointer shadow-xs"
                               title="Edit Full Details"
                             >
                               <Edit className="w-3 h-3" />
@@ -765,7 +765,7 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
                             <button
                               type="button"
                               onClick={() => setRenameModalTb(file)}
-                              className="px-2 py-1 rounded bg-white border border-gray-300 text-gray-800 hover:border-[#0B2852] font-bold text-[10px] flex items-center gap-1 transition-colors cursor-pointer shadow-xs"
+                              className="px-2 py-1 rounded bg-white border border-gray-300 text-gray-800 hover:border-[#174EA6] font-bold text-[10px] flex items-center gap-1 transition-colors cursor-pointer shadow-xs"
                               title="Rename Train Board"
                             >
                               Rename
@@ -863,13 +863,13 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
 
         {/* Installation Instructions */}
         <div className="p-6 bg-[#ECE8F8] border border-[#D8CEF6] rounded-2xl text-[#2A1E68] text-xs sm:text-sm space-y-3">
-          <div className="flex items-center gap-2 font-bold text-[#0B2852]">
-            <Info className="w-5 h-5 text-[#0B2852]" />
+          <div className="flex items-center gap-2 font-bold text-[#101D35]">
+            <Info className="w-5 h-5 text-[#101D35]" />
             <span>How to Install Train Boards</span>
           </div>
           <ol className="list-decimal list-inside space-y-1 text-gray-700 leading-relaxed">
             <li>Download the trainboard ZIP file corresponding to your preferred train service.</li>
-            <li>Extract the contained texture files (e.g., <code>.ACE</code> or <code>.DDS</code>) to your VG LHB coach directory: <code>TRAINSET/VG_LHB_COACHES/TRAINBOARDS/</code>.</li>
+            <li>Extract the contained texture files (e.g., <code>.ACE</code> or <code>.DDS</code>) to your TB PRO LHB coach directory: <code>TRAINSET/TB_PRO_LHB_COACHES/TRAINBOARDS/</code>.</li>
             <li>Open Rails or MSTS will automatically render the customized bilingual destination plates on the coach sideboards.</li>
           </ol>
         </div>
@@ -971,7 +971,7 @@ function TrainboardDialog({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
       <div className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-gray-200 space-y-4 text-xs font-josefin">
         <div className="flex items-center justify-between border-b pb-3">
-          <h3 className="text-xl font-bold text-[#0B2852]">
+          <h3 className="text-xl font-bold text-[#101D35]">
             {trainboard ? `Edit Trainboard: ${trainboard.name}` : "Add New Trainboard Package"}
           </h3>
           <button onClick={onClose} className="p-1 rounded text-gray-400 hover:text-gray-700">
@@ -990,7 +990,7 @@ function TrainboardDialog({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. 12010 Ahmedabad Shatabdi Express.zip"
-              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
             />
           </div>
 
@@ -1000,7 +1000,7 @@ function TrainboardDialog({
               <select
                 value={zone}
                 onChange={(e) => handleZoneSelect(e.target.value)}
-                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
               >
                 {Object.keys(zonePresets).map((z) => (
                   <option key={z} value={z}>
@@ -1016,7 +1016,7 @@ function TrainboardDialog({
                 value={size}
                 onChange={(e) => setSize(e.target.value)}
                 placeholder="2.5 MB"
-                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
               />
             </div>
           </div>
@@ -1028,7 +1028,7 @@ function TrainboardDialog({
                 type="number"
                 value={regularPrice}
                 onChange={(e) => setRegularPrice(parseFloat(e.target.value) || 0)}
-                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
               />
             </div>
             <div>
@@ -1036,7 +1036,7 @@ function TrainboardDialog({
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+                className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
               >
                 <option value="AVAILABLE">Available / In Stock</option>
                 <option value="OUT_OF_STOCK">Out of Stock</option>
@@ -1052,7 +1052,7 @@ function TrainboardDialog({
               value={downloadUrl}
               onChange={(e) => setDownloadUrl(e.target.value)}
               placeholder="/downloads/trainboards/WR/filename.zip"
-              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
             />
           </div>
 
@@ -1067,7 +1067,7 @@ function TrainboardDialog({
                 placeholder="Image URL or upload from disk"
                 className="flex-1 p-2 border rounded-lg text-xs"
               />
-              <label className="px-3 py-2 bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] rounded-lg font-bold cursor-pointer transition-colors flex items-center gap-1.5 text-xs whitespace-nowrap">
+              <label className="px-3 py-2 bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] rounded-lg font-bold cursor-pointer transition-colors flex items-center gap-1.5 text-xs whitespace-nowrap">
                 <Upload className="w-3.5 h-3.5" />
                 {isUploading ? "Uploading..." : "Upload Image"}
                 <input
@@ -1088,7 +1088,7 @@ function TrainboardDialog({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="High-definition bilingual trainboard set for Open Rails / MSTS coaches"
-              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#0B2852]"
+              className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
             />
           </div>
 
@@ -1102,7 +1102,7 @@ function TrainboardDialog({
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] font-bold uppercase transition-all shadow-md"
+              className="flex-1 py-2.5 rounded-full bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] font-bold uppercase transition-all shadow-md"
             >
               {trainboard ? "Save Trainboard" : "Add Trainboard"}
             </button>
@@ -1129,7 +1129,7 @@ function RenameTrainboardModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
       <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200 space-y-4 font-josefin text-xs">
         <div className="flex items-center justify-between border-b pb-3">
-          <h3 className="text-base font-bold text-[#0B2852]">Rename Train Board</h3>
+          <h3 className="text-base font-bold text-[#101D35]">Rename Train Board</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X className="w-5 h-5" />
           </button>
@@ -1149,7 +1149,7 @@ function RenameTrainboardModal({
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full p-2.5 border rounded-lg text-sm text-[#101C32] focus:ring-2 focus:ring-[#0B2852]"
+              className="w-full p-2.5 border rounded-lg text-sm text-[#172033] focus:ring-2 focus:ring-[#174EA6]"
             />
           </div>
 
@@ -1163,7 +1163,7 @@ function RenameTrainboardModal({
             </button>
             <button
               type="submit"
-              className="flex-1 py-2 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] font-bold uppercase transition-all"
+              className="flex-1 py-2 rounded-full bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] font-bold uppercase transition-all"
             >
               Save Rename
             </button>
@@ -1215,7 +1215,7 @@ function TrainboardImageModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
       <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200 space-y-4 font-josefin text-xs">
         <div className="flex items-center justify-between border-b pb-3">
-          <h3 className="text-base font-bold text-[#0B2852]">
+          <h3 className="text-base font-bold text-[#101D35]">
             Upload / Replace Train Board Image
           </h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
@@ -1243,7 +1243,7 @@ function TrainboardImageModal({
               const file = e.target.files?.[0];
               if (file) handleFileUpload(file);
             }}
-            className="w-full text-xs text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#0B2852] file:text-white hover:file:bg-[#39FF00] hover:file:text-[#101C32] cursor-pointer"
+            className="w-full text-xs text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#101D35] file:text-white hover:file:bg-[#00B8D9] hover:file:text-[#172033] cursor-pointer"
           />
         </div>
 
@@ -1254,7 +1254,7 @@ function TrainboardImageModal({
             value={image}
             onChange={(e) => setImage(e.target.value)}
             placeholder="/assets/products/... or https://..."
-            className="w-full p-2 border rounded font-mono text-xs text-[#101C32]"
+            className="w-full p-2 border rounded font-mono text-xs text-[#172033]"
           />
         </div>
 
@@ -1270,7 +1270,7 @@ function TrainboardImageModal({
             type="button"
             disabled={isUploading}
             onClick={() => onSave(image)}
-            className="flex-1 py-2 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] font-bold uppercase transition-all disabled:opacity-50"
+            className="flex-1 py-2 rounded-full bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] font-bold uppercase transition-all disabled:opacity-50"
           >
             {isUploading ? "Uploading..." : "Save Image"}
           </button>
@@ -1312,7 +1312,7 @@ function TrainboardPriceOfferModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
       <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200 space-y-4 font-josefin text-xs">
         <div className="flex items-center justify-between border-b pb-3">
-          <h3 className="text-base font-bold text-[#0B2852]">
+          <h3 className="text-base font-bold text-[#101D35]">
             Price & Special Offer: {trainboard.name}
           </h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
@@ -1329,7 +1329,7 @@ function TrainboardPriceOfferModal({
             min={0}
             value={regularPrice}
             onChange={(e) => setRegularPrice(parseFloat(e.target.value) || 0)}
-            className="w-full p-2.5 border rounded-lg text-sm text-[#101C32]"
+            className="w-full p-2.5 border rounded-lg text-sm text-[#172033]"
           />
         </div>
 
@@ -1363,7 +1363,7 @@ function TrainboardPriceOfferModal({
                   onChange={(e) => setDiscountPercent(parseInt(e.target.value, 10))}
                   className="w-full accent-[#FF6600]"
                 />
-                <div className="flex justify-between text-xs font-semibold pt-2 text-[#0B2852]">
+                <div className="flex justify-between text-xs font-semibold pt-2 text-[#101D35]">
                   <span>Discounted Price:</span>
                   <span className="text-[#FF6600] font-bold text-sm">
                     ₹{calculatedSalePrice?.toFixed(2)}
@@ -1392,7 +1392,7 @@ function TrainboardPriceOfferModal({
                 isSpecialOffer
               )
             }
-            className="flex-1 py-2 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] font-bold uppercase transition-all shadow-md"
+            className="flex-1 py-2 rounded-full bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] font-bold uppercase transition-all shadow-md"
           >
             Save Price & Offer
           </button>

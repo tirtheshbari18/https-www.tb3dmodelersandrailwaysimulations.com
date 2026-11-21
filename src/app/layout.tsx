@@ -8,36 +8,48 @@ import AntiPiracyModal from "@/components/AntiPiracyModal";
 import { CartProvider } from "@/lib/cartContext";
 
 export const metadata: Metadata = {
-  title: "VG-3D Modelers & Railway Simulations | Varun Ganesh",
+  title: "TB PRO | Indian Railways • LHB Coaches • MSTS • Open Rails",
   description:
-    "Official website of VG-3D Modelers & Railway Simulations. Home of authentic VG LHB Coaches, Vistadome, Sleeper, Chaircar, and 3D Route assets for Open Rails & MSTS.",
+    "Experience Indian Railways like never before with TB PRO. Official home of authentic Indian Railways LHB Coaches, Vistadome, Sleeper, Chair Car, WAP-7 electric locomotives, and 3D Route assets for Open Rails & MSTS.",
   keywords: [
-    "VG-3D Modelers",
-    "Varun Ganesh",
-    "Railway Simulations",
+    "TB PRO",
+    "Indian Railways",
+    "LHB Coaches",
     "Open Rails Train Simulator",
     "MSTS",
-    "VG LHB Coaches",
+    "Microsoft Train Simulator",
     "Indian Railways 3D Models",
     "LHB Vistadome",
     "Shatabdi Express Addons",
     "Rajdhani Express MSTS",
-    "Train Simulator Addons"
+    "Train Simulator Addons",
+    "WAP-7 Locomotive",
+    "Trainboards"
   ],
-  authors: [{ name: "Varun Ganesh" }],
-  creator: "Varun Ganesh",
-  publisher: "VG-3D Modelers & Railway Simulations",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://vg3dmodelersandrailwaysimulations.com"),
+  authors: [{ name: "TB PRO" }],
+  creator: "TB PRO",
+  publisher: "TB PRO Railway Simulations",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://tb3dmodelersandrailwaysimulations.com"),
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://vg3dmodelersandrailwaysimulations.com",
-    title: "VG-3D Modelers & Railway Simulations",
-    description: "High-precision 3D rolling stock & route assets for Open Rails & MSTS by Varun Ganesh.",
-    siteName: "VG-3D Modelers & Railway Simulations",
+    url: "https://tb3dmodelersandrailwaysimulations.com",
+    title: "TB PRO | Indian Railways • LHB Coaches • MSTS • Open Rails",
+    description: "High-precision Indian Railways 3D rolling stock & route assets for Open Rails & MSTS by TB PRO.",
+    siteName: "TB PRO",
+    images: [
+      {
+        url: "/assets/tbpro/hero_lhb_train.jpg",
+        width: 1200,
+        height: 630,
+        alt: "TB PRO Indian Railways LHB Train Simulation",
+      },
+    ],
   },
   icons: {
-    icon: "/favicon.ico",
+    icon: "/assets/tbpro/tbpro_logo.svg",
+    shortcut: "/assets/tbpro/tbpro_logo.svg",
+    apple: "/assets/tbpro/tbpro_logo.svg",
   },
 };
 
@@ -48,7 +60,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className="min-h-screen flex flex-col bg-white text-[#101C32] antialiased font-josefin">
+      <body className="min-h-screen flex flex-col bg-[#F4F7FB] text-[#172033] antialiased font-josefin selection:bg-[#00B8D9] selection:text-[#101D35]">
         <CartProvider>
           <AntiPiracyModal />
           <Navbar />

@@ -1,113 +1,49 @@
 /**
- * VG-3D MODELERS & RAILWAY SIMULATIONS
- * DESIGN TOKEN SYSTEM — JOSEFIN SANS & SCREENSHOT-BASED PALETTE
+ * TB PRO — INDIAN RAILWAYS • LHB COACHES • MSTS • OPEN RAILS
+ * DESIGN TOKEN SYSTEM
  */
 
 :root {
   /* =========================================================================
      1. FONT FAMILIES
      ========================================================================= */
-  --font-brand-primary: 'Josefin Sans', 'futura-lt-w01-book', 'Century Gothic', Arial, sans-serif;
-  --font-brand-light: 'Josefin Sans', 'futura-lt-w01-light', 'Century Gothic', Arial, sans-serif;
-  --font-sans-bold: 'Josefin Sans', 'helvetica-w01-bold', 'Helvetica Neue', Arial, sans-serif;
-  --font-sans-roman: 'Josefin Sans', 'helvetica-w01-roman', 'Helvetica Neue', Arial, sans-serif;
-  --font-sans-light: 'Josefin Sans', 'avenir-lt-w01_35-light1475496', 'Avenir', Arial, sans-serif;
+  --font-brand-primary: 'Josefin Sans', 'Century Gothic', Arial, sans-serif;
+  --font-brand-light: 'Josefin Sans', 'Century Gothic', Arial, sans-serif;
+  --font-sans-bold: 'Josefin Sans', 'Helvetica Neue', Arial, sans-serif;
   --font-system-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   /* =========================================================================
-     2. FONT WEIGHTS
+     2. TB PRO OFFICIAL COLOR PALETTE
      ========================================================================= */
-  --weight-thin: 100;
-  --weight-extralight: 200;
-  --weight-light: 300;
-  --weight-regular: 400;
-  --weight-medium: 500;
-  --weight-semibold: 600;
-  --weight-bold: 700;
+  --color-primary-navy: #101D35;          /* Deep Navy Blue */
+  --color-navy-rgb: 16, 29, 53;
+  --color-secondary-blue: #174EA6;       /* Railway Blue */
+  --color-blue-rgb: 23, 78, 166;
+  --color-accent-cyan: #00B8D9;          /* Electric Cyan */
+  --color-cyan-rgb: 0, 184, 217;
+  --color-light-grey: #F4F7FB;           /* Light Grey Background */
+  --color-primary-white: #FFFFFF;        /* Pure White Cards */
+  --color-text-dark: #172033;            /* Dark Charcoal Text */
+  --color-special-offer: #FF6B00;        /* Orange Special Offer */
+  --color-success-green: #16A34A;        /* Success Green */
+  --color-border-light: #E2E8F0;
 
-  /* =========================================================================
-     3. MEASURED FONT SIZES & LINE HEIGHTS
-     ========================================================================= */
-  --font-size-h1-projects: 56px;
-  --line-height-h1-projects: 1.2;
-
-  --font-size-h1-home: 40px;
-  --line-height-h1-home: 54px;
-
-  --font-size-h1-about: 44px;
-  --line-height-h1-about: 54px;
-
-  --font-size-brand-title: 36px;
-  --line-height-brand-title: 48px;
-
-  --font-size-brand-vg: 18px;
-  --line-height-brand-vg: 25.38px;
-
-  --font-size-brand-subtitle: 8px;
-  --line-height-brand-subtitle: 11.28px;
-
-  --font-size-h2-project: 28px;
-  --line-height-h2-project: 1.3;
-
-  --font-size-h2-service: 24px;
-  --line-height-h2-service: normal;
-
-  --font-size-bridge-caption: 20px;
-  --line-height-bridge-caption: 30px;
-
-  --font-size-nav: 14px;
-  --line-height-nav: 28px;
-
-  --font-size-btn-login: 16px;
-  --line-height-btn-login: 28px;
-
-  --font-size-product-title: 16px;
-  --line-height-product-title: 22px;
-
-  --font-size-product-price: 18px;
-  --line-height-product-price: 26px;
-
-  --font-size-footer-brand: 30px;
-  --line-height-footer-brand: normal;
-
-  --font-size-footer-link: 15px;
-  --line-height-footer-link: 28px;
-
-  --font-size-footer-meta: 14px;
-  --line-height-footer-meta: 24px;
-
-  /* =========================================================================
-     4. EXACT SPECIFIED COLOR PALETTE
-     ========================================================================= */
-  --color-primary-navy: #0B2852;          /* Navy Blue */
-  --color-navy-rgb: 11, 40, 82;
-  --color-primary-white: #FFFFFF;         /* Pure White */
-  --color-accent-lightblue: #A7D2F7;      /* Light Blue */
-  --color-accent-green: #39FF00;          /* Bright Green */
-  --color-green-rgb: 57, 255, 0;
-  --color-text-dark: #101C32;             /* Dark Text */
-  --color-light-grey: #F5F6F8;            /* Light Grey */
-  --color-ticker-orange: #FF6600;         /* Orange Announcement Ticker */
-  --color-notice-lavender: #ECE8F8;       /* Notice Popup Lavender */
-  --color-notice-purple: #2A1E68;         /* Notice Popup Purple */
-
-  /* Legacy compatibility aliases */
-  --color-navy-dark: #081d3d;
-  --color-accent-green-hover: #32e000;
-  --color-accent-skyblue: #A7D2F7;
-  --color-accent-gray: #d9d9d9;
-  --color-ticker-red: #d32f2f;
+  /* Backward Compatibility Aliases */
+  --color-accent-lightblue: #00B8D9;
+  --color-accent-green: #00B8D9;
+  --color-green-rgb: 0, 184, 217;
+  --color-ticker-orange: #FF6B00;
+  --color-notice-lavender: #F1F5F9;
+  --color-notice-purple: #174EA6;
+  --color-navy-dark: #0B1527;
+  --color-accent-skyblue: #00B8D9;
   --color-text-white: #FFFFFF;
   --color-text-muted: #64748B;
-  --color-border-light: #E5E7EB;
-  --color-border-gray: #D1D5DB;
 
   /* =========================================================================
-     5. CONTAINER WIDTHS & SPACING
+     3. CONTAINER WIDTHS & SPACING
      ========================================================================= */
-  --container-wix-max: 980px;
-  --header-height-wix: 198px;
-  --footer-min-height-wix: 257px;
-  --section-padding-y: 48px;
-  --section-divider-border: 1px solid #E5E7EB;
+  --container-max: 1200px;
+  --section-padding-y: 56px;
+  --section-divider-border: 1px solid #E2E8F0;
 }

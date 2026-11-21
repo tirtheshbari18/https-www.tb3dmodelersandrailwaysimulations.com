@@ -9,35 +9,51 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // TB PRO Official Color Palette
+        tb: {
+          navy: "#101D35",       // Primary Deep Navy Blue
+          navyDark: "#0B1527",   // Ultra-deep Navy
+          blue: "#174EA6",       // Secondary Railway Blue
+          cyan: "#00B8D9",       // Electric Cyan Accent
+          cyanHover: "#00E5FF",  // Vivid Cyan Hover
+          lightgrey: "#F4F7FB",  // Clean Background
+          card: "#FFFFFF",       // Pure White Cards
+          text: "#172033",       // Dark Charcoal Main Text
+          muted: "#64748B",      // Muted Slate Text
+          offer: "#FF6B00",      // Special Offer Orange
+          success: "#16A34A",    // Success Green
+          border: "#E2E8F0",     // Border Grey
+        },
+        // Backward-compatibility aliases mapped to TB PRO brand colors
         vg: {
-          navy: "#0B2852",
-          navyDark: "#071c3b",
+          navy: "#101D35",
+          navyDark: "#0B1527",
           white: "#FFFFFF",
-          lightblue: "#A7D2F7",
-          green: "#39FF00",
-          darktext: "#101C32",
-          lightgrey: "#F5F6F8",
-          orange: "#FF6600",
-          lavender: "#ECE8F8",
-          purple: "#2A1E68",
-          // Backward compatibility aliases
-          skyblue: "#A7D2F7",
-          gray: "#F5F6F8",
-          border: "#E5E7EB",
-          dark: "#0B2852",
-          text: "#101C32",
-          ticker: "#FF6600",
+          lightblue: "#00B8D9",
+          green: "#00B8D9",
+          darktext: "#172033",
+          lightgrey: "#F4F7FB",
+          orange: "#FF6B00",
+          lavender: "#F1F5F9",
+          purple: "#174EA6",
+          skyblue: "#00B8D9",
+          gray: "#F4F7FB",
+          border: "#E2E8F0",
+          dark: "#101D35",
+          text: "#172033",
+          ticker: "#FF6B00",
         },
         railway: {
-          darkest: "#0B2852",
+          darkest: "#101D35",
           dark: "#0F172A",
           card: "#182234",
-          border: "#28354D",
-          accent: "#D21312",
+          border: "#1E293B",
+          accent: "#FF6B00",
           gold: "#F59E0B",
           silver: "#94A3B8",
-          blue: "#0B2852",
-          teal: "#0D9488",
+          blue: "#174EA6",
+          cyan: "#00B8D9",
+          teal: "#00B8D9",
         },
       },
       fontFamily: {
