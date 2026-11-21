@@ -180,11 +180,11 @@ export default function QuickViewModal({ product, onClose }: QuickViewModalProps
               </button>
 
               <Link
-                href={`/shop/${product.slug}`}
+                href={`/shop/${product.slug || product.id}`}
                 onClick={onClose}
-                className="py-3 px-4 rounded-full bg-[#F5F6F8] hover:bg-gray-200 text-[#0B2852] font-semibold text-xs flex items-center justify-center gap-2 border border-gray-300 transition-colors"
+                className="py-3 px-4 rounded-full bg-[#F5F6F8] hover:bg-[#0B2852] hover:text-white text-[#0B2852] font-semibold text-xs flex items-center justify-center gap-2 border border-gray-300 transition-colors"
               >
-                Full Details
+                View Contents
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>

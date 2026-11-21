@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ShoppingCart,
   Eye,
@@ -21,6 +21,7 @@ import {
   X,
   Camera,
   Layers,
+  Search,
 } from "lucide-react";
 import { useCart } from "@/lib/cartContext";
 import { formatCurrency } from "@/lib/utils";
@@ -33,8 +34,22 @@ interface ShopClientProps {
 
 export default function ShopClient({ initialProducts, categories }: ShopClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { addToCart, isInCart } = useCart();
   const [quickViewProduct, setQuickViewProduct] = useState<any | null>(null);
+
+  // Category Filtering & Search State
+  const initialCatParam = searchParams?.get("category") || "all";
+  const initialSearchParam = searchParams?.get("search") || "";
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCatParam);
+  const [searchQuery, setSearchQuery] = useState<string>(initialSearchParam);
+
+  useEffect(() => {
+    const cat = searchParams?.get("category");
+    if (cat) setSelectedCategory(cat);
+    const q = searchParams?.get("search");
+    if (q) setSearchQuery(q);
+  }, [searchParams]);
 
   // Admin Mode State
   const [currentUser, setCurrentUser] = useState<any | null>(null);
@@ -231,11 +246,11 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
     },
     {
       id: "prod-chaircar-std",
-      slug: "vg-lhb-chaircar-coaches",
+      slug: "vg-lhb-coaches",
       name: "VG LHB CHAIRCAR COACHES",
       badge: "V1.0",
       image: "/assets/products/chaircar_standard.png",
-      regularPrice: 700,
+      regularPrice: 600,
       salePrice: 500,
       compatibility: "Open Rails / MSTS",
       categoryName: "Chair Car Coaches",
@@ -706,6 +721,41 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
     });
   };
 
+  // Category Filtering & Search Configuration
+  const categoryTabs = [
+    { id: "all", name: "All Products" },
+    { id: "lhb", name: "LHB Coaches", match: ["lhb"] },
+    { id: "chair-car", name: "Chair Car", match: ["chair", "tricolour", "pnb"] },
+    { id: "sleeper", name: "Sleeper", match: ["sleeper", "academy"] },
+    { id: "vistadome", name: "Vistadome", match: ["vistadome"] },
+    { id: "humsafar", name: "Humsafar", match: ["humsafar"] },
+    { id: "bangladesh", name: "Bangladesh", match: ["bangladesh", "international", "maitree"] },
+    { id: "routes", name: "Routes", match: ["route", "scenery", "whr"] },
+  ];
+
+  const filteredProducts = products.filter((prod) => {
+    // 1. Category Matching
+    let matchesCategory = true;
+    if (selectedCategory && selectedCategory.toLowerCase() !== "all") {
+      const activeTab = categoryTabs.find(
+        (c) => c.id.toLowerCase() === selectedCategory.toLowerCase() || c.name.toLowerCase() === selectedCategory.toLowerCase()
+      );
+      const catKeywords = activeTab?.match || [selectedCategory.toLowerCase()];
+      const targetStr = `${prod.categoryName || ""} ${prod.categoryId || ""} ${prod.name || ""} ${prod.slug || ""}`.toLowerCase();
+      matchesCategory = catKeywords.some((kw) => targetStr.includes(kw.toLowerCase()));
+    }
+
+    // 2. Search Matching
+    let matchesSearch = true;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const searchTarget = `${prod.name || ""} ${prod.description || ""} ${prod.categoryName || ""} ${prod.compatibility || ""} ${prod.sku || ""}`.toLowerCase();
+      matchesSearch = searchTarget.includes(q);
+    }
+
+    return matchesCategory && matchesSearch;
+  });
+
   return (
     <div className="w-full bg-white text-[#101C32] pb-24 font-josefin">
       {/* Toast Notification */}
@@ -802,165 +852,293 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
 
       {/* 4. Products Grid (4 Columns, max-w-[1080px]) */}
       <div className="max-w-[1080px] mx-auto px-4 pt-10">
-        <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 pb-4 border-b border-gray-200 gap-4">
           <div>
             <h1 className="font-josefin text-2xl sm:text-3xl font-light text-[#0B2852]">
               Official Simulator Catalog
             </h1>
             <p className="font-josefin text-xs sm:text-sm text-gray-500 mt-0.5">
-              Browse {products.length} high-fidelity rolling stock and route add-ons
+              Browse {filteredProducts.length} of {products.length} high-fidelity rolling stock and route add-ons
             </p>
           </div>
-          <span className="text-xs font-semibold bg-[#A7D2F7]/40 text-[#0B2852] px-3.5 py-1 rounded-full">
-            All Items Live
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold bg-[#A7D2F7]/40 text-[#0B2852] px-3.5 py-1 rounded-full">
+              {filteredProducts.length} Add-on{filteredProducts.length === 1 ? "" : "s"} Listed
+            </span>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {products.map((prod: any) => {
-            const added = isInCart(prod.id);
-            const isFree = prod.salePrice === 0 && prod.regularPrice === 0;
-            const isOutOfStock = prod.status === "OUT_OF_STOCK" || (prod.stockQuantity !== undefined && prod.stockQuantity <= 0);
-            const isComingSoon = prod.status === "COMING_SOON";
-            const hasOffer = Boolean(prod.isSpecialOffer) || (prod.salePrice !== null && prod.salePrice !== undefined && prod.salePrice < prod.regularPrice);
+        {/* Category Filter Tabs & Search Bar */}
+        <div className="mb-8 space-y-4">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+            {/* Scrollable Category Tabs */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
+              {categoryTabs.map((cat) => {
+                const isActive =
+                  selectedCategory.toLowerCase() === cat.id.toLowerCase() ||
+                  (cat.id === "all" && (!selectedCategory || selectedCategory.toLowerCase() === "all"));
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-josefin font-bold whitespace-nowrap transition-all cursor-pointer ${
+                      isActive
+                        ? "bg-[#0B2852] text-white shadow-sm border border-[#39FF00]"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent"
+                    }`}
+                  >
+                    {cat.name}
+                  </button>
+                );
+              })}
+            </div>
 
-            const badgeText = isOutOfStock
-              ? "Out of Stock"
-              : isComingSoon
-                ? "Coming Soon"
-                : isFree
-                  ? "Free"
-                  : hasOffer
-                    ? (prod.specialOfferText || "Special Offer")
-                    : prod.badge === "New Arrival"
-                      ? "New Arrival"
-                      : prod.status === "AVAILABLE"
-                        ? "Available"
-                        : prod.badge || "Available";
-
-            const badgeBg = isOutOfStock
-              ? "bg-[#DC2626] text-white"
-              : isComingSoon
-                ? "bg-[#16A34A] text-white"
-                : isFree
-                  ? "bg-[#39FF00] text-[#101C32]"
-                  : hasOffer
-                    ? "bg-[#FF6B00] text-white"
-                    : "bg-[#2563EB] text-white";
-
-            return (
-              <div
-                key={prod.id}
-                className="group relative flex flex-col bg-white border border-gray-200 hover:border-[#0B2852] hover:shadow-xl transition-all duration-300 rounded-xl p-3"
-              >
-                {/* Poster Image Container */}
-                <Link
-                  href={`/shop/${prod.slug}`}
-                  className="relative aspect-square w-full bg-[#F5F6F8] overflow-hidden flex items-center justify-center rounded-lg border border-gray-100"
+            {/* Search Input Box */}
+            <div className="relative min-w-[220px]">
+              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search coaches, routes..."
+                className="w-full pl-9 pr-8 py-1.5 rounded-full border border-gray-300 text-xs text-[#101C32] focus:outline-none focus:border-[#0B2852] focus:ring-1 focus:ring-[#0B2852] bg-white"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  title="Clear search"
                 >
-                  {/* Badge top-left */}
-                  <span
-                    className={`absolute top-2.5 left-2.5 px-2.5 py-0.5 text-[11px] font-bold font-josefin uppercase rounded-full z-10 shadow-sm ${badgeBg}`}
-                  >
-                    {badgeText}
-                  </span>
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
 
-                  <img
-                    src={prod.image}
-                    alt={prod.name}
-                    className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300"
-                  />
+          {/* Active Filter Summary / Reset */}
+          {(selectedCategory.toLowerCase() !== "all" || searchQuery.trim() !== "") && (
+            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600 bg-gray-50 p-2.5 rounded-lg border border-gray-200">
+              <span className="font-semibold text-gray-700">Active Filter:</span>
+              {selectedCategory.toLowerCase() !== "all" && (
+                <span className="px-2.5 py-0.5 rounded-full bg-[#0B2852] text-white text-[11px] font-semibold flex items-center gap-1.5">
+                  Category: {categoryTabs.find((c) => c.id.toLowerCase() === selectedCategory.toLowerCase())?.name || selectedCategory}
+                  <button type="button" onClick={() => setSelectedCategory("all")} className="hover:text-[#39FF00]">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {searchQuery.trim() !== "" && (
+                <span className="px-2.5 py-0.5 rounded-full bg-[#0B2852] text-white text-[11px] font-semibold flex items-center gap-1.5">
+                  Search: &quot;{searchQuery}&quot;
+                  <button type="button" onClick={() => setSearchQuery("")} className="hover:text-[#39FF00]">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedCategory("all");
+                  setSearchQuery("");
+                }}
+                className="text-xs text-[#FF6600] hover:underline font-bold ml-auto cursor-pointer"
+              >
+                Reset All Filters
+              </button>
+            </div>
+          )}
+        </div>
 
-                  {/* Hover Quick Actions */}
-                  <div className="absolute inset-0 bg-[#0B2852]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[2px]">
-                    {isOutOfStock ? (
-                      <span className="px-4 py-2 rounded-full bg-[#DC2626] text-white text-xs font-josefin font-bold shadow-lg">
-                        Out of Stock
-                      </span>
-                    ) : isComingSoon ? (
-                      <span className="px-4 py-2 rounded-full bg-[#16A34A] text-white text-xs font-josefin font-bold shadow-lg">
-                        Coming Soon
-                      </span>
-                    ) : (
-                      <button
-                        onClick={(e) => handleAddToCart(e, prod)}
-                        className="px-4 py-2 rounded-full bg-[#39FF00] text-[#101C32] text-xs font-josefin font-bold hover:bg-white flex items-center gap-1.5 shadow-lg transition-transform hover:scale-105"
-                      >
-                        {added ? <Check className="w-3.5 h-3.5" /> : <ShoppingCart className="w-3.5 h-3.5" />}
-                        {added ? "In Cart" : isFree ? "Get Free" : "Add to Cart"}
-                      </button>
-                    )}
-                  </div>
-                </Link>
+        {filteredProducts.length === 0 ? (
+          <div className="py-16 text-center bg-gray-50 rounded-2xl border border-gray-200 p-8 my-6">
+            <Layers className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+            <h3 className="text-lg font-bold text-[#0B2852]">No products found</h3>
+            <p className="text-xs text-gray-500 mt-1 max-w-md mx-auto">
+              No railway rolling stock or route items match your current filter criteria.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedCategory("all");
+                setSearchQuery("");
+              }}
+              className="mt-4 px-5 py-2 rounded-full bg-[#0B2852] text-white hover:bg-[#39FF00] hover:text-[#101C32] text-xs font-bold transition-all cursor-pointer"
+            >
+              Show All Products
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {filteredProducts.map((prod: any) => {
+              const added = isInCart(prod.id);
+              const isFree = prod.salePrice === 0 && prod.regularPrice === 0;
+              const isOutOfStock = prod.status === "OUT_OF_STOCK" || (prod.stockQuantity !== undefined && prod.stockQuantity <= 0);
+              const isComingSoon = prod.status === "COMING_SOON";
+              const hasOffer = Boolean(prod.isSpecialOffer) || (prod.salePrice !== null && prod.salePrice !== undefined && prod.salePrice < prod.regularPrice);
 
-                {/* Product Meta */}
-                <div className="pt-3 pb-1 flex flex-col flex-grow">
-                  <span className="text-[11px] text-gray-500 font-josefin uppercase tracking-wider mb-1">
-                    {prod.categoryName}
-                  </span>
+              const badgeText = isOutOfStock
+                ? "Out of Stock"
+                : isComingSoon
+                  ? "Coming Soon"
+                  : isFree
+                    ? "Free"
+                    : hasOffer
+                      ? (prod.specialOfferText || "Special Offer")
+                      : prod.badge === "New Arrival"
+                        ? "New Arrival"
+                        : prod.status === "AVAILABLE"
+                          ? "Available"
+                          : prod.badge || "Available";
+
+              const badgeBg = isOutOfStock
+                ? "bg-[#DC2626] text-white"
+                : isComingSoon
+                  ? "bg-[#16A34A] text-white"
+                  : isFree
+                    ? "bg-[#39FF00] text-[#101C32]"
+                    : hasOffer
+                      ? "bg-[#FF6B00] text-white"
+                      : "bg-[#2563EB] text-white";
+
+              const productUrl = `/shop/${prod.slug || prod.id}`;
+
+              return (
+                <div
+                  key={prod.id}
+                  className="group relative flex flex-col bg-white border border-gray-200 hover:border-[#0B2852] hover:shadow-xl transition-all duration-300 rounded-xl p-3"
+                >
+                  {/* Poster Image Container */}
                   <Link
-                    href={`/shop/${prod.slug}`}
-                    className="font-josefin font-semibold text-[15px] sm:text-[16px] leading-snug text-[#0B2852] hover:text-[#FF6600] line-clamp-2 transition-colors"
+                    href={productUrl}
+                    className="relative aspect-square w-full bg-[#F5F6F8] overflow-hidden flex items-center justify-center rounded-lg border border-gray-100"
+                    title={`View contents of ${prod.name}`}
                   >
-                    {prod.name}
-                  </Link>
-
-                  {/* Price Row */}
-                  <div className="mt-3 flex items-center justify-between font-josefin">
-                    <div className="flex items-center gap-2">
-                      {isFree ? (
-                        <span className="text-[#39FF00] bg-[#0B2852] px-2.5 py-0.5 rounded-full font-bold text-xs">
-                          FREE
-                        </span>
-                      ) : prod.regularPrice > prod.salePrice && prod.salePrice !== null ? (
-                        <>
-                          <span className="line-through text-gray-400 text-xs">
-                            ₹{prod.regularPrice.toFixed(2)}
-                          </span>
-                          <span className="text-[#101C32] font-bold text-[16px]">
-                            ₹{prod.salePrice.toFixed(2)}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-[#101C32] font-bold text-[16px]">
-                          ₹{prod.regularPrice.toFixed(2)}
-                        </span>
-                      )}
-                    </div>
-
-                    <span className="text-[11px] text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
-                      {prod.compatibility}
+                    {/* Badge top-left */}
+                    <span
+                      className={`absolute top-2.5 left-2.5 px-2.5 py-0.5 text-[11px] font-bold font-josefin uppercase rounded-full z-10 shadow-sm ${badgeBg}`}
+                    >
+                      {badgeText}
                     </span>
-                  </div>
 
-                  {/* Customer / Passenger Action Row */}
-                  {(!currentUser || !isAdminMode) && (
-                    <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between gap-2">
+                    <img
+                      src={prod.image}
+                      alt={prod.name}
+                      className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300"
+                    />
+
+                    {/* Hover Quick Actions */}
+                    <div className="absolute inset-0 bg-[#0B2852]/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 backdrop-blur-[2px] p-3 z-20">
+                      <span className="w-full max-w-[150px] py-1.5 px-3 rounded-full bg-white text-[#0B2852] text-xs font-josefin font-bold flex items-center justify-center gap-1.5 shadow-lg">
+                        <Eye className="w-3.5 h-3.5" />
+                        View Contents
+                      </span>
+
                       {isOutOfStock ? (
-                        <span className="w-full py-1.5 rounded-lg bg-[#DC2626]/10 text-[#DC2626] border border-[#DC2626]/20 font-bold text-xs flex items-center justify-center gap-1.5">
-                          <Ban className="w-3.5 h-3.5" />
+                        <span className="w-full max-w-[150px] py-1.5 px-3 rounded-full bg-[#DC2626] text-white text-xs font-josefin font-bold shadow-lg text-center">
                           Out of Stock
                         </span>
                       ) : isComingSoon ? (
-                        <span className="w-full py-1.5 rounded-lg bg-[#16A34A]/10 text-[#16A34A] border border-[#16A34A]/20 font-bold text-xs flex items-center justify-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5" />
+                        <span className="w-full max-w-[150px] py-1.5 px-3 rounded-full bg-[#16A34A] text-white text-xs font-josefin font-bold shadow-lg text-center">
                           Coming Soon
                         </span>
                       ) : (
                         <button
                           type="button"
-                          onClick={(e) => handleAddToCart(e, prod)}
-                          className="w-full py-1.5 rounded-lg bg-[#0B2852] hover:bg-[#39FF00] text-white hover:text-[#101C32] font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleAddToCart(e, prod);
+                          }}
+                          className="w-full max-w-[150px] py-1.5 px-3 rounded-full bg-[#39FF00] text-[#101C32] text-xs font-josefin font-bold hover:bg-white flex items-center justify-center gap-1.5 shadow-lg transition-transform hover:scale-105 cursor-pointer"
                         >
-                          {added ? <Check className="w-3.5 h-3.5 text-[#39FF00]" /> : <ShoppingCart className="w-3.5 h-3.5" />}
+                          {added ? <Check className="w-3.5 h-3.5" /> : <ShoppingCart className="w-3.5 h-3.5" />}
                           {added ? "In Cart" : isFree ? "Get Free" : "Add to Cart"}
                         </button>
                       )}
                     </div>
-                  )}
-                </div>
+                  </Link>
 
-                {/* 5. VISIBLE ADMIN MANAGEMENT CONTROLS ON PRODUCT CARD */}
+                  {/* Product Meta */}
+                  <div className="pt-3 pb-1 flex flex-col flex-grow">
+                    <span className="text-[11px] text-gray-500 font-josefin uppercase tracking-wider mb-1">
+                      {prod.categoryName}
+                    </span>
+                    <Link
+                      href={productUrl}
+                      className="font-josefin font-semibold text-[15px] sm:text-[16px] leading-snug text-[#0B2852] hover:text-[#FF6600] line-clamp-2 transition-colors"
+                      title={prod.name}
+                    >
+                      {prod.name}
+                    </Link>
+
+                    {/* Price Row */}
+                    <div className="mt-3 flex items-center justify-between font-josefin">
+                      <div className="flex items-center gap-2">
+                        {isFree ? (
+                          <span className="text-[#39FF00] bg-[#0B2852] px-2.5 py-0.5 rounded-full font-bold text-xs">
+                            FREE
+                          </span>
+                        ) : prod.regularPrice > prod.salePrice && prod.salePrice !== null ? (
+                          <>
+                            <span className="line-through text-gray-400 text-xs">
+                              ₹{prod.regularPrice.toFixed(2)}
+                            </span>
+                            <span className="text-[#101C32] font-bold text-[16px]">
+                              ₹{prod.salePrice.toFixed(2)}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-[#101C32] font-bold text-[16px]">
+                            ₹{prod.regularPrice.toFixed(2)}
+                          </span>
+                        )}
+                      </div>
+
+                      <span className="text-[11px] text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
+                        {prod.compatibility}
+                      </span>
+                    </div>
+
+                    {/* Customer Action Row: VIEW CONTENTS + ADD TO CART */}
+                    <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center gap-1.5">
+                      <Link
+                        href={productUrl}
+                        className="flex-1 py-1.5 px-2 rounded-lg bg-gray-100 hover:bg-[#0B2852] text-[#0B2852] hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs text-center border border-gray-200 hover:border-[#0B2852]"
+                        title="View Full Product Contents, Specs & Downloads"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>View Contents</span>
+                      </Link>
+
+                      {(!currentUser || !isAdminMode) && (
+                        isOutOfStock ? (
+                          <span className="px-2.5 py-1.5 rounded-lg bg-[#DC2626]/10 text-[#DC2626] border border-[#DC2626]/20 font-bold text-xs flex items-center justify-center gap-1 shrink-0">
+                            <Ban className="w-3 h-3" />
+                            <span>Out</span>
+                          </span>
+                        ) : isComingSoon ? (
+                          <span className="px-2.5 py-1.5 rounded-lg bg-[#16A34A]/10 text-[#16A34A] border border-[#16A34A]/20 font-bold text-xs flex items-center justify-center gap-1 shrink-0">
+                            <Clock className="w-3 h-3" />
+                            <span>Soon</span>
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={(e) => handleAddToCart(e, prod)}
+                            className="px-3 py-1.5 rounded-lg bg-[#0B2852] hover:bg-[#39FF00] text-white hover:text-[#101C32] font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer shrink-0"
+                            title={added ? "Already in Cart" : "Add to Cart"}
+                          >
+                            {added ? <Check className="w-3.5 h-3.5 text-[#39FF00]" /> : <ShoppingCart className="w-3.5 h-3.5" />}
+                            <span>{added ? "In Cart" : isFree ? "Free" : "Cart"}</span>
+                          </button>
+                        )
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 5. VISIBLE ADMIN MANAGEMENT CONTROLS ON PRODUCT CARD */}
                 {currentUser && isAdminMode && (
                   <div className="mt-3 pt-3 border-t-2 border-[#0B2852]/20 bg-blue-50/70 -mx-3 -mb-3 p-3 rounded-b-xl space-y-2">
                     <div className="flex items-center justify-between text-[11px]">
@@ -1080,7 +1258,8 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
             );
           })}
         </div>
-      </div>
+      )}
+    </div>
 
       {/* QUICK VIEW MODAL */}
       {quickViewProduct && (
