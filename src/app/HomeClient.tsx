@@ -19,6 +19,8 @@ import {
   Eye,
   EyeOff,
   Check,
+  CheckCircle2,
+  AlertCircle,
   X,
   Sparkles,
   ShieldCheck,
@@ -334,17 +336,33 @@ export default function HomeClient({
 
   return (
     <div className="w-full bg-[#F4F7FB] text-[#172033] select-none font-josefin">
-      {/* Toast Notification */}
+      {/* Toast Notification - Positioned safely below header in top-right without covering nav or controls */}
       {toastMsg && (
         <div
-          className={`fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl shadow-2xl font-josefin text-sm flex items-center gap-2 border transition-all animate-bounce ${
+          role="status"
+          aria-live="polite"
+          className={`fixed top-20 right-4 sm:right-6 z-[60] max-w-sm w-auto px-5 py-3.5 rounded-2xl shadow-2xl text-xs sm:text-sm font-semibold flex items-center justify-between gap-3 border backdrop-blur-md transition-all ${
             toastMsg.isError
-              ? "bg-rose-50 text-rose-800 border-rose-300"
-              : "bg-emerald-50 text-emerald-800 border-emerald-300"
+              ? "bg-rose-950/90 text-white border-rose-500 shadow-rose-900/30"
+              : "bg-[#101D35]/95 text-white border-[#00B8D9]/70 shadow-cyan-900/30"
           }`}
         >
-          <Sparkles className="w-4 h-4 text-[#00B8D9]" />
-          <span className="font-semibold">{toastMsg.text}</span>
+          <div className="flex items-center gap-2.5">
+            {toastMsg.isError ? (
+              <AlertCircle className="w-4 h-4 text-rose-300 shrink-0" />
+            ) : (
+              <CheckCircle2 className="w-4 h-4 text-[#00B8D9] shrink-0" />
+            )}
+            <span className="leading-snug">{toastMsg.text}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setToastMsg(null)}
+            className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+            aria-label="Dismiss notification"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
       )}
 

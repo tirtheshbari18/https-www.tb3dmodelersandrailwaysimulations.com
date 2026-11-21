@@ -18,41 +18,17 @@ interface CloudDatabaseState {
 // Built-in baseline snapshot to ensure resilience against cloud store cold resets
 const BASELINE_SNAPSHOT: CloudDatabaseState = {
   products: {
-    "prod-maitree": {
-      regularPrice: 400,
-      salePrice: 250,
-      status: "OUT_OF_STOCK",
-      isOutOfStock: true,
-      stockQuantity: 0,
-    },
-    "prod-chaircar-std": {
-      regularPrice: 600,
-      salePrice: 200,
-      status: "COMING_SOON",
-      isComingSoon: true,
-      stockQuantity: 0,
-    },
-    "prod-vistadome-std": {
-      regularPrice: 600,
-      salePrice: 50,
-      status: "OUT_OF_STOCK",
-      isOutOfStock: true,
-      stockQuantity: 0,
-    },
-    "prod-vistadome-livery": {
-      regularPrice: 300,
-      salePrice: 70,
-      status: "COMING_SOON",
-      isComingSoon: true,
-      stockQuantity: 0,
-    },
-    "prod-academy": {
-      regularPrice: 899,
-      salePrice: 799,
-      status: "AVAILABLE",
-      isSpecialOffer: true,
-      stockQuantity: 999,
-    },
+    "prod-academy": { status: "ARCHIVED" },
+    "prod-humsafar": { status: "ARCHIVED" },
+    "prod-sleeper": { status: "ARCHIVED" },
+    "prod-tricolour": { status: "ARCHIVED" },
+    "prod-amrit": { status: "ARCHIVED" },
+    "prod-bangladesh": { status: "ARCHIVED" },
+    "prod-pnb": { status: "ARCHIVED" },
+    "prod-vistadome-livery": { status: "ARCHIVED" },
+    "prod-vistadome-std": { status: "ARCHIVED" },
+    "prod-chaircar-std": { status: "ARCHIVED" },
+    "prod-maitree": { status: "ARCHIVED" },
   },
   trainboards: {
     "ecor-22823": {

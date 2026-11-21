@@ -401,21 +401,33 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
 
   return (
     <div className="w-full bg-[#F4F7FB] min-h-[90vh] py-10 px-4 sm:px-6 lg:px-8 font-josefin text-[#172033]">
-      {/* Toast */}
+      {/* Toast - Positioned safely below header in top-right without covering nav or controls */}
       {toastMsg && (
         <div
-          className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl shadow-2xl text-xs font-semibold flex items-center gap-2 border transition-all ${
+          role="status"
+          aria-live="polite"
+          className={`fixed top-20 right-4 sm:right-6 z-[60] max-w-sm w-auto px-5 py-3.5 rounded-2xl shadow-2xl text-xs sm:text-sm font-semibold flex items-center justify-between gap-3 border backdrop-blur-md transition-all ${
             toastMsg.isError
-              ? "bg-rose-900 text-white border-rose-700"
-              : "bg-[#101D35] text-white border-[#00B8D9]"
+              ? "bg-rose-950/90 text-white border-rose-500 shadow-rose-900/30"
+              : "bg-[#101D35]/95 text-white border-[#00B8D9]/70 shadow-cyan-900/30"
           }`}
         >
-          {toastMsg.isError ? (
-            <AlertCircle className="w-4 h-4 text-rose-300" />
-          ) : (
-            <CheckCircle2 className="w-4 h-4 text-[#00B8D9]" />
-          )}
-          <span>{toastMsg.text}</span>
+          <div className="flex items-center gap-2.5">
+            {toastMsg.isError ? (
+              <AlertCircle className="w-4 h-4 text-rose-300 shrink-0" />
+            ) : (
+              <CheckCircle2 className="w-4 h-4 text-[#00B8D9] shrink-0" />
+            )}
+            <span className="leading-snug">{toastMsg.text}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setToastMsg(null)}
+            className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+            aria-label="Dismiss notification"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
       )}
 
@@ -428,20 +440,20 @@ export default function TrainboardsClient({ initialTrainboards }: { initialTrain
               Are you sure you want to permanently delete <strong>&quot;{deleteModal.name}&quot;</strong>?
               This will remove the trainboard package from the library immediately.
             </p>
-            <div className="flex gap-3 pt-2">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
               <button
                 type="button"
                 onClick={() => setDeleteModal(null)}
-                className="flex-1 py-2.5 rounded-full border border-gray-300 text-gray-700 text-xs font-bold hover:bg-gray-100"
+                className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 text-xs sm:text-sm font-bold hover:bg-gray-100 transition-colors shadow-xs"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleDeleteTrainboard}
-                className="flex-1 py-2.5 rounded-full bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 shadow-md"
+                className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-rose-600 text-white text-xs sm:text-sm font-bold hover:bg-rose-700 transition-colors shadow-md"
               >
-                Delete Permanently
+                Confirm Delete
               </button>
             </div>
           </div>
@@ -1092,17 +1104,17 @@ function TrainboardDialog({
             />
           </div>
 
-          <div className="flex gap-3 pt-3 border-t">
+          <div className="sticky bottom-0 bg-white pt-4 pb-1 border-t border-gray-200 mt-4 flex items-center justify-end gap-3 sm:gap-4">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-full border border-gray-300 text-gray-700 font-bold hover:bg-gray-100"
+              className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 font-bold hover:bg-gray-100 transition-colors text-xs sm:text-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 rounded-full bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] font-bold uppercase transition-all shadow-md"
+              className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-[#101D35] hover:bg-[#174EA6] text-white font-bold uppercase transition-all shadow-md text-xs sm:text-sm"
             >
               {trainboard ? "Save Trainboard" : "Add Trainboard"}
             </button>
@@ -1153,17 +1165,17 @@ function RenameTrainboardModal({
             />
           </div>
 
-          <div className="flex gap-2 pt-2">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-200">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2 rounded-full border border-gray-300 text-gray-700 font-bold hover:bg-gray-100"
+              className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 font-bold hover:bg-gray-100 transition-colors text-xs sm:text-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 py-2 rounded-full bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] font-bold uppercase transition-all"
+              className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-[#101D35] hover:bg-[#174EA6] text-white font-bold uppercase transition-all shadow-md text-xs sm:text-sm"
             >
               Save Rename
             </button>
@@ -1258,11 +1270,11 @@ function TrainboardImageModal({
           />
         </div>
 
-        <div className="flex gap-2 pt-3 border-t">
+        <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-200">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-2 rounded-full border border-gray-300 text-gray-700 font-bold hover:bg-gray-100"
+            className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 font-bold hover:bg-gray-100 transition-colors text-xs sm:text-sm"
           >
             Cancel
           </button>
@@ -1270,7 +1282,7 @@ function TrainboardImageModal({
             type="button"
             disabled={isUploading}
             onClick={() => onSave(image)}
-            className="flex-1 py-2 rounded-full bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] font-bold uppercase transition-all disabled:opacity-50"
+            className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-[#101D35] hover:bg-[#174EA6] text-white font-bold uppercase transition-all shadow-md disabled:opacity-50 text-xs sm:text-sm"
           >
             {isUploading ? "Uploading..." : "Save Image"}
           </button>
@@ -1374,11 +1386,11 @@ function TrainboardPriceOfferModal({
           </div>
         )}
 
-        <div className="flex gap-2 pt-3 border-t">
+        <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-200">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-2 rounded-full border border-gray-300 text-gray-700 font-bold hover:bg-gray-100"
+            className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 font-bold hover:bg-gray-100 transition-colors text-xs sm:text-sm"
           >
             Cancel
           </button>
@@ -1392,7 +1404,7 @@ function TrainboardPriceOfferModal({
                 isSpecialOffer
               )
             }
-            className="flex-1 py-2 rounded-full bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] font-bold uppercase transition-all shadow-md"
+            className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-[#FF6B00] hover:bg-[#e05a00] text-white font-bold uppercase transition-all shadow-md text-xs sm:text-sm"
           >
             Save Price & Offer
           </button>

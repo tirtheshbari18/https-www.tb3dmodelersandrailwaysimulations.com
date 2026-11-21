@@ -19,14 +19,20 @@ export default async function HomePage() {
     homeSlides,
   ] = await Promise.all([
     prisma.product.findMany({
-      orderBy: { createdAt: "asc" },
+      where: {
+        status: { not: "ARCHIVED" },
+      },
+      orderBy: { createdAt: "desc" },
       include: {
         category: true,
         images: { orderBy: { order: "asc" } },
       },
     }),
     prisma.product.findMany({
-      where: { isNewArrival: true },
+      where: {
+        status: { not: "ARCHIVED" },
+        isNewArrival: true,
+      },
       take: 4,
       include: {
         category: true,
@@ -62,10 +68,18 @@ export default async function HomePage() {
     applySlideOverrides(homeSlides),
   ]);
 
+  const cleanFeatured = activeFeatured.filter(
+    (p) =>
+      p.status !== "ARCHIVED" &&
+      !p.name.includes("VG ") &&
+      !p.name.includes("VG-") &&
+      !p.slug.startsWith("vg-")
+  );
+
   return (
     <HomeClient
-      featuredProducts={activeFeatured}
-      newArrivals={newArrivals}
+      featuredProducts={cleanFeatured}
+      newArrivals={newArrivals.filter((p) => p.status !== "ARCHIVED")}
       categories={categories}
       projects={projects}
       services={services}

@@ -9,6 +9,9 @@ export const revalidate = 0;
 export default async function ShopPage() {
   const [rawProducts, categories] = await Promise.all([
     prisma.product.findMany({
+      where: {
+        status: { not: "ARCHIVED" },
+      },
       orderBy: { createdAt: "desc" },
       include: {
         category: true,
@@ -17,11 +20,24 @@ export default async function ShopPage() {
       },
     }),
     prisma.productCategory.findMany({
+      where: {
+        slug: {
+          in: ["lhb-coaches", "locomotives", "trainboards", "routes-scenery", "simulation-assets"],
+        },
+      },
       orderBy: { order: "asc" },
     }),
   ]);
 
-  const products = await applyProductOverrides(rawProducts);
+  const allProducts = await applyProductOverrides(rawProducts);
+  // Defense-in-depth: Ensure no archived or VG-branded products appear in the public Shop
+  const products = allProducts.filter(
+    (p) =>
+      p.status !== "ARCHIVED" &&
+      !p.name.includes("VG ") &&
+      !p.name.includes("VG-") &&
+      !p.slug.startsWith("vg-")
+  );
 
   return (
     <Suspense fallback={<div className="min-h-screen bg-railway-darkest text-slate-400 p-8 text-center text-xs">Loading shop add-ons...</div>}>

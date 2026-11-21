@@ -13,7 +13,9 @@ export async function GET(req: NextRequest) {
     const sort = searchParams.get("sort"); // price-asc, price-desc, newest
     const featured = searchParams.get("featured");
 
-    const where: any = {};
+    const where: any = {
+      status: { not: "ARCHIVED" },
+    };
 
     if (categorySlug && categorySlug !== "all") {
       where.category = { slug: categorySlug };
@@ -58,7 +60,14 @@ export async function GET(req: NextRequest) {
       }),
     ]);
 
-    const products = await applyProductOverrides(rawProducts);
+    const allProducts = await applyProductOverrides(rawProducts);
+    const products = allProducts.filter(
+      (p) =>
+        p.status !== "ARCHIVED" &&
+        !p.name.includes("VG ") &&
+        !p.name.includes("VG-") &&
+        !p.slug.startsWith("vg-")
+    );
 
     return NextResponse.json({ products, categories });
   } catch (error: any) {

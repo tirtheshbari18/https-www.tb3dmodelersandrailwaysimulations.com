@@ -565,21 +565,33 @@ export default function AdminClient({
 
   return (
     <div className="min-h-screen bg-[#F5F6F8] text-[#172033] font-josefin flex flex-col">
-      {/* Toast Notification */}
+      {/* Toast Notification - Positioned safely below header in top-right without covering nav or controls */}
       {toastMsg && (
         <div
-          className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl shadow-2xl text-xs font-semibold flex items-center gap-2 border transition-all ${
+          role="status"
+          aria-live="polite"
+          className={`fixed top-20 right-4 sm:right-6 z-[60] max-w-sm w-auto px-5 py-3.5 rounded-2xl shadow-2xl text-xs sm:text-sm font-semibold flex items-center justify-between gap-3 border backdrop-blur-md transition-all ${
             toastMsg.isError
-              ? "bg-rose-900 text-white border-rose-700"
-              : "bg-[#101D35] text-white border-[#00B8D9]"
+              ? "bg-rose-950/90 text-white border-rose-500 shadow-rose-900/30"
+              : "bg-[#101D35]/95 text-white border-[#00B8D9]/70 shadow-cyan-900/30"
           }`}
         >
-          {toastMsg.isError ? (
-            <AlertCircle className="w-4 h-4 text-rose-300" />
-          ) : (
-            <CheckCircle2 className="w-4 h-4 text-[#00B8D9]" />
-          )}
-          <span>{toastMsg.text}</span>
+          <div className="flex items-center gap-2.5">
+            {toastMsg.isError ? (
+              <AlertCircle className="w-4 h-4 text-rose-300 shrink-0" />
+            ) : (
+              <CheckCircle2 className="w-4 h-4 text-[#00B8D9] shrink-0" />
+            )}
+            <span className="leading-snug">{toastMsg.text}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setToastMsg(null)}
+            className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+            aria-label="Dismiss notification"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
       )}
 
@@ -597,20 +609,20 @@ export default function AdminClient({
                 This action cannot be undone and will immediately remove the item from the live website.
               </p>
             </div>
-            <div className="flex gap-3 pt-2">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
               <button
                 type="button"
                 onClick={() => setDeleteModal(null)}
-                className="flex-1 py-2.5 rounded-full border border-gray-300 text-gray-700 text-xs font-bold hover:bg-gray-100 transition-colors"
+                className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 text-xs sm:text-sm font-bold hover:bg-gray-100 transition-colors shadow-xs"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleConfirmDelete}
-                className="flex-1 py-2.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-colors shadow-md"
+                className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-bold transition-colors shadow-md"
               >
-                Delete Permanently
+                Confirm Delete
               </button>
             </div>
           </div>
@@ -1328,7 +1340,7 @@ export default function AdminClient({
                 <div>
                   <h2 className="text-2xl font-light text-[#101D35]">Coach Management</h2>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    Add, edit, rename, upload images, specifications, and delete official VG coaches.
+                    Add, edit, rename, upload images, specifications, and delete official TB PRO coaches.
                   </p>
                 </div>
                 <button
@@ -2227,7 +2239,7 @@ export default function AdminClient({
                                   </button>
                                 )}
 
-                                {user.email !== "admin@vg3dmodelers.com" && (
+                                {user.email !== "admin@vg3dmodelers.com" && user.email !== "admin@tb3dmodelers.com" && (
                                   <button
                                     onClick={() =>
                                       setDeleteModal({
@@ -2785,15 +2797,18 @@ function ProductFormModal({
 
   // Quick Coach Preset Images
   const coachPresets = [
-    { label: "Academy Sleeper", url: "/assets/products/vg_academy_sleeper.avif" },
-    { label: "Humsafar V2", url: "/assets/products/humsafar_v2.avif" },
-    { label: "Sleeper V2", url: "/assets/products/sleeper_v2.avif" },
-    { label: "Tricolour Coaches", url: "/assets/products/indian_tricolour.avif" },
-    { label: "Amrit Bharat", url: "/assets/products/amrit_bharat.png" },
-    { label: "Bangladesh Coaches", url: "/assets/products/bangladesh_coaches.png" },
-    { label: "Chaircar Coaches", url: "/assets/products/chaircar_standard.png" },
-    { label: "Vistadome Premium", url: "/assets/products/vistadome_standard.png" },
-    { label: "WHR Route V2", url: "/assets/products/whr_route_v2.png" },
+    { label: "LHB Sleeper", url: "/assets/tbpro/lhb_sleeper.png" },
+    { label: "LHB AC 3-Tier", url: "/assets/tbpro/lhb_ac_3tier.avif" },
+    { label: "LHB AC 2-Tier", url: "/assets/tbpro/lhb_ac_2tier.avif" },
+    { label: "LHB AC First", url: "/assets/tbpro/lhb_ac_first.jpg" },
+    { label: "LHB Chair Car", url: "/assets/tbpro/lhb_chaircar.png" },
+    { label: "LHB Exec Chair Car", url: "/assets/tbpro/lhb_exec_chaircar.jpg" },
+    { label: "LHB General", url: "/assets/tbpro/lhb_general.png" },
+    { label: "LHB Pantry Car", url: "/assets/tbpro/lhb_pantry_car.jpg" },
+    { label: "LHB Generator Car", url: "/assets/tbpro/lhb_generator_car.jpg" },
+    { label: "WAP-7 Loco", url: "/assets/tbpro/wap7_locomotive.jpg" },
+    { label: "WAP-5 Loco", url: "/assets/tbpro/wap5_locomotive.jpg" },
+    { label: "WAG-9 Loco", url: "/assets/tbpro/wag9_locomotive.jpg" },
   ];
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -2824,7 +2839,7 @@ function ProductFormModal({
   const handleSubmit = (e: React.FormEvent) => {
     onSave(e, {
       name,
-      sku: sku || `VG-${Date.now().toString().slice(-6)}`,
+      sku: sku || `TB-${Date.now().toString().slice(-6)}`,
       regularPrice: parseFloat(regularPrice) || 0,
       salePrice: salePrice ? parseFloat(salePrice) : null,
       categoryId,
@@ -2842,7 +2857,7 @@ function ProductFormModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-gray-200 my-8 space-y-5">
+      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl border border-gray-200 my-8 space-y-5">
         <div className="flex items-center justify-between border-b border-gray-200 pb-4">
           <div>
             <h3 className="text-xl font-bold text-[#101D35]">
@@ -2864,7 +2879,7 @@ function ProductFormModal({
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. VG LHB ACADEMY LIVERY SLEEPER"
+                placeholder="e.g. TB PRO INDIAN RAILWAYS LHB SLEEPER COACH"
                 className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
               />
             </div>
@@ -2874,7 +2889,7 @@ function ProductFormModal({
                 type="text"
                 value={sku}
                 onChange={(e) => setSku(e.target.value)}
-                placeholder="e.g. VG-LHB-ACADEMY-01"
+                placeholder="e.g. TB-LHB-SLEEPER-01"
                 className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
               />
             </div>
@@ -2991,7 +3006,7 @@ function ProductFormModal({
             {/* Quick Preset Selector */}
             <div>
               <span className="text-[10px] uppercase font-bold text-gray-400 block mb-1">
-                Quick VG Presets:
+                Quick Coach Presets:
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {coachPresets.map((p) => (
@@ -3038,17 +3053,17 @@ function ProductFormModal({
             </label>
           </div>
 
-          <div className="flex gap-3 pt-4 border-t border-gray-200">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-full border border-gray-300 text-gray-700 font-bold hover:bg-gray-100 transition-colors"
+              className="px-6 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-100 transition-colors shadow-xs"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 rounded-full bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] font-bold uppercase transition-all shadow-md"
+              className="px-6 py-2.5 rounded-xl bg-[#101D35] text-white hover:bg-[#174EA6] font-semibold transition-all shadow-sm"
             >
               {product ? "Save Changes" : "Create Coach"}
             </button>
@@ -3115,8 +3130,8 @@ function TrainboardFormModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-      <div className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-gray-200 space-y-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl border border-gray-200 space-y-4">
         <div className="flex items-center justify-between border-b pb-3">
           <h3 className="text-xl font-bold text-[#101D35]">
             {trainboard ? `Edit Trainboard: ${trainboard.name}` : "Add New Trainboard Package"}
@@ -3190,17 +3205,17 @@ function TrainboardFormModal({
             />
           </div>
 
-          <div className="flex gap-3 pt-4 border-t border-gray-200">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-full border border-gray-300 text-gray-700 font-bold hover:bg-gray-100"
+              className="px-6 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-100 transition-colors shadow-xs"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 rounded-full bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] font-bold uppercase transition-all shadow-md"
+              className="px-6 py-2.5 rounded-xl bg-[#101D35] text-white hover:bg-[#174EA6] font-semibold transition-all shadow-sm"
             >
               {trainboard ? "Save Trainboard" : "Add Trainboard"}
             </button>
@@ -3248,8 +3263,8 @@ function OfferFormModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-gray-200 space-y-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl border border-gray-200 space-y-4">
         <div className="flex items-center justify-between border-b pb-3">
           <h3 className="text-xl font-bold text-[#101D35]">
             {offer ? "Edit Promotional Offer" : "Create New Promotional Offer"}
@@ -3345,17 +3360,17 @@ function OfferFormModal({
             </label>
           </div>
 
-          <div className="flex gap-3 pt-4 border-t border-gray-200">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-full border border-gray-300 text-gray-700 font-bold hover:bg-gray-100"
+              className="px-6 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-100 transition-colors shadow-xs"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 rounded-full bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] font-bold uppercase transition-all shadow-md"
+              className="px-6 py-2.5 rounded-xl bg-[#101D35] text-white hover:bg-[#174EA6] font-semibold transition-all shadow-sm"
             >
               {offer ? "Save Offer" : "Create Offer"}
             </button>
@@ -3393,18 +3408,21 @@ function SlideAdminModal({
   const [isUploading, setIsUploading] = useState(false);
 
   const presets = [
-    { label: "Academy Sleeper", url: "/assets/products/vg_academy_sleeper.avif" },
-    { label: "Humsafar V2", url: "/assets/products/humsafar_v2.avif" },
-    { label: "Sleeper V2", url: "/assets/products/sleeper_v2.avif" },
-    { label: "Chair Car", url: "/assets/products/chaircar_standard.png" },
-    { label: "Vistadome", url: "/assets/products/vistadome_standard.png" },
-    { label: "Amrit Bharat", url: "/assets/products/amrit_bharat.png" },
-    { label: "Bangladesh", url: "/assets/products/bangladesh_coaches.png" },
-    { label: "PNB Livery", url: "/assets/products/pnb_livery.png" },
-    { label: "Tricolour", url: "/assets/products/indian_tricolour.avif" },
-    { label: "Vistadome Livery", url: "/assets/products/vistadome_livery.png" },
-    { label: "WHR Route V2", url: "/assets/products/whr_route_v2.png" },
-    { label: "Maitree Pack", url: "/assets/projects/05_vg_lhb_bangladesh.png" },
+    { label: "LHB Passenger Rake", url: "/assets/tbpro/hero_lhb_train.jpg" },
+    { label: "WAP-7 Locomotive", url: "/assets/tbpro/wap7_locomotive.jpg" },
+    { label: "LHB AC First Class", url: "/assets/tbpro/lhb_ac_first.jpg" },
+    { label: "LHB AC 3-Tier", url: "/assets/tbpro/lhb_ac_3tier.avif" },
+    { label: "LHB AC 2-Tier", url: "/assets/tbpro/lhb_ac_2tier.avif" },
+    { label: "LHB Sleeper Coach", url: "/assets/tbpro/lhb_sleeper.png" },
+    { label: "LHB Chair Car", url: "/assets/tbpro/lhb_chaircar.png" },
+    { label: "LHB Exec Chair Car", url: "/assets/tbpro/lhb_exec_chaircar.jpg" },
+    { label: "LHB General Coach", url: "/assets/tbpro/lhb_general.png" },
+    { label: "LHB Pantry Car", url: "/assets/tbpro/lhb_pantry_car.jpg" },
+    { label: "LHB Generator Car", url: "/assets/tbpro/lhb_generator_car.jpg" },
+    { label: "WAP-5 Locomotive", url: "/assets/tbpro/wap5_locomotive.jpg" },
+    { label: "WAG-9 Locomotive", url: "/assets/tbpro/wag9_locomotive.jpg" },
+    { label: "Train Boards", url: "/assets/tbpro/ir_trainboards.jpg" },
+    { label: "MSTS Open Rails Sim", url: "/assets/tbpro/msts_openrails_sim.jpg" },
   ];
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -3454,7 +3472,7 @@ function SlideAdminModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-gray-200 my-8 space-y-4 font-josefin text-xs">
+      <div className="bg-white rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl border border-gray-200 my-8 space-y-4 font-josefin text-xs">
         <div className="flex items-center justify-between border-b pb-3">
           <h3 className="text-lg font-bold text-[#101D35]">
             {slide ? `Edit Slide: ${slide.title}` : "Add New Home Page Slide"}
@@ -3472,7 +3490,7 @@ function SlideAdminModal({
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. VG LHB ACADEMY LIVERY SLEEPER COACHES"
+              placeholder="e.g. TB PRO INDIAN RAILWAYS LHB COACHES"
               className="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-[#174EA6]"
             />
           </div>
@@ -3597,17 +3615,17 @@ function SlideAdminModal({
             </div>
           </div>
 
-          <div className="flex gap-3 pt-4 border-t border-gray-200">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-full border border-gray-300 text-gray-700 font-bold hover:bg-gray-100"
+              className="px-6 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-100 transition-colors shadow-xs"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 rounded-full bg-[#101D35] text-white hover:bg-[#00B8D9] hover:text-[#172033] font-bold uppercase transition-all shadow-md"
+              className="px-6 py-2.5 rounded-xl bg-[#101D35] text-white hover:bg-[#174EA6] font-semibold transition-all shadow-sm"
             >
               {slide ? "Save Changes" : "Create Slide"}
             </button>

@@ -15,7 +15,10 @@ export const metadata = {
 export default async function CoachesPage() {
   const [products, categories] = await Promise.all([
     prisma.product.findMany({
-      orderBy: { createdAt: "asc" },
+      where: {
+        status: { not: "ARCHIVED" },
+      },
+      orderBy: { createdAt: "desc" },
       include: {
         category: true,
         images: { orderBy: { order: "asc" } },
@@ -29,8 +32,9 @@ export default async function CoachesPage() {
 
   const activeProducts = await applyProductOverrides(products);
 
-  // Filter products relevant to LHB coaching stock
+  // Filter products relevant to LHB coaching stock (excluding any archived/VG products)
   const coachProducts = activeProducts.filter((p) => {
+    if (p.status === "ARCHIVED" || p.name.includes("VG ") || p.name.includes("VG-")) return false;
     const catSlug = p.category?.slug?.toLowerCase() || "";
     const prodName = p.name?.toLowerCase() || "";
     return (
@@ -39,9 +43,7 @@ export default async function CoachesPage() {
       catSlug.includes("sleeper") ||
       catSlug.includes("lhb") ||
       prodName.includes("lhb") ||
-      prodName.includes("coach") ||
-      prodName.includes("vistadome") ||
-      prodName.includes("humsafar")
+      prodName.includes("coach")
     );
   });
 

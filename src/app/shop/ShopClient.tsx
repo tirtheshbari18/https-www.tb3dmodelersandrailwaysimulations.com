@@ -512,16 +512,16 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
   // Category Filtering & Search Configuration
   const categoryTabs = [
     { id: "all", name: "All Products" },
-    { id: "lhb", name: "LHB Coaches", match: ["lhb"] },
-    { id: "chair-car", name: "Chair Car", match: ["chair", "tricolour", "pnb"] },
-    { id: "sleeper", name: "Sleeper", match: ["sleeper", "academy"] },
-    { id: "vistadome", name: "Vistadome", match: ["vistadome"] },
-    { id: "humsafar", name: "Humsafar", match: ["humsafar"] },
-    { id: "bangladesh", name: "Bangladesh", match: ["bangladesh", "international", "maitree"] },
-    { id: "routes", name: "Routes", match: ["route", "scenery", "whr"] },
+    { id: "lhb-coaches", name: "LHB Coaches", match: ["lhb", "coach", "sleeper", "chair", "pantry", "generator"] },
+    { id: "locomotives", name: "Locomotives", match: ["loco", "wap", "wag", "engine"] },
+    { id: "trainboards", name: "Train Boards", match: ["board", "nameplate"] },
+    { id: "routes-scenery", name: "Railway Routes", match: ["route", "scenery", "whr"] },
+    { id: "simulation-assets", name: "Simulation Assets", match: ["simulation", "sim", "asset", "physics", "sound"] },
   ];
 
-  const filteredProducts = products.filter((prod) => {
+  const filteredProducts = products
+    .filter((prod) => prod.status !== "ARCHIVED" && !prod.name.includes("VG ") && !prod.name.includes("VG-") && !prod.slug.startsWith("vg-"))
+    .filter((prod) => {
     let matchesCategory = true;
     if (selectedCategory && selectedCategory.toLowerCase() !== "all") {
       const activeTab = categoryTabs.find(
@@ -544,20 +544,32 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
 
   return (
     <div className="w-full bg-[#F4F7FB] text-[#172033] pb-24 font-josefin">
-      {/* Toast Notification */}
+      {/* Toast Notification - Positioned safely below header in top-right without covering nav or controls */}
       {toastMsg && (
         <div
-          className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl shadow-2xl text-xs font-semibold flex items-center gap-2 border transition-all ${toastMsg.isError
-            ? "bg-rose-900 text-white border-rose-700"
-            : "bg-[#101D35] text-white border-[#00B8D9]"
+          role="status"
+          aria-live="polite"
+          className={`fixed top-20 right-4 sm:right-6 z-[60] max-w-sm w-auto px-5 py-3.5 rounded-2xl shadow-2xl text-xs sm:text-sm font-semibold flex items-center justify-between gap-3 border backdrop-blur-md transition-all ${toastMsg.isError
+            ? "bg-rose-950/90 text-white border-rose-500 shadow-rose-900/30"
+            : "bg-[#101D35]/95 text-white border-[#00B8D9]/70 shadow-cyan-900/30"
             }`}
         >
-          {toastMsg.isError ? (
-            <AlertCircle className="w-4 h-4 text-rose-300" />
-          ) : (
-            <CheckCircle2 className="w-4 h-4 text-[#00B8D9]" />
-          )}
-          <span>{toastMsg.text}</span>
+          <div className="flex items-center gap-2.5">
+            {toastMsg.isError ? (
+              <AlertCircle className="w-4 h-4 text-rose-300 shrink-0" />
+            ) : (
+              <CheckCircle2 className="w-4 h-4 text-[#00B8D9] shrink-0" />
+            )}
+            <span className="leading-snug">{toastMsg.text}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setToastMsg(null)}
+            className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+            aria-label="Dismiss notification"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
       )}
 
@@ -1036,20 +1048,20 @@ export default function ShopClient({ initialProducts, categories }: ShopClientPr
               Are you sure you want to permanently delete <strong>&quot;{deleteProductModal.name}&quot;</strong>?
               This will immediately remove the product from the shop and database.
             </p>
-            <div className="flex gap-3 pt-2">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
               <button
                 type="button"
                 onClick={() => setDeleteProductModal(null)}
-                className="flex-1 py-2.5 rounded-xl border border-gray-300 text-slate-700 text-xs font-bold hover:bg-gray-100"
+                className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 text-xs sm:text-sm font-bold hover:bg-gray-100 transition-colors shadow-xs"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleDeleteProduct}
-                className="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 shadow-md"
+                className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-rose-600 text-white text-xs sm:text-sm font-bold hover:bg-rose-700 transition-colors shadow-md"
               >
-                Delete Permanently
+                Confirm Delete
               </button>
             </div>
           </div>
@@ -1202,12 +1214,12 @@ function QuickPriceModal({
           </div>
         </div>
 
-        <div className="flex gap-3 pt-3 border-t">
+        <div className="sticky bottom-0 bg-white pt-4 pb-1 border-t border-gray-200 mt-4 flex items-center justify-end gap-3 sm:gap-4">
           <button
             type="button"
             disabled={isSaving}
             onClick={onClose}
-            className="flex-1 py-2.5 rounded-xl border border-gray-300 text-gray-700 font-bold hover:bg-gray-100 disabled:opacity-50"
+            className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 font-bold hover:bg-gray-100 transition-colors text-xs sm:text-sm disabled:opacity-50"
           >
             Cancel
           </button>
@@ -1215,7 +1227,7 @@ function QuickPriceModal({
             type="button"
             disabled={isSaving}
             onClick={() => onSave(regularPrice, salePrice)}
-            className={`flex-1 py-2.5 rounded-xl font-bold uppercase transition-all shadow-md ${isSaving
+            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-bold uppercase transition-all shadow-md text-xs sm:text-sm ${isSaving
               ? "bg-gray-400 text-white cursor-not-allowed"
               : "bg-[#101D35] text-white hover:bg-[#174EA6]"
               }`}
@@ -1317,7 +1329,7 @@ function ProductFormDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-gray-200 my-8 space-y-4 text-xs font-josefin">
+      <div className="bg-white rounded-2xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-gray-200 my-8 space-y-4 text-xs font-josefin max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b pb-3">
           <h3 className="text-xl font-bold text-[#101D35]">
             {product ? `Edit Product: ${product.name}` : "Add New Coach or Add-on"}
@@ -1492,17 +1504,17 @@ function ProductFormDialog({
             />
           </div>
 
-          <div className="flex gap-3 pt-4 border-t">
+          <div className="sticky bottom-0 bg-white pt-4 pb-1 border-t border-gray-200 mt-4 flex items-center justify-end gap-3 sm:gap-4">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-xl border border-gray-300 text-gray-700 font-bold hover:bg-gray-100"
+              className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 font-bold hover:bg-gray-100 transition-colors text-xs sm:text-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 rounded-xl bg-[#101D35] text-white hover:bg-[#174EA6] font-bold uppercase transition-all shadow-md"
+              className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-[#101D35] hover:bg-[#174EA6] text-white font-bold uppercase transition-all shadow-md text-xs sm:text-sm"
             >
               {product ? "Save Changes" : "Create Product"}
             </button>
@@ -1553,17 +1565,17 @@ function ProductRenameModal({
             />
           </div>
 
-          <div className="flex gap-2 pt-2">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-200">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2 rounded-xl border border-gray-300 text-gray-700 font-bold hover:bg-gray-100"
+              className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 font-bold hover:bg-gray-100 transition-colors text-xs sm:text-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 py-2 rounded-xl bg-[#101D35] text-white hover:bg-[#174EA6] font-bold uppercase transition-all"
+              className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-[#101D35] hover:bg-[#174EA6] text-white font-bold uppercase transition-all shadow-md text-xs sm:text-sm"
             >
               Save Rename
             </button>
@@ -1692,11 +1704,11 @@ function ProductImageUploadModal({
           </div>
         </div>
 
-        <div className="flex gap-2 pt-3 border-t">
+        <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-200">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-2 rounded-xl border border-gray-300 text-gray-700 font-bold hover:bg-gray-100"
+            className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 font-bold hover:bg-gray-100 transition-colors text-xs sm:text-sm"
           >
             Cancel
           </button>
@@ -1704,7 +1716,7 @@ function ProductImageUploadModal({
             type="button"
             disabled={isUploading || !imageUrl}
             onClick={() => onSave(imageUrl)}
-            className="flex-1 py-2 rounded-xl bg-[#101D35] text-white hover:bg-[#174EA6] font-bold uppercase transition-all disabled:opacity-50"
+            className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-[#101D35] hover:bg-[#174EA6] text-white font-bold uppercase transition-all shadow-md disabled:opacity-50 text-xs sm:text-sm"
           >
             {isUploading ? "Uploading..." : "Save Image"}
           </button>
@@ -1828,12 +1840,12 @@ function ProductOfferModal({
           </div>
         )}
 
-        <div className="flex gap-2 pt-3 border-t">
+        <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-200">
           <button
             type="button"
             disabled={isSaving}
             onClick={onClose}
-            className="flex-1 py-2 rounded-xl border border-gray-300 text-gray-700 font-bold hover:bg-gray-100 disabled:opacity-50"
+            className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 font-bold hover:bg-gray-100 transition-colors text-xs sm:text-sm disabled:opacity-50"
           >
             Cancel
           </button>
@@ -1848,7 +1860,7 @@ function ProductOfferModal({
                 isSpecialOffer ? calculatedSalePrice : null
               )
             }
-            className={`flex-1 py-2 rounded-xl font-bold uppercase transition-all shadow-md ${isSaving
+            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-bold uppercase transition-all shadow-md text-xs sm:text-sm ${isSaving
               ? "bg-gray-400 text-white cursor-not-allowed"
               : "bg-[#FF6B00] text-white hover:bg-[#e05a00]"
               }`}
